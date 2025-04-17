@@ -39,7 +39,7 @@ const SidebarComponent = () => {
                     <img
                         src="https://serviceapi.spicezgold.com/download/1744255975457_logo.jpg"
                         alt=""
-                        className="w-[160px]"
+                        className="w-[200px]"
                     />
                 </Link>
             </div>

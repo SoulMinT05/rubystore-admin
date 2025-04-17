@@ -4,6 +4,7 @@ import { MyContext } from '../../App';
 import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import SidebarComponent from '../../components/SidebarComponent/SidebarComponent';
 import DashboardPage from '../DashboardPage/DashboardPage';
+import { Outlet } from 'react-router-dom';
 
 const MainLayoutPage = () => {
     const context = useContext(MyContext);
@@ -23,7 +24,7 @@ const MainLayoutPage = () => {
                         context.isOpenSidebar ? 'w-[82%]' : 'w-[100%]'
                     }`}
                 >
-                    <DashboardPage />
+                    <Outlet />
                 </div>
             </div>
         </section>

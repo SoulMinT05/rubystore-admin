@@ -1,4 +1,4 @@
-import React, { useState, PureComponent } from 'react';
+import React, { useState, PureComponent, useContext } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import './DashboardPage.scss';
@@ -31,6 +31,7 @@ import ProgressProductStatusComponent from '../../components/ProgressProductStat
 import { AiOutlineEdit } from 'react-icons/ai';
 import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
+import { MyContext } from '../../App';
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -82,6 +83,8 @@ function formatDate(dateString) {
 
 const DashboardPage = () => {
     const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
+    const context = useContext(MyContext);
+
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
     // const [page, setPage] = React.useState(0);
@@ -340,7 +343,11 @@ const DashboardPage = () => {
                         </Select>
                     </div>
 
-                    <div className="col w-[25%] ml-auto flex items-center gap-3">
+                    <div
+                        className={`col ${
+                            context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
+                        }] ml-auto flex items-center gap-3`}
+                    >
                         <Button className="btn !bg-green-500 !text-white !normal-case gap-1">
                             <BiExport />
                             Xuất file

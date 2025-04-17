@@ -65,6 +65,10 @@ body {
     padding: 6px 20px !important;
     font-size: 13px !important;
 }
+.btn-lg {
+    padding: 8px 20px !important;
+    font-size: 16px !important;
+}
 /* ::-webkit-scrollbar {
     width: 10px !important;
     height: 10px !important;
@@ -75,4 +79,11 @@ body {
 }
 th.MuiTableCell-root {
     @apply bg-[#f1f1f1] py-1;
+}
+
+a.active button {
+    background-color: #e8e8e8 !important;
+}
+.css-rizt0-MuiTypography-root {
+    font-size: 14px !important;
 }

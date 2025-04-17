@@ -3,7 +3,41 @@
 @tailwind utilities;
 
 body {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f1f1f1;
+}
+
+.btn-org {
+    background-color: #ff5252 !important;
+    color: #fff !important;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 7px 20px !important;
+}
+.btn-org:hover {
+    background-color: #171717 !important;
+}
+
+.btn-border {
+    background-color: none !important;
+    color: #ff5252 !important;
+    border: 1px solid #ff5252 !important;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 7px 20px !important;
+}
+.btn-border:hover {
+    background-color: #171717 !important;
+    color: #fff !important;
+    border: 1px solid #171717 !important;
+}
+.btn-sm {
+    font-size: 12px !important;
+    padding: 5px 20px !important;
+}
+
+.link:hover {
+    color: #ff5252;
 }
 
 .MuiBadge-badge {
@@ -12,4 +46,33 @@ body {
 
 .ReactCollapse--collapse {
     transition: height 300ms;
+}
+.btn {
+    padding: 8px 20px !important;
+}
+.btn-blue {
+    background-color: #3872fa !important;
+    color: #fff !important;
+    padding: 8px 20px !important;
+}
+.btn-blue:hover {
+    background-color: #3067e5 !important;
+}
+.btn svg {
+    font-size: 16px;
+}
+.btn-sm {
+    padding: 6px 20px !important;
+    font-size: 13px !important;
+}
+/* ::-webkit-scrollbar {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 12px !important;
+} */
+::-webkit-scrollbar-thumb {
+    background-color: #ccc !important;
+}
+th.MuiTableCell-root {
+    @apply bg-[#f1f1f1] py-1;
 }

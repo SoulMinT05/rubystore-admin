@@ -5,7 +5,14 @@ export default {
         './src/**/*.{js,jsx,ts,tsx}', // Quét tất cả các file trong thư mục src
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                primary: '#3872fa',
+            },
+            backgroundColor: {
+                primary: '#3872fa',
+            },
+        },
     },
     plugins: [],
 };

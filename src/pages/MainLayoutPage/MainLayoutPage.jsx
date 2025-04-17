@@ -1,0 +1,33 @@
+import React, { useContext } from 'react';
+import { MyContext } from '../../App';
+
+import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
+import SidebarComponent from '../../components/SidebarComponent/SidebarComponent';
+import DashboardPage from '../DashboardPage/DashboardPage';
+
+const MainLayoutPage = () => {
+    const context = useContext(MyContext);
+    return (
+        <section className="main">
+            <HeaderComponent />
+            <div className="contentMain flex">
+                <div
+                    className={`overflow-hidden sideWrapper transition-all ${
+                        context.isOpenSidebar ? 'w-[18%]' : 'w-0 opacity-0'
+                    }`}
+                >
+                    <SidebarComponent />
+                </div>
+                <div
+                    className={`contentRight px-5 py-4 transition-all ${
+                        context.isOpenSidebar ? 'w-[82%]' : 'w-[100%]'
+                    }`}
+                >
+                    <DashboardPage />
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default MainLayoutPage;

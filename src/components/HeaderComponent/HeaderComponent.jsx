@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import './HeaderComponent.scss';
 
@@ -7,6 +7,7 @@ import { Button, Badge, Tooltip, Menu, MenuItem, Divider } from '@mui/material';
 import { FaRegBell } from 'react-icons/fa';
 import { FaRegUser } from 'react-icons/fa';
 import { IoMdLogOut } from 'react-icons/io';
+import { MyContext } from '../../App';
 
 const HeaderComponent = () => {
     const [anchorMyAccount, setAnchorMyAccount] = useState(null);
@@ -17,10 +18,19 @@ const HeaderComponent = () => {
     const handleCloseMyAccount = () => {
         setAnchorMyAccount(null);
     };
+    const context = useContext(MyContext);
+
     return (
-        <header className="w-full h-[auto] pl-64 py-2 pr-7 shadow-md bg-[#fff] flex items-center justify-between">
+        <header
+            className={`w-full h-[auto] ${
+                context.isOpenSidebar === true ? 'pl-64' : 'pl-5'
+            } py-2 pr-7 shadow-md bg-[#fff] flex items-center justify-between`}
+        >
             <div className="part1">
-                <Button className="!w-[40px] !h-[40px] !rounded-full !min-w-[40px] !text-[rgba(0,0,0,0.8)]">
+                <Button
+                    className="!w-[40px] !h-[40px] !rounded-full !min-w-[40px] !text-[rgba(0,0,0,0.8)]"
+                    onClick={() => context.setIsOpenSidebar(!context.isOpenSidebar)}
+                >
                     <RiMenu2Line className="text-[18px] text-[rgba(0,0,0,0.8)]" />
                 </Button>
             </div>

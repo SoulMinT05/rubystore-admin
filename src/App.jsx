@@ -1,35 +1,39 @@
 import './App.css';
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import DashboardPage from './pages/DashboardPage/DashboardPage';
-import HeaderComponent from './components/HeaderComponent/HeaderComponent';
-import SidebarComponent from './components/SidebarComponent/SidebarComponent';
+import { createContext, useState } from 'react';
+import MainLayoutPage from './pages/MainLayoutPage/MainLayoutPage';
+
+const MyContext = createContext();
 
 function App() {
+    const [isOpenSidebar, setIsOpenSidebar] = useState(true);
+
     const router = createBrowserRouter([
         {
             path: '/',
             exact: true,
             element: (
                 <>
-                    <section className="main">
-                        <HeaderComponent />
-                        <div className="contentMain flex">
-                            <div className="sideWrapper w-[18%]">
-                                <SidebarComponent />
-                            </div>
-                        </div>
-                    </section>
+                    <MainLayoutPage />
                 </>
             ),
         },
     ]);
 
+    const values = {
+        isOpenSidebar,
+        setIsOpenSidebar,
+    };
+
     return (
         <>
-            <RouterProvider router={router} />
+            <MyContext.Provider value={values}>
+                <RouterProvider router={router} />
+            </MyContext.Provider>
         </>
     );
 }
 
 export default App;
+export { MyContext };

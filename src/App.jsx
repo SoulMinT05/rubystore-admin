@@ -31,6 +31,9 @@ import CategoryPage from './pages/CategoryPage/CategoryPage';
 import SubCategoryPage from './pages/SubCategoryPage/SubCategoryPage';
 import StaffPage from './pages/StaffPage/StaffPage';
 import OrderPage from './pages/OrderPage/OrderPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
+import VerifyPage from './pages/VerifyPage/VerifyPage';
+import ChangePasswordPage from './pages/ChangePasswordPage/ChangePasswordPage';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -92,6 +95,18 @@ function App() {
         {
             path: '/register',
             element: <RegisterPage />,
+        },
+        {
+            path: '/forgot-password',
+            element: <ForgotPasswordPage />,
+        },
+        {
+            path: '/verify',
+            element: <VerifyPage />,
+        },
+        {
+            path: '/change-password',
+            element: <ChangePasswordPage />,
         },
     ]);
 

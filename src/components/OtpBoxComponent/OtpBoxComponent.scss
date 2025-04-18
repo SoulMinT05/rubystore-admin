@@ -1,0 +1,28 @@
+// .otpBox input {
+//     border: 1px solid rgba(0, 0, 0, 0.3) !important;
+//     outline: none !important;
+//     border-radius: 4px;
+// }
+// .otpBox input:focus {
+//     border: 1px solid rgba(0, 0, 0, 0.7) !important;
+// }
+// .otpPage .container {
+//     height: 90vh;
+//     display: flex;
+// }
+
+.otpBox {
+    input {
+        border: 1px solid rgba(0, 0, 0, 0.3) !important;
+        outline: none !important;
+        border-radius: 4px;
+
+        :focus {
+            border: 1px solid rgba(0, 0, 0, 0.7) !important;
+        }
+    }
+    .container {
+        height: 90vh;
+        display: flex;
+    }
+}

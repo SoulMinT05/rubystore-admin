@@ -1,7 +1,7 @@
 import './App.css';
 
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { createContext, useState } from 'react';
+import { createContext, forwardRef, useState } from 'react';
 import MainLayoutPage from './pages/MainLayoutPage/MainLayoutPage';
 
 import DashboardPage from './pages/DashboardPage/DashboardPage';
@@ -10,11 +10,30 @@ import ProductPage from './pages/ProductPage/ProductPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 
+import AddProductComponent from './components/AddProductComponent/AddProductComponent';
+
+import Dialog from '@mui/material/Dialog';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import Slide from '@mui/material/Slide';
+
+import { IoMdClose } from 'react-icons/io';
+
+const Transition = forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
+
 const MyContext = createContext();
 
 function App() {
     const [isOpenSidebar, setIsOpenSidebar] = useState(true);
     const [isLogin, setIsLogin] = useState(false);
+    const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
+        open: false,
+        model: '',
+    });
 
     const router = createBrowserRouter([
         {
@@ -54,12 +73,47 @@ function App() {
         setIsOpenSidebar,
         isLogin,
         setIsLogin,
+        isOpenFullScreenPanel,
+        setIsOpenFullScreenPanel,
     };
 
     return (
         <>
             <MyContext.Provider value={values}>
                 <RouterProvider router={router} />
+
+                <Dialog
+                    fullScreen
+                    open={isOpenFullScreenPanel.open}
+                    onClose={() =>
+                        setIsOpenFullScreenPanel({
+                            open: false,
+                        })
+                    }
+                    TransitionComponent={Transition}
+                >
+                    <AppBar sx={{ position: 'relative' }}>
+                        <Toolbar>
+                            <IconButton
+                                edge="start"
+                                color="inherit"
+                                onClick={() =>
+                                    setIsOpenFullScreenPanel({
+                                        open: false,
+                                    })
+                                }
+                                aria-label="close"
+                            >
+                                <IoMdClose className="text-gray-800" />
+                            </IconButton>
+                            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                                <span className="text-gray-800">{isOpenFullScreenPanel?.model}</span>
+                            </Typography>
+                        </Toolbar>
+                    </AppBar>
+
+                    {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
+                </Dialog>
             </MyContext.Provider>
         </>
     );

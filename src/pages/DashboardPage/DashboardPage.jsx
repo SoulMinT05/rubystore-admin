@@ -308,7 +308,15 @@ const DashboardPage = () => {
                     </h1>
                     <p>Đây là những gì đã xảy ra trong ngày hôm nay. Cùng xem qua thống kê nhé!</p>
                     <br />
-                    <Button className="btn-blue !normal-case !gap-2">
+                    <Button
+                        className="btn-blue !normal-case !gap-2"
+                        onClick={() =>
+                            context.setIsOpenFullScreenPanel({
+                                open: true,
+                                model: 'Thêm sản phẩm',
+                            })
+                        }
+                    >
                         <FaPlus />
                         Thêm sản phẩm
                     </Button>
@@ -352,7 +360,17 @@ const DashboardPage = () => {
                             <BiExport />
                             Xuất file
                         </Button>
-                        <Button className="btn-blue !text-white !normal-case">Thêm sản phẩm</Button>
+                        <Button
+                            className="btn-blue !text-white !normal-case"
+                            onClick={() =>
+                                context.setIsOpenFullScreenPanel({
+                                    open: true,
+                                    model: 'Thêm sản phẩm',
+                                })
+                            }
+                        >
+                            Thêm sản phẩm
+                        </Button>
                     </div>
                 </div>
 

@@ -182,12 +182,18 @@ const SidebarComponent = () => {
                                 </Link>
                             </li>
                             <li className="w-full">
-                                <Link to="/products/add">
-                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
-                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                                        Thêm sản phẩm
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm sản phẩm',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm sản phẩm
+                                </Button>
                             </li>
                         </ul>
                     </Collapse>

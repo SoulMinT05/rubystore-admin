@@ -60,7 +60,7 @@ const SidebarComponent = () => {
                         onClick={() => isOpenSubMenu(1)}
                     >
                         <FaRegImage className="text-[18px]" />
-                        <span>Home Sliders</span>
+                        <Link to="/home-banner">Home Sliders</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 1 ? 'rotate-180' : ''}`} />
                         </span>
@@ -95,7 +95,7 @@ const SidebarComponent = () => {
                         onClick={() => isOpenSubMenu(2)}
                     >
                         <FiUsers className="text-[18px]" />
-                        <span>Quản lý người dùng</span>
+                        <Link to="/users">Quản lý người dùng</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 2 ? 'rotate-180' : ''}`} />
                         </span>
@@ -112,12 +112,18 @@ const SidebarComponent = () => {
                                 </Link>
                             </li>
                             <li className="w-full">
-                                <Link to="/users/add">
-                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
-                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                                        Thêm người dùng
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm người dùng',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm người dùng
+                                </Button>
                             </li>
                         </ul>
                     </Collapse>
@@ -130,7 +136,7 @@ const SidebarComponent = () => {
                         onClick={() => isOpenSubMenu(3)}
                     >
                         <FiUserCheck className="text-[18px]" />
-                        <span>Quản lý nhân viên</span>
+                        <Link to="/staffs">Quản lý nhân viên</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 3 ? 'rotate-180' : ''}`} />
                         </span>
@@ -147,12 +153,18 @@ const SidebarComponent = () => {
                                 </Link>
                             </li>
                             <li className="w-full">
-                                <Link to="/staffs/add">
-                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
-                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                                        Thêm nhân viên
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm nhân viên',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm nhân viên
+                                </Button>
                             </li>
                         </ul>
                     </Collapse>
@@ -165,7 +177,7 @@ const SidebarComponent = () => {
                         onClick={() => isOpenSubMenu(4)}
                     >
                         <RiProductHuntLine className="text-[18px]" />
-                        <span>Quản lý sản phẩm</span>
+                        <Link to="/products">Quản lý sản phẩm</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 4 ? 'rotate-180' : ''}`} />
                         </span>
@@ -206,7 +218,7 @@ const SidebarComponent = () => {
                         onClick={() => isOpenSubMenu(5)}
                     >
                         <TbCategory className="text-[18px]" />
-                        <span>Quản lý danh mục</span>
+                        <Link to="/categories">Quản lý danh mục</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 5 ? 'rotate-180' : ''}`} />
                         </span>
@@ -223,12 +235,18 @@ const SidebarComponent = () => {
                                 </Link>
                             </li>
                             <li className="w-full">
-                                <Link to="/categories/add">
-                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
-                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                                        Thêm danh mục
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm danh mục',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm danh mục
+                                </Button>
                             </li>
                             <li className="w-full">
                                 <Link to="/sub-categories">
@@ -239,21 +257,29 @@ const SidebarComponent = () => {
                                 </Link>
                             </li>
                             <li className="w-full">
-                                <Link to="/sub-categories/add">
-                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
-                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                                        Thêm danh mục con
-                                    </Button>
-                                </Link>
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm danh mục con',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm danh mục con
+                                </Button>
                             </li>
                         </ul>
                     </Collapse>
                 </li>
                 <li>
-                    <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
-                        <IoBagCheckOutline className="text-[20px]" />
-                        Quản lý đơn hàng
-                    </Button>
+                    <Link to="/orders">
+                        <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
+                            <IoBagCheckOutline className="text-[20px]" />
+                            Quản lý đơn hàng
+                        </Button>
+                    </Link>
                 </li>
                 <li>
                     <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">

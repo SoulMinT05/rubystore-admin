@@ -5,12 +5,18 @@ import { createContext, forwardRef, useState } from 'react';
 import MainLayoutPage from './pages/MainLayoutPage/MainLayoutPage';
 
 import DashboardPage from './pages/DashboardPage/DashboardPage';
+import UserPage from './pages/UserPage/UserPage';
 import ProductPage from './pages/ProductPage/ProductPage';
 
 import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 
+import AddUserComponent from './components/AddUserComponent/AddUserComponent';
+import AddStaffComponent from './components/AddStaffComponent/AddStaffComponent';
 import AddProductComponent from './components/AddProductComponent/AddProductComponent';
+import AddHomeBannerComponent from './components/AddHomeBannerComponent/AddHomeBannerComponent';
+import AddCategoryComponent from './components/AddCategoryComponent/AddCategoryComponent';
+import AddSubCategoryComponent from './components/AddSubCategoryComponent/AddSubCategoryComponent';
 
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
@@ -20,6 +26,11 @@ import Typography from '@mui/material/Typography';
 import Slide from '@mui/material/Slide';
 
 import { IoMdClose } from 'react-icons/io';
+import HomeBannerPage from './pages/HomeBannerPage/HomeBannerPage';
+import CategoryPage from './pages/CategoryPage/CategoryPage';
+import SubCategoryPage from './pages/SubCategoryPage/SubCategoryPage';
+import StaffPage from './pages/StaffPage/StaffPage';
+import OrderPage from './pages/OrderPage/OrderPage';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -44,18 +55,34 @@ function App() {
                     path: '', // / → mặc định là Dashboard
                     element: <DashboardPage />,
                 },
-                // {
-                //     path: 'users',
-                //     element: <UserPage />,
-                // },
+                {
+                    path: 'home-banner',
+                    element: <HomeBannerPage />,
+                },
+                {
+                    path: 'users',
+                    element: <UserPage />,
+                },
+                {
+                    path: 'staffs',
+                    element: <StaffPage />,
+                },
                 {
                     path: 'products',
                     element: <ProductPage />,
                 },
-                // {
-                //     path: 'orders',
-                //     element: <OrderPage />,
-                // },
+                {
+                    path: 'categories',
+                    element: <CategoryPage />,
+                },
+                {
+                    path: 'sub-categories',
+                    element: <SubCategoryPage />,
+                },
+                {
+                    path: 'orders',
+                    element: <OrderPage />,
+                },
             ],
         },
         {
@@ -112,7 +139,12 @@ function App() {
                         </Toolbar>
                     </AppBar>
 
+                    {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddHomeBannerComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
                 </Dialog>
             </MyContext.Provider>
         </>

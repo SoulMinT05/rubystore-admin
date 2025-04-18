@@ -107,3 +107,6 @@ input[type='number'] {
 .MuiSelect-select {
     background-color: #fff !important;
 }
+.MuiDialog-paper {
+    background-color: #f9fafb !important;
+}

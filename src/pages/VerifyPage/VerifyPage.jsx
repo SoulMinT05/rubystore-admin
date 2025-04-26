@@ -1,26 +1,57 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import './VerifyPage.scss';
-import { Link, NavLink } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Button, CircularProgress } from '@mui/material';
 import { FaRegUser } from 'react-icons/fa6';
 
 import pattern from '../../assets/pattern.webp';
 
 import verify from '../../assets/verify.png';
 import OtpBoxComponent from '../../components/OtpBoxComponent/OtpBoxComponent';
+import { MyContext } from '../../App';
 
 const VerifyPage = () => {
     const [otp, setOtp] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const context = useContext(MyContext);
+    const navigate = useNavigate();
     const handleOtpChange = (value) => {
         setOtp(value);
     };
-    const verifyOtp = (e) => {
+
+    const verifyOtp = async (e) => {
         e.preventDefault();
-        alert(e);
+        setIsLoading(true);
+        try {
+            const token = sessionStorage.getItem('verifyToken');
+            const res = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/staff/verify-email', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token,
+                    otp,
+                }),
+            });
+
+            const data = await res.json();
+            console.log('data: ', data);
+
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                sessionStorage.removeItem('verifyToken');
+                navigate('/login');
+            }
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setIsLoading(false);
+        }
     };
     return (
-        <section className="bg-white w-full h-[100vh]">
+        <section className="bg-white w-full h-[160vh]">
             <header className="w-full fixed top-0 left-0 px-4 py-3 flex items-center justify-between z-50">
                 <Link to="/">
                     <img
@@ -31,12 +62,12 @@ const VerifyPage = () => {
                 </Link>
 
                 <div className="flex items-center gap-0">
-                    <NavLink to="/register" exact={true} activeClassName="isActive">
+                    <Link to="/register">
                         <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-2">
                             <FaRegUser className="text-[15px]" />
                             Đăng ký
                         </Button>
-                    </NavLink>
+                    </Link>
                 </div>
             </header>
 
@@ -55,21 +86,23 @@ const VerifyPage = () => {
                 <br />
 
                 <p className="text-center text-[15px]">
-                    OTP đã được gửi đến
-                    <span className="text-primary font-bold"> tamnguyen@gmail.com</span>
+                    OTP đã được gửi đến {'  '}
+                    <span className="text-primary font-bold">{context?.emailVerify}</span>
                 </p>
 
                 <br />
 
-                <div className="text-center flex items-center justify-center flex-col">
-                    <OtpBoxComponent length={6} onChange={handleOtpChange} />
-                </div>
-                <br />
-                <div className="w-full m-auto">
-                    <Button type="submit" className="w-full btn-blue">
-                        Gửi OTP
-                    </Button>
-                </div>
+                <form onSubmit={verifyOtp}>
+                    <div className="text-center flex items-center justify-center flex-col">
+                        <OtpBoxComponent length={6} onChange={handleOtpChange} />
+                    </div>
+                    <br />
+                    <div className="w-full m-auto">
+                        <Button type="submit" className="w-full btn-blue">
+                            {isLoading === true ? <CircularProgress color="inherit" /> : 'Gửi OTP'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </section>
     );

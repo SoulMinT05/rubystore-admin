@@ -1,16 +1,23 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import './HeaderComponent.scss';
 
 import { RiMenu2Line } from 'react-icons/ri';
-import { Button, Badge, Tooltip, Menu, MenuItem, Divider } from '@mui/material';
+import { Button, CircularProgress, Badge, Tooltip, Menu, MenuItem, Divider } from '@mui/material';
 import { FaRegBell } from 'react-icons/fa';
 import { FaRegUser } from 'react-icons/fa';
 import { IoMdLogOut } from 'react-icons/io';
 import { MyContext } from '../../App';
+import axiosClient from '../../apis/axiosClient';
+import axiosToken from '../../apis/axiosToken';
+import { useNavigate } from 'react-router-dom';
+import { IoKeyOutline } from 'react-icons/io5';
+import Cookies from 'js-cookie';
 
 const HeaderComponent = () => {
     const [anchorMyAccount, setAnchorMyAccount] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
     const open = Boolean(anchorMyAccount);
     const handleClickMyAccount = (event) => {
         setAnchorMyAccount(event.currentTarget);
@@ -18,7 +25,50 @@ const HeaderComponent = () => {
     const handleCloseMyAccount = () => {
         setAnchorMyAccount(null);
     };
+    const navigate = useNavigate();
     const context = useContext(MyContext);
+
+    useEffect(() => {
+        const checkLogin = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/staff/check-login', {
+                    withCredentials: true,
+                });
+                if (data?.success) {
+                    context.setIsLogin(true);
+                } else {
+                    context.setIsLogin(false);
+                }
+            } catch (error) {
+                console.log('errorCheckLogin: ', error);
+                context.setIsLogin(false);
+            }
+        };
+        checkLogin();
+    }, [context?.isLogin]);
+
+    const handleLogout = async () => {
+        setAnchorMyAccount(null);
+        setIsLoading(true);
+        try {
+            const { data } = await axiosToken.post('/api/staff/logout', {
+                withCredentials: true,
+            });
+            if (data.success) {
+                Cookies.remove('accessToken');
+                context.setIsLogin(false);
+                context.openAlertBox('success', data.message);
+                navigate('/login');
+            } else {
+                context.openAlertBox('error', data.message);
+            }
+        } catch (err) {
+            console.log(err);
+            context.openAlertBox('error', err?.response?.data?.message || 'Đã xảy ra lỗi!');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <header
@@ -103,8 +153,8 @@ const HeaderComponent = () => {
                                     </div>
 
                                     <div className="info">
-                                        <h3 className="text-[15px] font-[500] leading-5">Jisoo BlackPink</h3>
-                                        <p className="text-[12px] font-[400] opacity-70">forworkdr@gmail.com</p>
+                                        <h3 className="text-[15px] font-[500] leading-5">{context.userInfo?.name}</h3>
+                                        <p className="text-[12px] font-[400] opacity-70">{context.userInfo?.email}</p>
                                     </div>
                                 </div>
                             </MenuItem>
@@ -114,10 +164,20 @@ const HeaderComponent = () => {
                                 <FaRegUser className="text-[16px]" />
                                 <span className="text-[14px]">Thông tin cá nhân</span>
                             </MenuItem>
+                            <MenuItem onClick={handleCloseMyAccount} className="flex items-center gap-3">
+                                <IoKeyOutline className="text-[16px]" />
+                                <span className="text-[14px]">Đổi mật khẩu</span>
+                            </MenuItem>
 
                             <MenuItem className="flex items-center gap-3" onClick={handleCloseMyAccount}>
-                                <IoMdLogOut className="text-[18px]" />
-                                <span className="text-[14px]">Đăng xuất</span>
+                                {isLoading === true ? (
+                                    <CircularProgress color="inherit" />
+                                ) : (
+                                    <div className="flex gap-2" onClick={handleLogout}>
+                                        <IoMdLogOut className="text-[18px]  text-[#ff5252]" />
+                                        <span className="text-[14px]  text-[#ff5252]">Đăng xuất</span>
+                                    </div>
+                                )}
                             </MenuItem>
                         </Menu>
                     </div>

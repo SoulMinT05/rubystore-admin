@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import './RegisterPage.scss';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CgLogIn } from 'react-icons/cg';
-import { Button, Checkbox, FormControlLabel } from '@mui/material';
-import { FaRegUser } from 'react-icons/fa6';
+import { Button, CircularProgress } from '@mui/material';
 import { FcGoogle } from 'react-icons/fc';
 import { BsFacebook } from 'react-icons/bs';
 import { FaRegEye, FaEyeSlash } from 'react-icons/fa';
 
 import { LoadingButton } from '@mui/lab';
 import pattern from '../../assets/pattern.webp';
+import { MyContext } from '../../App';
 
 const RegisterPage = () => {
     const [loadingGoogle, setLoadingGoogle] = useState(false);
@@ -22,6 +22,65 @@ const RegisterPage = () => {
     };
     const handleClickFacebook = () => {
         setLoadingFacebook(true);
+    };
+
+    const [formFields, setFormFields] = useState({
+        name: '',
+        email: '',
+        password: '',
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const context = useContext(MyContext);
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setFormFields((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const validateValue = Object.values(formFields).every((el) => el);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            if (!validateValue) {
+                context.openAlertBox('error', 'Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            const res = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/staff/register', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                },
+                body: JSON.stringify(formFields),
+            });
+
+            const data = await res.json();
+            console.log('data: ', data);
+            setFormFields({
+                name: '',
+                email: '',
+                password: '',
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.setEmailVerify(formFields?.email);
+                sessionStorage.setItem('verifyToken', data.token);
+                navigate('/verify');
+            } else {
+                context.openAlertBox('error', data.message);
+            }
+        } catch (err) {
+            console.log(err);
+        } finally {
+            setIsLoading(false);
+        }
     };
     return (
         <section className="bg-white w-full">
@@ -55,10 +114,14 @@ const RegisterPage = () => {
                     Hãy đăng ký ngay!
                 </h1>
 
-                <div className="w-full px-8 mt-3">
+                <form onSubmit={handleSubmit} className="w-full px-8 mt-3">
                     <div className="form-group mb-4 w-full">
                         <h4 className="text-[14px] font-[500] mb-1">Họ và tên</h4>
                         <input
+                            name="name"
+                            value={formFields.name}
+                            disabled={isLoading === true ? true : false}
+                            onChange={handleChange}
                             type="text"
                             className="w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                             focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3
@@ -68,6 +131,10 @@ const RegisterPage = () => {
                     <div className="form-group mb-4 w-full">
                         <h4 className="text-[14px] font-[500] mb-1">Email</h4>
                         <input
+                            name="email"
+                            value={formFields.email}
+                            disabled={isLoading === true ? true : false}
+                            onChange={handleChange}
                             type="email"
                             className="w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                             focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3
@@ -78,6 +145,10 @@ const RegisterPage = () => {
                         <h4 className="text-[14px] font-[500] mb-1">Mật khẩu</h4>
                         <div className="relative w-full">
                             <input
+                                name="password"
+                                value={formFields.password}
+                                disabled={isLoading === true ? true : false}
+                                onChange={handleChange}
                                 type={isShowPassword === false ? 'text' : 'password'}
                                 className="w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                             focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3
@@ -96,8 +167,10 @@ const RegisterPage = () => {
                         </div>
                     </div>
 
-                    <Button className="!mt-3 btn-blue btn-lg w-full !normal-case">Đăng ký</Button>
-                </div>
+                    <Button type="submit" className="!mt-3 btn-blue btn-lg w-full !normal-case">
+                        {isLoading === true ? <CircularProgress color="inherit" /> : 'Đăng ký'}
+                    </Button>
+                </form>
 
                 <br />
 

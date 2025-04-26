@@ -1,15 +1,7 @@
 import './App.css';
 
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { createContext, forwardRef, useState } from 'react';
-import MainLayoutPage from './pages/MainLayoutPage/MainLayoutPage';
-
-import DashboardPage from './pages/DashboardPage/DashboardPage';
-import UserPage from './pages/UserPage/UserPage';
-import ProductPage from './pages/ProductPage/ProductPage';
-
-import LoginPage from './pages/LoginPage/LoginPage';
-import RegisterPage from './pages/RegisterPage/RegisterPage';
+import { RouterProvider } from 'react-router-dom';
+import { createContext, forwardRef, useEffect, useState } from 'react';
 
 import AddUserComponent from './components/AddUserComponent/AddUserComponent';
 import AddStaffComponent from './components/AddStaffComponent/AddStaffComponent';
@@ -18,22 +10,19 @@ import AddHomeBannerComponent from './components/AddHomeBannerComponent/AddHomeB
 import AddCategoryComponent from './components/AddCategoryComponent/AddCategoryComponent';
 import AddSubCategoryComponent from './components/AddSubCategoryComponent/AddSubCategoryComponent';
 
+import axiosClient from './apis/axiosClient';
+
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Slide from '@mui/material/Slide';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { IoMdClose } from 'react-icons/io';
-import HomeBannerPage from './pages/HomeBannerPage/HomeBannerPage';
-import CategoryPage from './pages/CategoryPage/CategoryPage';
-import SubCategoryPage from './pages/SubCategoryPage/SubCategoryPage';
-import StaffPage from './pages/StaffPage/StaffPage';
-import OrderPage from './pages/OrderPage/OrderPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
-import VerifyPage from './pages/VerifyPage/VerifyPage';
-import ChangePasswordPage from './pages/ChangePasswordPage/ChangePasswordPage';
+import router from './routes';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -48,67 +37,30 @@ function App() {
         open: false,
         model: '',
     });
+    const [emailVerify, setEmailVerify] = useState('');
+    const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
+    const [userInfo, setUserInfo] = useState(null);
 
-    const router = createBrowserRouter([
-        {
-            path: '/',
-            element: <MainLayoutPage />, // Layout dùng chung
-            children: [
-                {
-                    path: '', // / → mặc định là Dashboard
-                    element: <DashboardPage />,
-                },
-                {
-                    path: 'home-banner',
-                    element: <HomeBannerPage />,
-                },
-                {
-                    path: 'users',
-                    element: <UserPage />,
-                },
-                {
-                    path: 'staffs',
-                    element: <StaffPage />,
-                },
-                {
-                    path: 'products',
-                    element: <ProductPage />,
-                },
-                {
-                    path: 'categories',
-                    element: <CategoryPage />,
-                },
-                {
-                    path: 'sub-categories',
-                    element: <SubCategoryPage />,
-                },
-                {
-                    path: 'orders',
-                    element: <OrderPage />,
-                },
-            ],
-        },
-        {
-            path: '/login',
-            element: <LoginPage />,
-        },
-        {
-            path: '/register',
-            element: <RegisterPage />,
-        },
-        {
-            path: '/forgot-password',
-            element: <ForgotPasswordPage />,
-        },
-        {
-            path: '/verify',
-            element: <VerifyPage />,
-        },
-        {
-            path: '/change-password',
-            element: <ChangePasswordPage />,
-        },
-    ]);
+    useEffect(() => {
+        const getUserDetails = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/staff/user-details');
+                setUserInfo(data?.user);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getUserDetails();
+    }, []);
+
+    const openAlertBox = (status, message) => {
+        if (status === 'success') {
+            toast.success(message);
+        }
+        if (status === 'error') {
+            toast.error(message);
+        }
+    };
 
     const values = {
         isOpenSidebar,
@@ -117,12 +69,21 @@ function App() {
         setIsLogin,
         isOpenFullScreenPanel,
         setIsOpenFullScreenPanel,
+        openAlertBox,
+        emailVerify,
+        setEmailVerify,
+        emailVerifyForgotPassword,
+        setEmailVerifyForgotPassword,
+        userInfo,
+        setUserInfo,
     };
 
     return (
         <>
             <MyContext.Provider value={values}>
                 <RouterProvider router={router} />
+
+                <ToastContainer />
 
                 <Dialog
                     fullScreen

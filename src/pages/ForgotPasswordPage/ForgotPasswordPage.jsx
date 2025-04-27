@@ -1,16 +1,47 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 
 import './ForgotPasswordPage.scss';
-import { Link, NavLink } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Button, CircularProgress } from '@mui/material';
 import { FaRegUser } from 'react-icons/fa6';
 
-import { LoadingButton } from '@mui/lab';
 import pattern from '../../assets/pattern.webp';
+import { MyContext } from '../../App';
+import axiosAuth from '../../apis/axiosAuth';
 
 const ForgotPasswordPage = () => {
+    const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const context = useContext(MyContext);
+    const navigate = useNavigate();
+
+    const forgotPassword = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            if (!email) {
+                context.openAlertBox('error', 'Vui lòng điền email!');
+                return;
+            }
+
+            const { data } = await axiosAuth.post('/api/staff/forgot-password', { email });
+            if (data.success) {
+                context.openAlertBox('success', 'Đã gửi mã xác nhận đến email của bạn!');
+                sessionStorage.setItem('emailVerifyForgotPassword', email);
+                navigate('/verify-password');
+            } else {
+                context.openAlertBox('error', data.message);
+            }
+        } catch (err) {
+            console.log(err);
+            context.openAlertBox('error', err?.response?.data?.message || 'Đã xảy ra lỗi!');
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
-        <section className="bg-white w-full h-[100vh]">
+        <section className="bg-white w-full h-[160vh]">
             <header className="w-full fixed top-0 left-0 px-4 py-3 flex items-center justify-between z-50">
                 <Link to="/">
                     <img
@@ -48,14 +79,20 @@ const ForgotPasswordPage = () => {
                     <div className="form-group mb-4 w-full">
                         <h4 className="text-[14px] font-[500] mb-1">Email</h4>
                         <input
+                            name="email"
+                            value={email}
+                            disabled={isLoading === true ? true : false}
                             type="email"
                             className="w-full h-[50px] border-2 border-[rgba(0,0,0,0.1)] rounded-md
                             focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3
                         "
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
 
-                    <Button className="!mt-2 btn-blue btn-lg w-full !normal-case">Đặt lại mật khẩu</Button>
+                    <Button className="!mt-2 btn-blue btn-lg w-full !normal-case" onClick={forgotPassword}>
+                        {isLoading === true ? <CircularProgress color="inherit" /> : 'Đặt lại mật khẩu'}
+                    </Button>
 
                     <br />
                     <br />

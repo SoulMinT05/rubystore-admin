@@ -10,7 +10,7 @@ import { IoMdLogOut } from 'react-icons/io';
 import { MyContext } from '../../App';
 import axiosClient from '../../apis/axiosClient';
 import axiosToken from '../../apis/axiosToken';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IoKeyOutline } from 'react-icons/io5';
 import Cookies from 'js-cookie';
 
@@ -27,6 +27,21 @@ const HeaderComponent = () => {
     };
     const navigate = useNavigate();
     const context = useContext(MyContext);
+
+    useEffect(() => {
+        const fetchAvatar = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/staff/user-details');
+                if (data?.success && data?.user?.avatar) {
+                    context.setUserInfo(data?.user);
+                }
+            } catch (error) {
+                console.error('Không thể lấy avatar', error);
+            }
+        };
+
+        fetchAvatar();
+    }, [context?.userInfo?.avatar]);
 
     useEffect(() => {
         const checkLogin = async () => {
@@ -97,10 +112,7 @@ const HeaderComponent = () => {
                             className="rounded-full w-[35px] h-[35px] overflow-hidden cursor-pointer"
                             onClick={handleClickMyAccount}
                         >
-                            <img
-                                src="https://i.pinimg.com/736x/d8/8f/a6/d88fa61f19667a9e60eb9a001e9392e6.jpg"
-                                className="w-full h-full object-cover"
-                            ></img>
+                            <img src={context?.userInfo?.avatar} className="w-full h-full object-cover"></img>
                         </div>
 
                         <Menu
@@ -147,7 +159,7 @@ const HeaderComponent = () => {
                                         onClick={handleClickMyAccount}
                                     >
                                         <img
-                                            src="https://i.pinimg.com/736x/d8/8f/a6/d88fa61f19667a9e60eb9a001e9392e6.jpg"
+                                            src={context?.userInfo?.avatar}
                                             className="w-full h-full object-cover"
                                         ></img>
                                     </div>
@@ -160,13 +172,17 @@ const HeaderComponent = () => {
                             </MenuItem>
 
                             <Divider />
-                            <MenuItem className="flex items-center gap-3" onClick={handleCloseMyAccount}>
-                                <FaRegUser className="text-[16px]" />
-                                <span className="text-[14px]">Thông tin cá nhân</span>
+                            <MenuItem onClick={handleCloseMyAccount}>
+                                <Link to="/user-details" className="flex items-center gap-3">
+                                    <FaRegUser className="text-[16px]" />
+                                    <span className="text-[14px]">Thông tin cá nhân</span>
+                                </Link>
                             </MenuItem>
-                            <MenuItem onClick={handleCloseMyAccount} className="flex items-center gap-3">
-                                <IoKeyOutline className="text-[16px]" />
-                                <span className="text-[14px]">Đổi mật khẩu</span>
+                            <MenuItem onClick={handleCloseMyAccount}>
+                                <Link to="/change-password" className="flex items-center gap-3">
+                                    <IoKeyOutline className="text-[16px]" />
+                                    <span className="text-[14px]">Đổi mật khẩu</span>
+                                </Link>
                             </MenuItem>
 
                             <MenuItem className="flex items-center gap-3" onClick={handleCloseMyAccount}>

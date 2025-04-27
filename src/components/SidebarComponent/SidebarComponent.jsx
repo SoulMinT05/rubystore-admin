@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 
 import './SidebarComponent.scss';
 import { Link } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Button, Divider } from '@mui/material';
 
 import { RxDashboard } from 'react-icons/rx';
 import { FaRegImage } from 'react-icons/fa';
@@ -13,6 +13,8 @@ import { TbCategory } from 'react-icons/tb';
 import { IoBagCheckOutline } from 'react-icons/io5';
 import { IoMdLogOut } from 'react-icons/io';
 import { FaAngleDown } from 'react-icons/fa6';
+import { IoKeyOutline } from 'react-icons/io5';
+import { LuUserRoundPen } from 'react-icons/lu';
 
 import { Collapse } from 'react-collapse';
 import { MyContext } from '../../App';
@@ -283,6 +285,28 @@ const SidebarComponent = () => {
                         </Button>
                     </Link>
                 </li>
+
+                <Divider />
+
+                {/* Update info */}
+                <li>
+                    <Link to="/user-details">
+                        <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
+                            <LuUserRoundPen className="text-[20px]" />
+                            Thông tin cá nhân
+                        </Button>
+                    </Link>
+                </li>
+
+                <li>
+                    <Link to="/change-password">
+                        <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
+                            <IoKeyOutline className="text-[20px]" />
+                            Đổi mật khẩu
+                        </Button>
+                    </Link>
+                </li>
+
                 <li>
                     <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
                         <IoMdLogOut className="text-[20px] !text-[#ff5252]" />

@@ -14,9 +14,12 @@ import SubCategoryPage from '../pages/SubCategoryPage/SubCategoryPage';
 import LoginPage from '../pages/LoginPage/LoginPage';
 import RegisterPage from '../pages/RegisterPage/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage/ForgotPasswordPage';
-import VerifyPage from '../pages/VerifyPage/VerifyPage';
+import VerifyPasswordPage from '../pages/VerifyPasswordPage/VerifyPasswordPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage/ResetPasswordPage';
 import ChangePasswordPage from '../pages/ChangePasswordPage/ChangePasswordPage';
 import PrivateRoute from './PrivateRoute';
+import VerifyPage from '../pages/VerifyPage/VerifyPage';
+import MyAccountPage from '../pages/MyAccountPage/MyAccountPage';
 
 const router = createBrowserRouter([
     {
@@ -87,6 +90,14 @@ const router = createBrowserRouter([
                     </PrivateRoute>
                 ),
             },
+            {
+                path: '/user-details',
+                element: <MyAccountPage />,
+            },
+            {
+                path: '/change-password',
+                element: <ChangePasswordPage />,
+            },
         ],
     },
     {
@@ -102,12 +113,16 @@ const router = createBrowserRouter([
         element: <ForgotPasswordPage />,
     },
     {
-        path: '/verify',
-        element: <VerifyPage />,
+        path: '/verify-password',
+        element: <VerifyPasswordPage />,
     },
     {
-        path: '/change-password',
-        element: <ChangePasswordPage />,
+        path: '/reset-password',
+        element: <ResetPasswordPage />,
+    },
+    {
+        path: '/verify',
+        element: <VerifyPage />,
     },
 ]);
 

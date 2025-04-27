@@ -23,6 +23,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { IoMdClose } from 'react-icons/io';
 import router from './routes';
+import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -46,6 +47,7 @@ function App() {
             try {
                 const { data } = await axiosClient.get('/api/staff/user-details');
                 setUserInfo(data?.user);
+                setIsLogin(true);
             } catch (error) {
                 console.log(error);
             }
@@ -121,6 +123,7 @@ function App() {
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
                 </Dialog>
             </MyContext.Provider>
         </>

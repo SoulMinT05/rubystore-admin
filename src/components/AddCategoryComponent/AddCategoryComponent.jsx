@@ -18,6 +18,7 @@ const AddCategoryComponent = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
 
+    const { setCategories } = useContext(MyContext);
     const context = useContext(MyContext);
 
     const handleChange = (e) => {
@@ -68,6 +69,7 @@ const AddCategoryComponent = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
+                setCategories((prev) => [...prev, data?.newCategory]);
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });

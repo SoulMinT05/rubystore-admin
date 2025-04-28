@@ -20,6 +20,7 @@ const UpdateCategoryComponent = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
 
+    const { setCategories } = useContext(MyContext);
     const context = useContext(MyContext);
     const { id } = context.isOpenFullScreenPanel || {};
 
@@ -111,6 +112,13 @@ const UpdateCategoryComponent = () => {
 
             if (data.success) {
                 context.openAlertBox('success', data.message);
+                setCategories((prev) => {
+                    return prev.map((category) =>
+                        category._id === data?.updatedCategory._id
+                            ? { ...category, name: data?.updatedCategory.name, images: data?.updatedCategory.images }
+                            : category,
+                    );
+                });
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });

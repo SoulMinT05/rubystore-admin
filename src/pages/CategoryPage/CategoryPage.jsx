@@ -2,12 +2,12 @@ import React, { useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
 import './CategoryPage.scss';
+import * as XLSX from 'xlsx';
 import { Button, MenuItem, Select, Checkbox, Tooltip, Pagination, CircularProgress } from '@mui/material';
 import { BiExport } from 'react-icons/bi';
 import { MyContext } from '../../App';
 import { Link } from 'react-router-dom';
 import { AiOutlineEdit } from 'react-icons/ai';
-import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
 import axiosClient from '../../apis/axiosClient';
@@ -19,11 +19,60 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 const CategoryPage = () => {
+    const { categories, setCategories } = useContext(MyContext);
+    const context = useContext(MyContext);
     const [categoryFilterVal, setCategoryFilterVal] = useState('');
     const [categoryId, setCategoryId] = useState(null);
-    const [categories, setCategories] = useState([]);
+
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckedAll, setIsCheckedAll] = useState(false);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+
+    const handleExportExcel = () => {
+        const ws = XLSX.utils.json_to_sheet(
+            categories.map((category) => ({
+                'Hình ảnh': category.images.length > 0 ? category.images[0] : 'Không có hình ảnh',
+                'Tên danh mục': category.name,
+            })),
+        );
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Danh mục');
+
+        // Xuất file Excel
+        XLSX.writeFile(wb, 'DanhMuc.xlsx');
+    };
+
+    const handleSelectCategory = (categoryId) => {
+        setSelectedCategories((prevSelectedCategories) => {
+            let updatedSelectedCategories;
+
+            if (prevSelectedCategories.includes(categoryId)) {
+                // Nếu đã chọn thì bỏ chọn
+                updatedSelectedCategories = prevSelectedCategories.filter((id) => id !== categoryId);
+            } else {
+                // Nếu chưa chọn thì chọn
+                updatedSelectedCategories = [...prevSelectedCategories, categoryId];
+            }
+
+            const allSelected = updatedSelectedCategories.length === categories.length;
+            setIsCheckedAll(allSelected);
+
+            return updatedSelectedCategories;
+        });
+    };
+
+    const handleSelectAll = () => {
+        setIsCheckedAll(!isCheckedAll);
+        if (!isCheckedAll) {
+            // Chọn tất cả các danh mục
+            setSelectedCategories(categories.map((category) => category._id));
+        } else {
+            // Bỏ chọn tất cả
+            setSelectedCategories([]);
+        }
+    };
 
     const handleClickOpen = (id) => {
         setOpen(true);
@@ -51,10 +100,6 @@ const CategoryPage = () => {
         getCategories();
     }, []);
 
-    console.log('categories: ', categories);
-
-    const context = useContext(MyContext);
-
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
     const handleChangeCategoryFilterVal = (event) => {
@@ -62,7 +107,6 @@ const CategoryPage = () => {
     };
 
     const handleDeleteCategory = async () => {
-        console.log('categoryId: ', categoryId);
         setIsLoading(true);
         try {
             const { data } = await axiosClient.delete(`/api/category/${categoryId}`);
@@ -89,7 +133,7 @@ const CategoryPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    <Button className="btn !bg-green-500 !text-white !normal-case gap-1">
+                    <Button className="btn !bg-green-500 !text-white !normal-case gap-1" onClick={handleExportExcel}>
                         <BiExport />
                         Xuất file
                     </Button>
@@ -141,7 +185,12 @@ const CategoryPage = () => {
                             <tr>
                                 <th scope="col" className="px-6 pr-0 py-2 ">
                                     <div className="w-[60px]">
-                                        <Checkbox {...label} size="small" />
+                                        <Checkbox
+                                            {...label}
+                                            checked={isCheckedAll}
+                                            onChange={handleSelectAll}
+                                            size="small"
+                                        />
                                     </div>
                                 </th>
                                 <th scope="col" className="px-0 py-3 whitespace-nowrap">
@@ -157,10 +206,15 @@ const CategoryPage = () => {
                         </thead>
                         <tbody>
                             {categories?.map((category) => (
-                                <tr key={category?._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                <tr key={category._id} className="odd:bg-white  even:bg-gray-50 border-b">
                                     <td className="px-6 pr-0 py-2">
                                         <div className="w-[60px]">
-                                            <Checkbox {...label} size="small" />
+                                            <Checkbox
+                                                {...label}
+                                                checked={selectedCategories.includes(category._id)}
+                                                onChange={() => handleSelectCategory(category._id)}
+                                                size="small"
+                                            />
                                         </div>
                                     </td>
                                     <td className="px-0 py-2">

@@ -43,6 +43,7 @@ function App() {
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
+    const [categories, setCategories] = useState([]);
 
     useEffect(() => {
         const getUserDetails = async () => {
@@ -79,6 +80,8 @@ function App() {
         setEmailVerifyForgotPassword,
         userInfo,
         setUserInfo,
+        categories,
+        setCategories,
     };
 
     return (

@@ -3,7 +3,11 @@ import { FaRegImages } from 'react-icons/fa6';
 
 import './UploadImageComponent.scss';
 
-const UploadImageComponent = ({ multiple }) => {
+const UploadImageComponent = ({ multiple, onUpload }) => {
+    const handleChange = (e) => {
+        const files = Array.from(e.target.files);
+        onUpload(files);
+    };
     return (
         <div
             className="uploadBox p-3 rounded-md overflow-hidden border border-dashed border-[rgba(0,0,0,0.3)] h-[150px] w-[100%] 
@@ -15,6 +19,7 @@ const UploadImageComponent = ({ multiple }) => {
                 multiple={multiple !== undefined ? multiple : false}
                 type="file"
                 className="absolute top-0 left-0 w-full h-full z-50 opacity-0 "
+                onChange={handleChange}
             />
         </div>
     );

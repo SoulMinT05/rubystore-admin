@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -34,7 +34,7 @@ axiosClient.interceptors.response.use(
     async (err) => {
         const originalRequest = err.config;
 
-        if (err.response.status === 401 && !originalRequest._retry) {
+        if (err.response && err.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {

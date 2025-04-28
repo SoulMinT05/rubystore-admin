@@ -24,6 +24,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { IoMdClose } from 'react-icons/io';
 import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
+import UpdateCategoryComponent from './components/UpdateCategoryComponent/UpdateCategoryComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -33,10 +34,11 @@ const MyContext = createContext();
 
 function App() {
     const [isOpenSidebar, setIsOpenSidebar] = useState(true);
-    const [isLogin, setIsLogin] = useState(false);
+    const [isLogin, setIsLogin] = useState(true);
     const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
         open: false,
         model: '',
+        id: '',
     });
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
@@ -47,7 +49,6 @@ function App() {
             try {
                 const { data } = await axiosClient.get('/api/staff/user-details');
                 setUserInfo(data?.user);
-                setIsLogin(true);
             } catch (error) {
                 console.log(error);
             }
@@ -122,6 +123,7 @@ function App() {
                     {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
                 </Dialog>

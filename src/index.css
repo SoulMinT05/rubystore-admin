@@ -40,6 +40,10 @@ body {
     color: #ff5252;
 }
 
+.btn-red {
+    color: #ff5252 !important;
+}
+
 .MuiBadge-badge {
     background-color: #ff5252 !important ;
 }

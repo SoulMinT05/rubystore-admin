@@ -44,6 +44,7 @@ function App() {
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
 
     useEffect(() => {
         const getUserDetails = async () => {
@@ -56,6 +57,27 @@ function App() {
         };
         getUserDetails();
     }, []);
+
+    useEffect(() => {
+        const getCategories = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/category/all-categories');
+                setCategories(data?.categories);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getCategories();
+    }, []);
+
+    const getCategories = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/category/all-categories');
+            setCategories(data?.categories);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const openAlertBox = (status, message) => {
         if (status === 'success') {
@@ -82,6 +104,9 @@ function App() {
         setUserInfo,
         categories,
         setCategories,
+        subCategories,
+        setSubCategories,
+        getCategories,
     };
 
     return (

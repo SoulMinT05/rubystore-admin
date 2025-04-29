@@ -29,6 +29,18 @@ const CategoryPage = () => {
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
 
+    const itemsPerPage = 5;
+    // State lưu trang hiện tại
+    const [currentPage, setCurrentPage] = useState(1);
+    // Tính tổng số trang
+    const totalPages = Math.ceil(categories.length / itemsPerPage);
+    // Xử lý khi đổi trang
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+    };
+    // Cắt dữ liệu theo trang
+    const currentCategories = categories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
             categories.map((category) => ({
@@ -98,7 +110,7 @@ const CategoryPage = () => {
             }
         };
         getCategories();
-    }, []);
+    }, [context?.isOpenFullScreenPanel]);
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
@@ -205,7 +217,7 @@ const CategoryPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {categories?.map((category) => (
+                            {currentCategories?.map((category) => (
                                 <tr key={category._id} className="odd:bg-white  even:bg-gray-50 border-b">
                                     <td className="px-6 pr-0 py-2">
                                         <div className="w-[60px]">
@@ -267,7 +279,7 @@ const CategoryPage = () => {
                 </div>
 
                 <div className="flex items-center justify-center pt-5 pb-5 px-4">
-                    <Pagination count={10} color="primary" />
+                    <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                 </div>
             </div>
 

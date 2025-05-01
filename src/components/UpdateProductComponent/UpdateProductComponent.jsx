@@ -1,4 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+
+import './UpdateProductComponent.scss';
+import UploadImageComponent from '../UploadImageComponent/UploadImageComponent';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
@@ -6,16 +11,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
-import './AddProductComponent.scss';
-import UploadImageComponent from '../UploadImageComponent/UploadImageComponent';
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
-
 import { IoMdClose } from 'react-icons/io';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import { Button, CircularProgress } from '@mui/material';
-import { MyContext } from '../../App';
 import axiosClient from '../../apis/axiosClient';
+import { MyContext } from '../../App';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -28,11 +28,13 @@ const MenuProps = {
     },
 };
 
-const AddProductComponent = () => {
+const UpdateProductComponent = () => {
     const [formFields, setFormFields] = useState({
         name: '',
+        images: [], // ảnh cũ từ server trả về
+        newImages: [], // ảnh mới hoặc preview ảnh mới
+        deletedImages: [], // những ảnh user bấm xoá
         description: '',
-        images: [],
         brand: '',
         price: '',
         oldPrice: '',
@@ -51,50 +53,105 @@ const AddProductComponent = () => {
         productWeight: [],
     });
     const [isLoading, setIsLoading] = useState(false);
-    const { setProducts } = useContext(MyContext);
 
     const [productCategory, setProductCategory] = useState('');
     const [productSubCategory, setProductSubCategory] = useState('');
     const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
     const [productIsFeatured, setProductIsFeatured] = useState('');
     const [productIsPublished, setProductIsPublished] = useState('');
-    const [productRams, setProductRams] = useState([]);
+    const [productRam, setProductRam] = useState([]);
     const [productWeight, setProductWeight] = useState([]);
     const [productSize, setProductSize] = useState([]);
 
     const context = useContext(MyContext);
+    const { id } = context.isOpenFullScreenPanel || {};
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const { data } = await axiosClient.get(`/api/product/${id}`);
+                if (data.success) {
+                    setFormFields((prev) => ({
+                        ...prev,
+                        name: data?.product?.name,
+                        newImages: data?.product?.images,
+                        description: data?.product?.description,
+                        brand: data?.product?.brand,
+                        price: data?.product?.price,
+                        oldPrice: data?.product?.oldPrice,
+                        categoryId: data?.product?.categoryId,
+                        categoryName: data?.product?.categoryName,
+                        subCategoryId: data?.product?.subCategoryId,
+                        subCategoryName: data?.product?.subCategoryName,
+                        thirdSubCategoryId: data?.product?.thirdSubCategoryId,
+                        thirdSubCategoryName: data?.product?.thirdSubCategoryName,
+                        countInStock: data?.product?.countInStock,
+                        isFeatured: data?.product?.isFeatured,
+                        isPublished: data?.product?.isPublished,
+                        discount: data?.product?.discount,
+                        productRam: data?.product?.productRam,
+                        productSize: data?.product?.productSize,
+                        productWeight: data?.product?.productWeight,
+                    }));
+                    setProductCategory(data.product.categoryId);
+                    setProductSubCategory(data.product.subCategoryId);
+                    setProductThirdSubCategory(data.product.thirdSubCategoryId);
+                    setProductIsFeatured(data.product.isFeatured);
+                    setProductIsPublished(data.product.isPublished);
+                    setProductRam(data.product.productRam);
+                    setProductWeight(data.product.productWeight);
+                    setProductSize(data.product.productSize);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormFields(() => {
-            return {
-                ...formFields,
-                [name]: value,
-            };
-        });
-    };
+        fetchProduct();
+    }, [id]);
+
     const handleChangeProductCategory = (event) => {
-        setProductCategory(event.target.value);
-        formFields.categoryId = event.target.value;
+        const id = event.target.value;
+        setProductCategory(id);
+        setFormFields((prev) => ({
+            ...prev,
+            categoryId: id,
+        }));
     };
     const selectCategoryByName = (name) => {
-        formFields.categoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            categoryName: name,
+        }));
     };
 
     const handleChangeProductSubCategory = (event) => {
-        setProductSubCategory(event.target.value);
-        formFields.subCategoryId = event.target.value;
+        const id = event.target.value;
+        setProductSubCategory(id);
+        setFormFields((prev) => ({
+            ...prev,
+            subCategoryId: id,
+        }));
     };
     const selectSubCategoryByName = (name) => {
-        formFields.subCategoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            subCategoryName: name,
+        }));
     };
 
     const handleChangeProductThirdSubCategory = (event) => {
-        setProductThirdSubCategory(event.target.value);
-        formFields.thirdSubCategoryId = event.target.value;
+        const id = event.target.value;
+        setProductThirdSubCategory(id);
+        setFormFields((prev) => ({
+            ...prev,
+            thirdSubCategoryId: id,
+        }));
     };
     const selectThirdSubCategoryByName = (name) => {
-        formFields.thirdSubCategoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            thirdSubCategoryName: name,
+        }));
     };
     const handleChangeProductIsFeatured = (event) => {
         setProductIsFeatured(event.target.value);
@@ -105,9 +162,9 @@ const AddProductComponent = () => {
         formFields.isPublished = event.target.value;
     };
 
-    const handleChangeProductRams = (event) => {
+    const handleChangeProductRam = (event) => {
         const { value } = event.target;
-        setProductRams(typeof value === 'string' ? value.split('') : value);
+        setProductRam(typeof value === 'string' ? value.split('') : value);
         formFields.productRam = value;
     };
     const handleChangeProductWeight = (event) => {
@@ -121,6 +178,16 @@ const AddProductComponent = () => {
         formFields.productSize = value;
     };
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormFields(() => {
+            return {
+                ...formFields,
+                [name]: value,
+            };
+        });
+    };
+
     const handleUploadImages = (files) => {
         const imagesArray = files.map((file) => ({
             file,
@@ -129,24 +196,41 @@ const AddProductComponent = () => {
 
         setFormFields((prev) => ({
             ...prev,
-            images: [...prev.images, ...imagesArray],
+            newImages: [...prev.newImages, ...imagesArray],
         }));
     };
 
-    const handleRemoveImage = (index) => {
-        const newImages = [...formFields.images];
-        newImages.splice(index, 1);
-        setFormFields((prev) => ({
-            ...prev,
-            images: newImages,
-        }));
+    const handleRemoveImage = (index, imgUrl) => {
+        const isConfirmed = window.confirm('Bạn có chắc chắn muốn xóa ảnh này?');
+        if (!isConfirmed) return;
+
+        let deletedImage = null;
+
+        setFormFields((prev) => {
+            const newImages = [...prev.newImages];
+            const targetImage = newImages[index];
+
+            deletedImage = targetImage.file ? imgUrl : targetImage;
+
+            newImages.splice(index, 1);
+
+            return {
+                ...prev,
+                newImages,
+                deletedImages: [...prev.deletedImages, deletedImage],
+            };
+        });
+
+        // Gọi context sau khi state được cập nhật (ngay sau setFormFields)
+        context.openAlertBox('success', 'Xoá ảnh thành công');
     };
 
-    const handleSubmit = async (e) => {
+    const handleUpdateProduct = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
             const formData = new FormData();
+
             formData.append('name', formFields.name);
             formData.append('description', formFields.description);
             formData.append('brand', formFields.brand);
@@ -163,12 +247,6 @@ const AddProductComponent = () => {
             formData.append('isPublished', formFields.isPublished);
             formData.append('discount', formFields.discount);
 
-            // Append hình ảnh
-            formFields.images.forEach((img) => {
-                formData.append('images', img.file);
-            });
-
-            // Append mảng (RAM, size, weight)
             formFields.productRam.forEach((item) => {
                 formData.append('productRam', item);
             });
@@ -179,23 +257,59 @@ const AddProductComponent = () => {
                 formData.append('productWeight', item);
             });
 
-            const { data } = await axiosClient.post('/api/product/create', formData, {
+            // Images
+            formData.append('deletedImages', JSON.stringify(formFields.deletedImages));
+            formFields.newImages.forEach((img) => {
+                if (img.file) {
+                    formData.append('images', img.file);
+                }
+            });
+
+            const { data } = await axiosClient.put(`/api/product/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            console.log('dataUpdate: ', data);
+
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                setProducts((prev) => [...prev, data?.newProduct]);
+                // setProducts((prev) => {
+                //     return prev.map((product) =>
+                //         product._id === data?.updatedProduct._id
+                //             ? {
+                //                   ...product,
+                //                   name: data?.updatedProduct.name,
+                //                   images: data?.updatedProduct.images,
+                //                   description: data?.updatedProduct.description,
+                //                   brand: data?.updatedProduct.brand,
+                //                   price: data?.updatedProduct.price,
+                //                   oldPrice: data?.updatedProduct.oldPrice,
+                //                   categoryId: data?.updatedProduct.categoryId,
+                //                   categoryName: data?.updatedProduct.categoryName,
+                //                   subCategoryId: data?.updatedProduct.subCategoryId,
+                //                   subCategoryName: data?.updatedProduct.subCategoryName,
+                //                   thirdSubCategoryId: data?.updatedProduct.thirdSubCategoryId,
+                //                   thirdSubCategoryName: data?.updatedProduct.thirdSubCategoryName,
+                //                   countInStock: data?.updatedProduct.countInStock,
+                //                   isFeatured: data?.updatedProduct.isFeatured,
+                //                   isPublished: data?.updatedProduct.isPublished,
+                //                   discount: data?.updatedProduct.discount,
+                //                   productRam: data?.updatedProduct.productRam,
+                //                   productSize: data?.updatedProduct.productSize,
+                //                   productWeight: data?.updatedProduct.productWeight,
+                //               }
+                //             : product,
+                //     );
+                // });
+                context.getProducts();
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });
-            } else {
-                context.openAlertBox('error', data.message);
             }
         } catch (error) {
-            console.log(error);
-            context.openAlertBox('error', error.response.data.message);
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
             setIsLoading(false);
         }
@@ -203,7 +317,7 @@ const AddProductComponent = () => {
 
     return (
         <section className="p-5 bg-gray-50">
-            <form className="form p-8 py-3 max-h-[800px]" onSubmit={handleSubmit}>
+            <form className="form p-8 py-3 max-h-[800px] ">
                 <div className="scroll overflow-y-scroll">
                     <div className="grid grid-cols-1 mb-3">
                         <div className="col">
@@ -212,9 +326,9 @@ const AddProductComponent = () => {
                                 name="name"
                                 value={formFields.name}
                                 disabled={isLoading === true ? true : false}
-                                onChange={handleChange}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
+                                onChange={handleChange}
                             />
                         </div>
                     </div>
@@ -246,7 +360,11 @@ const AddProductComponent = () => {
                                 >
                                     {context?.categories?.map((cat) => {
                                         return (
-                                            <MenuItem value={cat?._id} onClick={() => selectCategoryByName(cat?.name)}>
+                                            <MenuItem
+                                                key={cat?._id}
+                                                value={cat?._id}
+                                                onClick={() => selectCategoryByName(cat?.name)}
+                                            >
                                                 {cat?.name}
                                             </MenuItem>
                                         );
@@ -272,6 +390,7 @@ const AddProductComponent = () => {
                                             cat?.children.map((subCat) => {
                                                 return (
                                                     <MenuItem
+                                                        key={subCat?._id}
                                                         value={subCat?._id}
                                                         onClick={() => selectSubCategoryByName(subCat?.name)}
                                                     >
@@ -305,6 +424,7 @@ const AddProductComponent = () => {
                                                     subCat?.children?.map((thirdCat) => {
                                                         return (
                                                             <MenuItem
+                                                                key={thirdCat?._id}
                                                                 value={thirdCat?._id}
                                                                 onClick={() =>
                                                                     selectThirdSubCategoryByName(thirdCat?.name)
@@ -411,13 +531,13 @@ const AddProductComponent = () => {
                             <Select
                                 multiple
                                 labelId="demo-simple-select-label"
-                                id="productRamsDrop"
+                                id="productRamDrop"
                                 size="small"
                                 className="w-full"
-                                value={productRams}
+                                value={productRam}
                                 label="Trạng thái"
                                 MenuProps={MenuProps}
-                                onChange={handleChangeProductRams}
+                                onChange={handleChangeProductRam}
                             >
                                 <MenuItem value={'4GB'}>4GB</MenuItem>
                                 <MenuItem value={'8GB'}>8GB</MenuItem>
@@ -465,45 +585,42 @@ const AddProductComponent = () => {
 
                     <div className="col w-full p-5 px-0">
                         <h3 className="font-[700] text-[18px] mb-3">Hình ảnh</h3>
-
                         <div className="grid grid-cols-7 gap-4">
-                            {formFields?.images?.map((img, index) => (
+                            {formFields?.newImages?.map((img, index) => (
                                 <div className="uploadBoxWrapper relative" key={index}>
                                     <span
-                                        onClick={() => handleRemoveImage(index)}
                                         className="absolute w-[25px] h-[25px] rounded-full overflow-hidden bg-red-700 -top-[10px] -right-[10px] z-50 flex items-center justify-center cursor-pointer"
+                                        onClick={() => handleRemoveImage(index, img || img.preview)}
                                     >
                                         <IoMdClose className="text-white text-[20px]" />
                                     </span>
                                     <div
                                         className="uploadBox p-0 rounded-md overflow-hidden border border-dashed border-[rgba(0,0,0,0.3)] h-[150px] w-[100%] 
-                                    bg-gray-100 cursor-pointer hover:bg-gray-200 flex items-center justify-center flex-col relative"
+            bg-gray-100 cursor-pointer hover:bg-gray-200 flex items-center justify-center flex-col relative"
                                     >
                                         <LazyLoadImage
-                                            alt={'Image add product'}
+                                            alt={'Image preview'}
                                             className="w-full h-full object-cover"
                                             effect="blur"
-                                            wrapperProps={{
-                                                // If you need to, you can tweak the effect transition using the wrapper style.
-                                                style: { transitionDelay: '0.3s' },
-                                            }}
-                                            src={img?.preview}
+                                            wrapperProps={{ style: { transitionDelay: '0.3s' } }}
+                                            src={img?.preview || img}
                                         />
                                     </div>
                                 </div>
                             ))}
+
                             <UploadImageComponent multiple={true} onUpload={handleUploadImages} />
                         </div>
                     </div>
 
                     <br />
-                    <Button type="submit" className="btn-blue w-full !normal-case flex gap-2">
+                    <Button onClick={handleUpdateProduct} className="btn-blue w-full !normal-case flex gap-2">
                         {isLoading === true ? (
                             <CircularProgress color="inherit" />
                         ) : (
                             <>
                                 <FaCloudUploadAlt className="text-[25px] text-white" />
-                                <span className="text-[16px]">Thêm sản phẩm</span>
+                                <span className="text-[16px]">Cập nhật sản phẩm</span>
                             </>
                         )}
                     </Button>
@@ -513,4 +630,4 @@ const AddProductComponent = () => {
     );
 };
 
-export default AddProductComponent;
+export default UpdateProductComponent;

@@ -25,6 +25,7 @@ import { IoMdClose } from 'react-icons/io';
 import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
 import UpdateCategoryComponent from './components/UpdateCategoryComponent/UpdateCategoryComponent';
+import UpdateProductComponent from './components/UpdateProductComponent/UpdateProductComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -43,6 +44,7 @@ function App() {
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
+    const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
 
@@ -78,6 +80,14 @@ function App() {
             console.log(error);
         }
     };
+    const getProducts = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/product/all-products-admin');
+            setProducts(data?.products);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const openAlertBox = (status, message) => {
         if (status === 'success') {
@@ -102,11 +112,14 @@ function App() {
         setEmailVerifyForgotPassword,
         userInfo,
         setUserInfo,
+        products,
+        setProducts,
         categories,
         setCategories,
         subCategories,
         setSubCategories,
         getCategories,
+        getProducts,
     };
 
     return (
@@ -150,6 +163,7 @@ function App() {
                     {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}

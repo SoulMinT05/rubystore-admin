@@ -67,25 +67,27 @@ const UpdateCategoryComponent = () => {
 
     const handleRemoveImage = (index, imgUrl) => {
         const isConfirmed = window.confirm('Bạn có chắc chắn muốn xóa ảnh này?');
-        if (isConfirmed) {
-            setFormFields((prev) => {
-                const newImages = [...prev.newImages]; // lấy từ prev
-                const targetImage = newImages[index];
+        if (!isConfirmed) return;
 
-                const deletedImage = targetImage.file ? imgUrl : targetImage;
+        let deletedImage = null;
 
-                newImages.splice(index, 1);
+        setFormFields((prev) => {
+            const newImages = [...prev.newImages];
+            const targetImage = newImages[index];
 
-                const updatedFormFields = {
-                    ...prev,
-                    newImages,
-                    deletedImages: [...prev.deletedImages, deletedImage],
-                };
+            deletedImage = targetImage.file ? imgUrl : targetImage;
 
-                return updatedFormFields;
-            });
-            context.openAlertBox('success', 'Xoá ảnh thành công');
-        }
+            newImages.splice(index, 1);
+
+            return {
+                ...prev,
+                newImages,
+                deletedImages: [...prev.deletedImages, deletedImage],
+            };
+        });
+
+        // Gọi context sau khi state được cập nhật (ngay sau setFormFields)
+        context.openAlertBox('success', 'Xoá ảnh thành công');
     };
 
     const handleUpdateCategory = async (e) => {

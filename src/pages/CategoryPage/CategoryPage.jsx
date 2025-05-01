@@ -70,21 +70,33 @@ const CategoryPage = () => {
 
             const allSelected = updatedSelectedCategories.length === categories.length;
             setIsCheckedAll(allSelected);
+            const allSelectedOnPage = currentCategories.every((category) =>
+                updatedSelectedCategories.includes(category._id),
+            );
+            setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedCategories;
         });
     };
 
     const handleSelectAll = () => {
-        setIsCheckedAll(!isCheckedAll);
+        const currentPageIds = currentCategories.map((category) => category._id);
         if (!isCheckedAll) {
-            // Chọn tất cả các danh mục
-            setSelectedCategories(categories.map((category) => category._id));
+            // Thêm các sản phẩm ở trang hiện tại
+            const newSelected = Array.from(new Set([...selectedCategories, ...currentPageIds]));
+            setSelectedCategories(newSelected);
+            setIsCheckedAll(true);
         } else {
-            // Bỏ chọn tất cả
-            setSelectedCategories([]);
+            // Bỏ các sản phẩm ở trang hiện tại
+            const newSelected = selectedCategories.filter((id) => !currentPageIds.includes(id));
+            setSelectedCategories(newSelected);
+            setIsCheckedAll(false);
         }
     };
+    useEffect(() => {
+        const allSelectedOnPage = currentCategories.every((category) => selectedCategories.includes(category._id));
+        setIsCheckedAll(allSelectedOnPage);
+    }, [currentCategories, selectedCategories]);
 
     const handleClickOpen = (id) => {
         setOpen(true);

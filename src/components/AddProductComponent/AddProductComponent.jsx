@@ -203,7 +203,7 @@ const AddProductComponent = () => {
 
     return (
         <section className="p-5 bg-gray-50">
-            <form className="form p-8 py-3 max-h-[800px]" onSubmit={handleSubmit}>
+            <form className="form p-8 py-3 max-h-[950px]" onSubmit={handleSubmit}>
                 <div className="scroll overflow-y-scroll">
                     <div className="grid grid-cols-1 mb-3">
                         <div className="col">
@@ -497,7 +497,7 @@ const AddProductComponent = () => {
                     </div>
 
                     <br />
-                    <Button type="submit" className="btn-blue w-full !normal-case flex gap-2">
+                    <Button type="submit" className="btn-blue w-full !normal-case flex gap-2 mb-4">
                         {isLoading === true ? (
                             <CircularProgress color="inherit" />
                         ) : (

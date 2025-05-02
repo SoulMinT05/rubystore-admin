@@ -20,6 +20,7 @@ import ChangePasswordPage from '../pages/ChangePasswordPage/ChangePasswordPage';
 import PrivateRoute from './PrivateRoute';
 import VerifyPage from '../pages/VerifyPage/VerifyPage';
 import MyAccountPage from '../pages/MyAccountPage/MyAccountPage';
+import ProductDetailsPage from '../pages/ProductDetailsPage/ProductDetailsPage';
 
 const router = createBrowserRouter([
     {
@@ -63,6 +64,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <ProductPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'product/:id',
+                element: (
+                    <PrivateRoute>
+                        <ProductDetailsPage />
                     </PrivateRoute>
                 ),
             },

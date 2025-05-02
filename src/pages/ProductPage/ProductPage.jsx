@@ -33,10 +33,22 @@ const ProductPage = () => {
     const [productFilterVal, setProductFilterVal] = useState('');
     const [productId, setProductId] = useState(null);
 
+    const [productCategory, setProductCategory] = useState('');
+    const [productSubCategory, setProductSubCategory] = useState('');
+    const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
+
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedProducts, setSelectedProducts] = useState([]);
+    const [formFields, setFormFields] = useState({
+        categoryId: '',
+        categoryName: '',
+        subCategoryId: '',
+        subCategoryName: '',
+        thirdSubCategoryId: '',
+        thirdSubCategoryName: '',
+    });
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
@@ -132,6 +144,39 @@ const ProductPage = () => {
         setOpen(false);
     };
 
+    const selectCategoryByName = (name) => {
+        formFields.categoryName = name;
+    };
+    const handleChangeProductCategory = async (event) => {
+        setProductCategory(event.target.value);
+        const { data } = await axiosClient.get(`/api/product/all-products-category-id/${event.target.value}`);
+        if (data?.success) {
+            setProducts(data?.products);
+        }
+    };
+
+    const handleChangeProductSubCategory = async (event) => {
+        setProductSubCategory(event.target.value);
+        const { data } = await axiosClient.get(`/api/product/all-products-sub-category-id/${event.target.value}`);
+        if (data?.success) {
+            setProducts(data?.products);
+        }
+    };
+    const selectSubCategoryByName = (name) => {
+        formFields.subCategoryName = name;
+    };
+
+    const handleChangeProductThirdSubCategory = async (event) => {
+        setProductThirdSubCategory(event.target.value);
+        const { data } = await axiosClient.get(`/api/product/all-products-third-sub-category-id/${event.target.value}`);
+        if (data?.success) {
+            setProducts(data?.products);
+        }
+    };
+    const selectThirdSubCategoryByName = (name) => {
+        formFields.thirdSubCategoryName = name;
+    };
+
     useEffect(() => {
         const getProducts = async () => {
             try {
@@ -156,7 +201,6 @@ const ProductPage = () => {
             console.log('dataDelete: ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                // setProducts((prev) => prev.filter((product) => product._id !== productId));
                 context.getProducts();
                 handleClose();
             }
@@ -218,23 +262,100 @@ const ProductPage = () => {
             </div>
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
-                <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[20%]">
-                        <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
+                <div className="flex items-center w-full justify-between px-5 gap-4">
+                    <div className="col w-[15%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Danh mục cha</h4>
 
-                        <Select
-                            className="w-full"
-                            size="small"
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={productFilterVal}
-                            label="Danh mục"
-                            onChange={handleChangeProductFilterVal}
-                        >
-                            <MenuItem value={10}>Nam</MenuItem>
-                            <MenuItem value={20}>Nữ</MenuItem>
-                            <MenuItem value={30}>Trẻ em</MenuItem>
-                        </Select>
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                style={{ zoom: '80%' }}
+                                labelId="demo-simple-select-label"
+                                id="productCategoryDrop"
+                                size="small"
+                                className="w-full"
+                                value={productCategory}
+                                label="Danh mục"
+                                onChange={handleChangeProductCategory}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        <MenuItem value={cat?._id} onClick={() => selectCategoryByName(cat?.name)}>
+                                            {cat?.name}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Select>
+                        )}
+                    </div>
+
+                    <div className="col w-[15%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Danh mục con cấp 2</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                style={{ zoom: '80%' }}
+                                labelId="demo-simple-select-label"
+                                id="productSubCategoryDrop"
+                                size="small"
+                                className="w-full"
+                                value={productSubCategory}
+                                label="Danh mục con cấp 2"
+                                onChange={handleChangeProductSubCategory}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        cat?.children?.length !== 0 &&
+                                        cat?.children.map((subCat) => {
+                                            return (
+                                                <MenuItem
+                                                    value={subCat?._id}
+                                                    onClick={() => selectSubCategoryByName(subCat?.name)}
+                                                >
+                                                    {subCat?.name}
+                                                </MenuItem>
+                                            );
+                                        })
+                                    );
+                                })}
+                            </Select>
+                        )}
+                    </div>
+                    <div className="col w-[15%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Danh mục con cấp 3</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                style={{ zoom: '80%' }}
+                                labelId="demo-simple-select-label"
+                                id="productThirdCategoryDrop"
+                                size="small"
+                                className="w-full"
+                                value={productThirdSubCategory}
+                                label="Danh mục con cấp 3"
+                                onChange={handleChangeProductThirdSubCategory}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        cat?.children?.length !== 0 &&
+                                        cat?.children.map((subCat) => {
+                                            return (
+                                                subCat?.children?.length !== 0 &&
+                                                subCat?.children?.map((thirdCat) => {
+                                                    return (
+                                                        <MenuItem
+                                                            value={thirdCat?._id}
+                                                            onClick={() => selectThirdSubCategoryByName(thirdCat?.name)}
+                                                        >
+                                                            {thirdCat?.name}
+                                                        </MenuItem>
+                                                    );
+                                                })
+                                            );
+                                        })
+                                    );
+                                })}
+                            </Select>
+                        )}
                     </div>
 
                     <div className="col w-[20%] ml-auto">
@@ -367,18 +488,11 @@ const ProductPage = () => {
                                                 </Button>
                                             </Tooltip>
                                             <Tooltip title="Xem chi tiết" placement="top">
-                                                <Button
-                                                    onClick={() =>
-                                                        context.setIsOpenFullScreenPanel({
-                                                            open: true,
-                                                            model: 'Cập nhật sản phẩm',
-                                                            id: product._id,
-                                                        })
-                                                    }
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                >
-                                                    <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                </Button>
+                                                <Link to={`/product/${product?._id}`}>
+                                                    <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                        <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                    </Button>
+                                                </Link>
                                             </Tooltip>
                                             <Tooltip title="Xoá" placement="top">
                                                 <Button

@@ -317,7 +317,7 @@ const UpdateProductComponent = () => {
 
     return (
         <section className="p-5 bg-gray-50">
-            <form className="form p-8 py-3 max-h-[950px] ">
+            <form className="form p-8 py-3 max-h-[1100px] ">
                 <div className="scroll overflow-y-scroll">
                     <div className="grid grid-cols-1 mb-3">
                         <div className="col">
@@ -557,10 +557,13 @@ const UpdateProductComponent = () => {
                                 label="Cân nặng"
                                 onChange={handleChangeProductWeight}
                             >
-                                <MenuItem value={'2KG'}>2KG</MenuItem>
-                                <MenuItem value={'5KG'}>5KG</MenuItem>
-                                <MenuItem value={'8KG'}>8KG</MenuItem>
-                                <MenuItem value={'10KG'}>10KG</MenuItem>
+                                <MenuItem value={'30KG'}>30KG</MenuItem>
+                                <MenuItem value={'40KG'}>40KG</MenuItem>
+                                <MenuItem value={'50KG'}>50KG</MenuItem>
+                                <MenuItem value={'55KG'}>55KG</MenuItem>
+                                <MenuItem value={'60KG'}>60KG</MenuItem>
+                                <MenuItem value={'65KG'}>65KG</MenuItem>
+                                <MenuItem value={'70KG'}>70KG</MenuItem>
                             </Select>
                         </div>
                         <div className="col">
@@ -579,6 +582,7 @@ const UpdateProductComponent = () => {
                                 <MenuItem value={'M'}>M</MenuItem>
                                 <MenuItem value={'L'}>L</MenuItem>
                                 <MenuItem value={'XL'}>XL</MenuItem>
+                                <MenuItem value={'XXL'}>XXL</MenuItem>
                             </Select>
                         </div>
                     </div>

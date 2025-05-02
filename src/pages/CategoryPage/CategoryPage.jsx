@@ -29,7 +29,7 @@ const CategoryPage = () => {
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
 
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     // State lưu trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
     // Tính tổng số trang

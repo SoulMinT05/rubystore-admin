@@ -121,54 +121,62 @@ const ProductDetailsPage = () => {
                             </span>
                             <span className="text-[14px]">{product?.categoryName}</span>
                         </div>
-                        <div className="flex items-center py-1">
-                            <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
-                                <MdFilterVintage className="opacity-65" />
-                                RAM :
-                            </span>
-                            <div className="flex items-center gap-2">
-                                {product?.productRam?.map((ram, index) => (
-                                    <span
-                                        key={index}
-                                        className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
-                                    >
-                                        {ram}
-                                    </span>
-                                ))}
+                        {product?.productRam?.length > 0 && (
+                            <div className="flex items-center py-1">
+                                <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
+                                    <MdFilterVintage className="opacity-65" />
+                                    RAM :
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    {product?.productRam?.map((ram, index) => (
+                                        <span
+                                            key={index}
+                                            className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
+                                        >
+                                            {ram}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center py-1">
-                            <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
-                                <MdFilterVintage className="opacity-65" />
-                                Size :
-                            </span>
-                            <div className="flex items-center gap-2">
-                                {product?.productSize?.map((size, index) => (
-                                    <span
-                                        key={index}
-                                        className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
-                                    >
-                                        {size}
-                                    </span>
-                                ))}
+                        )}
+
+                        {product?.productSize?.length > 0 && (
+                            <div className="flex items-center py-1">
+                                <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
+                                    <MdFilterVintage className="opacity-65" />
+                                    Size :
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    {product?.productSize?.map((size, index) => (
+                                        <span
+                                            key={index}
+                                            className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
+                                        >
+                                            {size}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center py-1">
-                            <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
-                                <MdFilterVintage className="opacity-65" />
-                                Cân nặng :
-                            </span>
-                            <div className="flex items-center gap-2">
-                                {product?.productWeight?.map((weight, index) => (
-                                    <span
-                                        key={index}
-                                        className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
-                                    >
-                                        {weight}
-                                    </span>
-                                ))}
+                        )}
+
+                        {product?.productWeight?.length > 0 && (
+                            <div className="flex items-center py-1">
+                                <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
+                                    <MdFilterVintage className="opacity-65" />
+                                    Cân nặng :
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    {product?.productWeight?.map((weight, index) => (
+                                        <span
+                                            key={index}
+                                            className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
+                                        >
+                                            {weight}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <div className="flex items-center py-1">
                             <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
                                 <MdRateReview className="opacity-65" />

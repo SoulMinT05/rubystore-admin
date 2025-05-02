@@ -30,7 +30,6 @@ const formatCurrency = (amount) => {
 const ProductPage = () => {
     const { products, setProducts } = useContext(MyContext);
     const context = useContext(MyContext);
-    const [productFilterVal, setProductFilterVal] = useState('');
     const [productId, setProductId] = useState(null);
 
     const [productCategory, setProductCategory] = useState('');
@@ -39,9 +38,11 @@ const ProductPage = () => {
 
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [openMultiple, setOpenMultiple] = useState(false);
+    const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedProducts, setSelectedProducts] = useState([]);
-    const [formFields, setFormFields] = useState({
+    const [, setFormFields] = useState({
         categoryId: '',
         categoryName: '',
         subCategoryId: '',
@@ -52,10 +53,7 @@ const ProductPage = () => {
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const handleChangeProductFilterVal = (event) => {
-        setProductFilterVal(event.target.value);
-    };
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     // State lưu trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
     // Tính tổng số trang
@@ -135,6 +133,30 @@ const ProductPage = () => {
         setIsCheckedAll(allSelectedOnPage);
     }, [currentProducts, selectedProducts]);
 
+    useEffect(() => {
+        setSelectedProducts(selectedProducts);
+    }, [selectedProducts]);
+
+    const handleDeleteMultipleProduct = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/product/deleteMultipleProduct`, {
+                data: { ids: selectedProducts },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getProducts();
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
+    };
+
     const handleClickOpen = (id) => {
         setOpen(true);
         setProductId(id);
@@ -144,8 +166,15 @@ const ProductPage = () => {
         setOpen(false);
     };
 
+    const handleCloseMultiple = () => {
+        setOpenMultiple(false);
+    };
+
     const selectCategoryByName = (name) => {
-        formFields.categoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            categoryName: name,
+        }));
     };
     const handleChangeProductCategory = async (event) => {
         setProductCategory(event.target.value);
@@ -163,7 +192,10 @@ const ProductPage = () => {
         }
     };
     const selectSubCategoryByName = (name) => {
-        formFields.subCategoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            subCategoryName: name,
+        }));
     };
 
     const handleChangeProductThirdSubCategory = async (event) => {
@@ -174,7 +206,10 @@ const ProductPage = () => {
         }
     };
     const selectThirdSubCategoryByName = (name) => {
-        formFields.thirdSubCategoryName = name;
+        setFormFields((prev) => ({
+            ...prev,
+            thirdSubCategoryName: name,
+        }));
     };
 
     useEffect(() => {
@@ -236,8 +271,11 @@ const ProductPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {isCheckedAll && (
-                        <Button onClick={handleExportExcel} className="btn !bg-red-500 !text-white !normal-case gap-1">
+                    {(isCheckedAll || selectedProducts.length > 1) && (
+                        <Button
+                            onClick={() => setOpenMultiple(true)}
+                            className="btn !bg-red-500 !text-white !normal-case gap-1"
+                        >
                             <BiExport />
                             Xoá tất cả
                         </Button>
@@ -533,6 +571,30 @@ const ProductPage = () => {
                         <CircularProgress color="inherit" />
                     ) : (
                         <Button className="btn-red" onClick={handleDeleteProduct} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openMultiple}
+                onClose={handleCloseMultiple}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá tất cả sản phẩm này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                    {isLoadingMultiple === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteMultipleProduct} autoFocus>
                             Xác nhận
                         </Button>
                     )}

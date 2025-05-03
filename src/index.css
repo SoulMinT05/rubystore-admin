@@ -157,3 +157,6 @@ input[type='number'] {
     font-size: 18px !important;
     color: #000;
 }
+.MuiDialog-paper {
+    width: 100% !important;
+}

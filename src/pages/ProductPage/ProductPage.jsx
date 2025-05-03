@@ -38,6 +38,7 @@ const ProductPage = () => {
 
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
@@ -178,17 +179,29 @@ const ProductPage = () => {
     };
     const handleChangeProductCategory = async (event) => {
         setProductCategory(event.target.value);
+        setProductSubCategory('');
+        setProductThirdSubCategory('');
+        setIsLoadingProducts(true);
         const { data } = await axiosClient.get(`/api/product/all-products-category-id/${event.target.value}`);
         if (data?.success) {
             setProducts(data?.products);
+            setTimeout(() => {
+                setIsLoadingProducts(false);
+            }, 300);
         }
     };
 
     const handleChangeProductSubCategory = async (event) => {
         setProductSubCategory(event.target.value);
+        setProductCategory('');
+        setProductThirdSubCategory('');
+        setIsLoadingProducts(true);
         const { data } = await axiosClient.get(`/api/product/all-products-sub-category-id/${event.target.value}`);
         if (data?.success) {
             setProducts(data?.products);
+            setTimeout(() => {
+                setIsLoadingProducts(false);
+            }, 300);
         }
     };
     const selectSubCategoryByName = (name) => {
@@ -200,9 +213,15 @@ const ProductPage = () => {
 
     const handleChangeProductThirdSubCategory = async (event) => {
         setProductThirdSubCategory(event.target.value);
+        setProductCategory('');
+        setProductSubCategory('');
+        setIsLoadingProducts(true);
         const { data } = await axiosClient.get(`/api/product/all-products-third-sub-category-id/${event.target.value}`);
         if (data?.success) {
             setProducts(data?.products);
+            setTimeout(() => {
+                setIsLoadingProducts(false);
+            }, 300);
         }
     };
     const selectThirdSubCategoryByName = (name) => {
@@ -215,9 +234,13 @@ const ProductPage = () => {
     useEffect(() => {
         const getProducts = async () => {
             try {
+                setIsLoadingProducts(true);
                 const { data } = await axiosClient.get('/api/product/all-products-admin');
                 if (data.success) {
-                    setProducts(data?.products);
+                    setTimeout(() => {
+                        setProducts(data?.products);
+                    }, 100);
+                    setIsLoadingProducts(false);
                 } else {
                     console.error('Lỗi lấy danh mục:', data.message);
                 }
@@ -233,7 +256,6 @@ const ProductPage = () => {
         setIsLoading(true);
         try {
             const { data } = await axiosClient.delete(`/api/product/${productId}`);
-            console.log('dataDelete: ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
                 context.getProducts();
@@ -257,7 +279,6 @@ const ProductPage = () => {
         if (countInStock < 1) return 'outOfStock';
         if (countInStock >= 1) return 'active';
 
-        // Thêm các điều kiện khác nếu có
         return 'commingSoon'; // hoặc trạng thái mặc định
     };
 
@@ -405,152 +426,168 @@ const ProductPage = () => {
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        <thead className="text-xs text-gray-700 uppercase bg-white">
-                            <tr>
-                                <th scope="col" className="px-6 pr-0 py-2 ">
-                                    <div className="w-[60px]">
-                                        <Checkbox
-                                            {...label}
-                                            checked={isCheckedAll}
-                                            onChange={handleSelectAll}
-                                            size="small"
-                                        />
-                                    </div>
-                                </th>
-                                <th scope="col" className="px-0 py-3 whitespace-nowrap">
-                                    Sản phẩm
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Danh mục
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Danh mục con
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Giá
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Tình trạng
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Xếp hạng
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Hành động
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentProducts?.map((product) => (
-                                <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
-                                    <td className="px-6 pr-0 py-2">
+                        {!isLoadingProducts && currentProducts?.length > 0 && (
+                            <thead className="text-xs text-gray-700 uppercase bg-white">
+                                <tr>
+                                    <th scope="col" className="px-6 pr-0 py-2 ">
                                         <div className="w-[60px]">
                                             <Checkbox
                                                 {...label}
-                                                checked={selectedProducts.includes(product._id)}
-                                                onChange={() => handleSelectProduct(product._id)}
+                                                checked={isCheckedAll}
+                                                onChange={handleSelectAll}
                                                 size="small"
                                             />
                                         </div>
-                                    </td>
-                                    <td className="px-0 py-2">
-                                        <div className="flex items-center gap-4 w-[330px]">
-                                            <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                <Link to={`/product/${product?._id}`}>
-                                                    <img
-                                                        src={product?.images[0]}
-                                                        className="w-full group-hover:scale-105 transition-all"
-                                                        alt=""
-                                                    />
-                                                </Link>
+                                    </th>
+                                    <th scope="col" className="px-0 py-3 whitespace-nowrap">
+                                        Sản phẩm
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Danh mục
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Danh mục con
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Giá
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Tình trạng
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Xếp hạng
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Hành động
+                                    </th>
+                                </tr>
+                            </thead>
+                        )}
+
+                        <tbody>
+                            {isLoadingProducts === false ? (
+                                currentProducts?.length > 0 &&
+                                currentProducts?.map((product) => (
+                                    <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                        <td className="px-6 pr-0 py-2">
+                                            <div className="w-[60px]">
+                                                <Checkbox
+                                                    {...label}
+                                                    checked={selectedProducts.includes(product._id)}
+                                                    onChange={() => handleSelectProduct(product._id)}
+                                                    size="small"
+                                                />
                                             </div>
-                                            <div className="info w-[75%]">
-                                                <h3 className="text-[12px] font-[600] leading-4 hover:text-primary transition-all">
-                                                    <Link to={`/product/${product?._id}`}>{product?.name}</Link>
-                                                </h3>
-                                                <span className="text-[12px]">{product?.brand}</span>
+                                        </td>
+                                        <td className="px-0 py-2">
+                                            <div className="flex items-center gap-4 w-[330px]">
+                                                <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                    <Link to={`/product/${product?._id}`}>
+                                                        <img
+                                                            src={product?.images[0]}
+                                                            className="w-full group-hover:scale-105 transition-all"
+                                                            alt=""
+                                                        />
+                                                    </Link>
+                                                </div>
+                                                <div className="info w-[75%]">
+                                                    <h3 className="text-[12px] font-[600] leading-4 hover:text-primary transition-all">
+                                                        <Link to={`/product/${product?._id}`}>{product?.name}</Link>
+                                                    </h3>
+                                                    <span className="text-[12px]">{product?.brand}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <p className="w-[80px]">{product?.categoryName}</p>
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <p className="w-[80px]">{product?.subCategoryName}</p>
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <div className="flex gap-1 flex-col">
-                                            <span className="oldPrice line-through leading-3 text-gray-500 text-[14px] font-[500]">
-                                                {formatCurrency(product?.oldPrice)}
-                                            </span>
-                                            <span className="price text-primary text-[14px] font-[600]">
-                                                {formatCurrency(product?.price)}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <p className="text-[14px] w-[130px]">
-                                            <span className="font-[600]">
-                                                {getStockLabelByQuantity(product?.countInStock || 0)}{' '}
-                                            </span>
-                                            ({product?.countInStock || 0})
-                                        </p>
-                                        <ProgressProductStatusComponent
-                                            value={product?.countInStock}
-                                            status={getProductStatusBackgroundByStock(product?.countInStock || 0)}
-                                        />
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <Rating
-                                            name="size-small"
-                                            defaultValue={product?.rating}
-                                            readOnly
-                                            size="small"
-                                        />
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <div className="flex items-center gap-1">
-                                            <Tooltip
-                                                title="Chỉnh sửa"
-                                                placement="top"
-                                                onClick={() =>
-                                                    context.setIsOpenFullScreenPanel({
-                                                        open: true,
-                                                        model: 'Cập nhật sản phẩm',
-                                                        id: product?._id,
-                                                    })
-                                                }
-                                            >
-                                                <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                    <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                                </Button>
-                                            </Tooltip>
-                                            <Tooltip title="Xem chi tiết" placement="top">
-                                                <Link to={`/product/${product?._id}`}>
-                                                    <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                        <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                    </Button>
-                                                </Link>
-                                            </Tooltip>
-                                            <Tooltip title="Xoá" placement="top">
-                                                <Button
-                                                    onClick={() => handleClickOpen(product._id)}
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <p className="w-[80px]">{product?.categoryName}</p>
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <p className="w-[80px]">{product?.subCategoryName}</p>
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <div className="flex gap-1 flex-col">
+                                                <span className="oldPrice line-through leading-3 text-gray-500 text-[14px] font-[500]">
+                                                    {formatCurrency(product?.oldPrice)}
+                                                </span>
+                                                <span className="price text-primary text-[14px] font-[600]">
+                                                    {formatCurrency(product?.price)}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <p className="text-[14px] w-[130px]">
+                                                <span className="font-[600]">
+                                                    {getStockLabelByQuantity(product?.countInStock || 0)}{' '}
+                                                </span>
+                                                ({product?.countInStock || 0})
+                                            </p>
+                                            <ProgressProductStatusComponent
+                                                value={product?.countInStock}
+                                                status={getProductStatusBackgroundByStock(product?.countInStock || 0)}
+                                            />
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <Rating
+                                                name="size-small"
+                                                defaultValue={product?.rating}
+                                                readOnly
+                                                size="small"
+                                            />
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <div className="flex items-center gap-1">
+                                                <Tooltip
+                                                    title="Chỉnh sửa"
+                                                    placement="top"
+                                                    onClick={() =>
+                                                        context.setIsOpenFullScreenPanel({
+                                                            open: true,
+                                                            model: 'Cập nhật sản phẩm',
+                                                            id: product?._id,
+                                                        })
+                                                    }
                                                 >
-                                                    <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                </Button>
-                                            </Tooltip>
+                                                    <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                        <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip title="Xem chi tiết" placement="top">
+                                                    <Link to={`/product/${product?._id}`}>
+                                                        <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                            <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Link>
+                                                </Tooltip>
+                                                <Tooltip title="Xoá" placement="top">
+                                                    <Button
+                                                        onClick={() => handleClickOpen(product._id)}
+                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                    >
+                                                        <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
 
-                <div className="flex items-center justify-center pt-5 pb-5 px-4">
-                    <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
-                </div>
+                {!isLoadingProducts && currentProducts?.length > 0 && (
+                    <div className="flex items-center justify-center pt-5 pb-5 px-4">
+                        <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
+                    </div>
+                )}
             </div>
 
             <Dialog

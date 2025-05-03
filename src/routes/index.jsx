@@ -21,6 +21,7 @@ import PrivateRoute from './PrivateRoute';
 import VerifyPage from '../pages/VerifyPage/VerifyPage';
 import MyAccountPage from '../pages/MyAccountPage/MyAccountPage';
 import ProductDetailsPage from '../pages/ProductDetailsPage/ProductDetailsPage';
+import ProductRamPage from '../pages/ProductRamPage/ProductRamPage';
 
 const router = createBrowserRouter([
     {
@@ -72,6 +73,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <ProductDetailsPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'product/ram',
+                element: (
+                    <PrivateRoute>
+                        <ProductRamPage />
                     </PrivateRoute>
                 ),
             },

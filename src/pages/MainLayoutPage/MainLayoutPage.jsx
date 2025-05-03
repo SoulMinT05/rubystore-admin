@@ -5,11 +5,14 @@ import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import SidebarComponent from '../../components/SidebarComponent/SidebarComponent';
 import DashboardPage from '../DashboardPage/DashboardPage';
 import { Outlet } from 'react-router-dom';
+import ScrollToTopComponent from '../../components/ScrollToTopComponent/ScrollToTopComponent';
 
 const MainLayoutPage = () => {
     const context = useContext(MyContext);
     return (
         <section className="main">
+            <ScrollToTopComponent />
+
             <HeaderComponent />
             <div className="contentMain flex">
                 <div

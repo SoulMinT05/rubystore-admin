@@ -26,6 +26,7 @@ import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
 import UpdateCategoryComponent from './components/UpdateCategoryComponent/UpdateCategoryComponent';
 import UpdateProductComponent from './components/UpdateProductComponent/UpdateProductComponent';
+import ScrollToTopComponent from './components/ScrollToTopComponent/ScrollToTopComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;

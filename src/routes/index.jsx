@@ -23,6 +23,7 @@ import MyAccountPage from '../pages/MyAccountPage/MyAccountPage';
 import ProductDetailsPage from '../pages/ProductDetailsPage/ProductDetailsPage';
 import ProductRamPage from '../pages/ProductRamPage/ProductRamPage';
 import ProductWeightPage from '../pages/ProductWeightPage/ProductWeightPage';
+import ProductSizePage from '../pages/ProductSizePage/ProductSizePage';
 
 const router = createBrowserRouter([
     {
@@ -90,6 +91,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <ProductWeightPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'product/size',
+                element: (
+                    <PrivateRoute>
+                        <ProductSizePage />
                     </PrivateRoute>
                 ),
             },

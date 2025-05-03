@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import InputLabel from '@mui/material/InputLabel';
@@ -58,11 +58,50 @@ const AddProductComponent = () => {
     const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
     const [productIsFeatured, setProductIsFeatured] = useState('');
     const [productIsPublished, setProductIsPublished] = useState('');
-    const [productRams, setProductRams] = useState([]);
+    const [productRam, setProductRam] = useState([]);
+    const [productRamData, setProductRamData] = useState([]);
     const [productWeight, setProductWeight] = useState([]);
+    const [productWeightData, setProductWeightData] = useState([]);
     const [productSize, setProductSize] = useState([]);
+    const [productSizeData, setProductSizeData] = useState([]);
 
     const context = useContext(MyContext);
+
+    useEffect(() => {
+        const getProductsRam = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/product/all-products-ram');
+                setProductRamData(data?.productsRam);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getProductsRam();
+    }, []);
+
+    useEffect(() => {
+        const getProductsWeight = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/product/all-products-weight');
+                setProductWeightData(data?.productsWeight);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getProductsWeight();
+    }, []);
+
+    useEffect(() => {
+        const getProductsSize = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/product/all-products-size');
+                setProductSizeData(data?.productsSize);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getProductsSize();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -105,9 +144,9 @@ const AddProductComponent = () => {
         formFields.isPublished = event.target.value;
     };
 
-    const handleChangeProductRams = (event) => {
+    const handleChangeProductRam = (event) => {
         const { value } = event.target;
-        setProductRams(typeof value === 'string' ? value.split('') : value);
+        setProductRam(typeof value === 'string' ? value.split('') : value);
         formFields.productRam = value;
     };
     const handleChangeProductWeight = (event) => {
@@ -407,63 +446,68 @@ const AddProductComponent = () => {
                             />
                         </div>
                         <div className="col">
-                            <h3 className="text-[14px] font-[500] mb-1 text-black">RAMS</h3>
-                            <Select
-                                multiple
-                                labelId="demo-simple-select-label"
-                                id="productRamsDrop"
-                                size="small"
-                                className="w-full"
-                                value={productRams}
-                                label="Trạng thái"
-                                MenuProps={MenuProps}
-                                onChange={handleChangeProductRams}
-                            >
-                                <MenuItem value={'4GB'}>4GB</MenuItem>
-                                <MenuItem value={'8GB'}>8GB</MenuItem>
-                                <MenuItem value={'16GB'}>16GB</MenuItem>
-                                <MenuItem value={'32GB'}>32GB</MenuItem>
-                            </Select>
+                            <h3 className="text-[14px] font-[500] mb-1 text-black">RAM</h3>
+                            {productRamData?.length !== 0 && (
+                                <Select
+                                    multiple
+                                    labelId="demo-simple-select-label"
+                                    id="productRamDrop"
+                                    size="small"
+                                    className="w-full"
+                                    value={productRam}
+                                    label="Trạng thái"
+                                    MenuProps={MenuProps}
+                                    onChange={handleChangeProductRam}
+                                >
+                                    {productRamData?.map((item) => (
+                                        <MenuItem key={item._id} value={item?.name}>
+                                            {item?.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            )}
                         </div>
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Cân nặng</h3>
-                            <Select
-                                multiple
-                                labelId="demo-simple-select-label"
-                                id="productWeightDrop"
-                                size="small"
-                                className="w-full"
-                                value={productWeight}
-                                label="Cân nặng"
-                                onChange={handleChangeProductWeight}
-                            >
-                                <MenuItem value={'30KG'}>30KG</MenuItem>
-                                <MenuItem value={'40KG'}>40KG</MenuItem>
-                                <MenuItem value={'50KG'}>50KG</MenuItem>
-                                <MenuItem value={'55KG'}>55KG</MenuItem>
-                                <MenuItem value={'60KG'}>60KG</MenuItem>
-                                <MenuItem value={'65KG'}>65KG</MenuItem>
-                                <MenuItem value={'70KG'}>70KG</MenuItem>
-                            </Select>
+                            {productWeightData?.length !== 0 && (
+                                <Select
+                                    multiple
+                                    labelId="demo-simple-select-label"
+                                    id="productWeightDrop"
+                                    size="small"
+                                    className="w-full"
+                                    value={productWeight}
+                                    label="Cân nặng"
+                                    onChange={handleChangeProductWeight}
+                                >
+                                    {productWeightData?.map((item) => (
+                                        <MenuItem key={item._id} value={item?.name}>
+                                            {item?.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            )}
                         </div>
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Kích cỡ</h3>
-                            <Select
-                                multiple
-                                labelId="demo-simple-select-label"
-                                id="productSizeDrop"
-                                size="small"
-                                className="w-full"
-                                value={productSize}
-                                label="Kích cỡ"
-                                onChange={handleChangeProductSize}
-                            >
-                                <MenuItem value={'S'}>S</MenuItem>
-                                <MenuItem value={'M'}>M</MenuItem>
-                                <MenuItem value={'L'}>L</MenuItem>
-                                <MenuItem value={'XL'}>XL</MenuItem>
-                                <MenuItem value={'XXL'}>XXL</MenuItem>
-                            </Select>
+                            {productSizeData?.length !== 0 && (
+                                <Select
+                                    multiple
+                                    labelId="demo-simple-select-label"
+                                    id="productSizeDrop"
+                                    size="small"
+                                    className="w-full"
+                                    value={productSize}
+                                    label="Kích cỡ"
+                                    onChange={handleChangeProductSize}
+                                >
+                                    {productSizeData?.map((item) => (
+                                        <MenuItem key={item._id} value={item?.name}>
+                                            {item?.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            )}
                         </div>
                     </div>
 

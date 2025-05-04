@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 
 import './AddCategoryComponent.scss';
-import UploadImageComponent from '../UploadImageComponent/UploadImageComponent';
+import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
@@ -128,7 +128,7 @@ const AddCategoryComponent = () => {
                                 </div>
                             ))}
 
-                            <UploadImageComponent multiple={true} onUpload={handleUploadImages} />
+                            <UploadImagesComponent multiple={true} onUpload={handleUploadImages} />
                         </div>
                     </div>
 

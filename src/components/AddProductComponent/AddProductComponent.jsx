@@ -7,7 +7,7 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
 import './AddProductComponent.scss';
-import UploadImageComponent from '../UploadImageComponent/UploadImageComponent';
+import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
@@ -540,7 +540,7 @@ const AddProductComponent = () => {
                                     </div>
                                 </div>
                             ))}
-                            <UploadImageComponent multiple={true} onUpload={handleUploadImages} />
+                            <UploadImagesComponent multiple={true} onUpload={handleUploadImages} />
                         </div>
                     </div>
 

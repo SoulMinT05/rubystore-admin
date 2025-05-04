@@ -10,6 +10,7 @@ import OrderPage from '../pages/OrderPage/OrderPage';
 import HomeBannerPage from '../pages/HomeBannerPage/HomeBannerPage';
 import CategoryPage from '../pages/CategoryPage/CategoryPage';
 import SubCategoryPage from '../pages/SubCategoryPage/SubCategoryPage';
+import HomeSlidePage from '../pages/HomeSlidePage/HomeSlidePage';
 
 import LoginPage from '../pages/LoginPage/LoginPage';
 import RegisterPage from '../pages/RegisterPage/RegisterPage';
@@ -43,6 +44,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <HomeBannerPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'home-slide',
+                element: (
+                    <PrivateRoute>
+                        <HomeSlidePage />
                     </PrivateRoute>
                 ),
             },

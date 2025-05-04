@@ -25,8 +25,9 @@ import { IoMdClose } from 'react-icons/io';
 import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
 import UpdateCategoryComponent from './components/UpdateCategoryComponent/UpdateCategoryComponent';
+import UpdateHomeSlideComponent from './components/UpdateHomeSlideComponent/UpdateHomeSlideComponent';
 import UpdateProductComponent from './components/UpdateProductComponent/UpdateProductComponent';
-import ScrollToTopComponent from './components/ScrollToTopComponent/ScrollToTopComponent';
+import AddHomeSlideComponent from './components/AddHomeSlideComponent/AddHomeSlideComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -45,6 +46,7 @@ function App() {
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
+    const [homeSlides, setHomeSlides] = useState([]);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
@@ -89,6 +91,15 @@ function App() {
             console.log(error);
         }
     };
+    const getHomeSlides = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
+            console.log('dataSlide: ', data);
+            setHomeSlides(data?.homeSlides);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const openAlertBox = (status, message) => {
         if (status === 'success') {
@@ -121,6 +132,9 @@ function App() {
         setSubCategories,
         getCategories,
         getProducts,
+        homeSlides,
+        setHomeSlides,
+        getHomeSlides,
     };
 
     return (
@@ -161,12 +175,14 @@ function App() {
                     </AppBar>
 
                     {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddHomeBannerComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateHomeSlideComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
                 </Dialog>

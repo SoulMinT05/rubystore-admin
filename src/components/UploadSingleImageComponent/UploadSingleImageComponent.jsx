@@ -1,12 +1,12 @@
 import React from 'react';
 import { FaRegImages } from 'react-icons/fa6';
 
-import './UploadImageComponent.scss';
+import './UploadSingleImageComponent.scss';
 
-const UploadImageComponent = ({ multiple, onUpload }) => {
+const UploadSingleImageComponent = ({ multiple, onUpload }) => {
     const handleChange = (e) => {
-        const files = Array.from(e.target.files);
-        onUpload(files);
+        const file = e.target.files[0];
+        onUpload(file);
     };
     return (
         <div
@@ -25,4 +25,4 @@ const UploadImageComponent = ({ multiple, onUpload }) => {
     );
 };
 
-export default UploadImageComponent;
+export default UploadSingleImageComponent;

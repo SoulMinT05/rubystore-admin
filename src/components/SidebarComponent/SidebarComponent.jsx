@@ -55,20 +55,55 @@ const SidebarComponent = () => {
                         </Button>
                     </Link>
                 </li>
-                {/* Home Banner */}
+                {/* Home Slide */}
                 <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
                         onClick={() => isOpenSubMenu(1)}
                     >
                         <FaRegImage className="text-[18px]" />
-                        <Link to="/home-banner">Home Sliders</Link>
+                        <Link to="/home-slide">Home Sliders</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
                             <FaAngleDown className={`transition-all ${submenuIndex === 1 ? 'rotate-180' : ''}`} />
                         </span>
                     </Button>
 
                     <Collapse isOpened={submenuIndex === 1 ? true : false}>
+                        <ul className="w-full">
+                            <li className="w-full">
+                                <Link to="/home-slide">
+                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
+                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                        Danh sách Home Slide
+                                    </Button>
+                                </Link>
+                            </li>
+                            <li className="w-full">
+                                <Link to="/home-slide/add">
+                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
+                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                        Thêm Home Slide
+                                    </Button>
+                                </Link>
+                            </li>
+                        </ul>
+                    </Collapse>
+                </li>
+
+                {/* Home Banner */}
+                <li>
+                    <Button
+                        className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
+                        onClick={() => isOpenSubMenu(2)}
+                    >
+                        <FaRegImage className="text-[18px]" />
+                        <Link to="/home-banner">Home Banners</Link>
+                        <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
+                            <FaAngleDown className={`transition-all ${submenuIndex === 2 ? 'rotate-180' : ''}`} />
+                        </span>
+                    </Button>
+
+                    <Collapse isOpened={submenuIndex === 2 ? true : false}>
                         <ul className="w-full">
                             <li className="w-full">
                                 <Link to="/home-banner">
@@ -94,16 +129,16 @@ const SidebarComponent = () => {
                 <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
-                        onClick={() => isOpenSubMenu(2)}
+                        onClick={() => isOpenSubMenu(3)}
                     >
                         <FiUsers className="text-[18px]" />
                         <Link to="/users">Quản lý người dùng</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
-                            <FaAngleDown className={`transition-all ${submenuIndex === 2 ? 'rotate-180' : ''}`} />
+                            <FaAngleDown className={`transition-all ${submenuIndex === 3 ? 'rotate-180' : ''}`} />
                         </span>
                     </Button>
 
-                    <Collapse isOpened={submenuIndex === 2 ? true : false}>
+                    <Collapse isOpened={submenuIndex === 3 ? true : false}>
                         <ul className="w-full">
                             <li className="w-full">
                                 <Link to="/users">
@@ -135,16 +170,16 @@ const SidebarComponent = () => {
                 <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
-                        onClick={() => isOpenSubMenu(3)}
+                        onClick={() => isOpenSubMenu(4)}
                     >
                         <FiUserCheck className="text-[18px]" />
                         <Link to="/staffs">Quản lý nhân viên</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
-                            <FaAngleDown className={`transition-all ${submenuIndex === 3 ? 'rotate-180' : ''}`} />
+                            <FaAngleDown className={`transition-all ${submenuIndex === 4 ? 'rotate-180' : ''}`} />
                         </span>
                     </Button>
 
-                    <Collapse isOpened={submenuIndex === 3 ? true : false}>
+                    <Collapse isOpened={submenuIndex === 4 ? true : false}>
                         <ul className="w-full">
                             <li className="w-full">
                                 <Link to="/staffs">
@@ -176,16 +211,16 @@ const SidebarComponent = () => {
                 <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
-                        onClick={() => isOpenSubMenu(4)}
+                        onClick={() => isOpenSubMenu(5)}
                     >
                         <RiProductHuntLine className="text-[18px]" />
                         <Link to="/products">Quản lý sản phẩm</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
-                            <FaAngleDown className={`transition-all ${submenuIndex === 4 ? 'rotate-180' : ''}`} />
+                            <FaAngleDown className={`transition-all ${submenuIndex === 5 ? 'rotate-180' : ''}`} />
                         </span>
                     </Button>
 
-                    <Collapse isOpened={submenuIndex === 4 ? true : false}>
+                    <Collapse isOpened={submenuIndex === 5 ? true : false}>
                         <ul className="w-full">
                             <li className="w-full">
                                 <Link to="/products">
@@ -241,16 +276,16 @@ const SidebarComponent = () => {
                 <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
-                        onClick={() => isOpenSubMenu(5)}
+                        onClick={() => isOpenSubMenu(6)}
                     >
                         <TbCategory className="text-[18px]" />
                         <Link to="/categories">Quản lý danh mục</Link>
                         <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
-                            <FaAngleDown className={`transition-all ${submenuIndex === 5 ? 'rotate-180' : ''}`} />
+                            <FaAngleDown className={`transition-all ${submenuIndex === 6 ? 'rotate-180' : ''}`} />
                         </span>
                     </Button>
 
-                    <Collapse isOpened={submenuIndex === 5 ? true : false}>
+                    <Collapse isOpened={submenuIndex === 6 ? true : false}>
                         <ul className="w-full">
                             <li className="w-full">
                                 <Link to="/categories">

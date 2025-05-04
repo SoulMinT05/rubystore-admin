@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import './AddStaffComponent.scss';
-import UploadImageComponent from '../UploadImageComponent/UploadImageComponent';
+import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
@@ -102,7 +102,7 @@ const AddStaffComponent = () => {
                                 </div>
                             </div>
 
-                            <UploadImageComponent multiple={false} />
+                            <UploadImagesComponent multiple={false} />
                         </div>
                     </div>
 

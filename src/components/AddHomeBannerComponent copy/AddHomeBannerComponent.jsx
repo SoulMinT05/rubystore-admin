@@ -7,14 +7,13 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
 import './AddHomeBannerComponent.scss';
-// import UploadSingleImageComponent from '../UploadSingleImageComponent/UploadSingleImageComponent';
+import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
 import { IoMdClose } from 'react-icons/io';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import { Button } from '@mui/material';
-import axiosClient from '../../apis/axiosClient';
 
 const AddHomeBannerComponent = () => {
     return (
@@ -44,13 +43,13 @@ const AddHomeBannerComponent = () => {
                                 />
                             </div>
                         </div>
-                        {/* <UploadSingleImageComponent multiple={false} /> */}
+                        <UploadImageComponent multiple={true} />
                     </div>
 
                     <br />
                     <Button type="submit" className="btn-blue w-full !normal-case flex gap-2">
                         <FaCloudUploadAlt className="text-[25px] text-white" />
-                        <span className="text-[16px]">Thêm Banner</span>
+                        <span className="text-[16px]">Thêm banner</span>
                     </Button>
                 </div>
             </form>

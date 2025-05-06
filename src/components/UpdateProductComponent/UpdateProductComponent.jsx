@@ -5,10 +5,7 @@ import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponen
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 
-import Box from '@mui/material/Box';
-import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 
 import { IoMdClose } from 'react-icons/io';
@@ -313,34 +310,6 @@ const UpdateProductComponent = () => {
 
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                // setProducts((prev) => {
-                //     return prev.map((product) =>
-                //         product._id === data?.updatedProduct._id
-                //             ? {
-                //                   ...product,
-                //                   name: data?.updatedProduct.name,
-                //                   images: data?.updatedProduct.images,
-                //                   description: data?.updatedProduct.description,
-                //                   brand: data?.updatedProduct.brand,
-                //                   price: data?.updatedProduct.price,
-                //                   oldPrice: data?.updatedProduct.oldPrice,
-                //                   categoryId: data?.updatedProduct.categoryId,
-                //                   categoryName: data?.updatedProduct.categoryName,
-                //                   subCategoryId: data?.updatedProduct.subCategoryId,
-                //                   subCategoryName: data?.updatedProduct.subCategoryName,
-                //                   thirdSubCategoryId: data?.updatedProduct.thirdSubCategoryId,
-                //                   thirdSubCategoryName: data?.updatedProduct.thirdSubCategoryName,
-                //                   countInStock: data?.updatedProduct.countInStock,
-                //                   isFeatured: data?.updatedProduct.isFeatured,
-                //                   isPublished: data?.updatedProduct.isPublished,
-                //                   discount: data?.updatedProduct.discount,
-                //                   productRam: data?.updatedProduct.productRam,
-                //                   productSize: data?.updatedProduct.productSize,
-                //                   productWeight: data?.updatedProduct.productWeight,
-                //               }
-                //             : product,
-                //     );
-                // });
                 context.getProducts();
                 context.setIsOpenFullScreenPanel({
                     open: false,

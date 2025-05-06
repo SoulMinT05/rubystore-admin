@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
-import './HomeSlidePage.scss';
+import './BannerPage.scss';
 import * as XLSX from 'xlsx';
 import { Button, MenuItem, Select, Checkbox, Tooltip, Pagination, CircularProgress } from '@mui/material';
 import { BiExport } from 'react-icons/bi';
@@ -18,90 +18,89 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-const HomeSlidePage = () => {
-    const { homeSlides, setHomeSlides } = useContext(MyContext);
+const BannerPage = () => {
+    const { banners, setBanners } = useContext(MyContext);
     const context = useContext(MyContext);
-    const [homeSlideId, setHomeSlideId] = useState(null);
+    const [bannerFilterVal, setBannerFilterVal] = useState('');
+    const [bannerId, setBannerId] = useState(null);
 
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
-    const [selectedHomeSlides, setSelectedHomeSlides] = useState([]);
+    const [selectedBanners, setSelectedBanners] = useState([]);
 
     const itemsPerPage = 10;
     // State lưu trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
     // Tính tổng số trang
-    const totalPages = Math.ceil(homeSlides?.length / itemsPerPage);
+    const totalPages = Math.ceil(banners.length / itemsPerPage);
     // Xử lý khi đổi trang
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
     // Cắt dữ liệu theo trang
-    const currentHomeSlides = homeSlides.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+    const currentBanners = banners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    console.log('currentBanners: ', currentBanners);
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
-            homeSlides.map((homeSlide) => ({
-                'Hình ảnh': homeSlide.images?.length > 0 ? homeSlide.images[0] : 'Không có hình ảnh',
-                'Tên home slide': homeSlide.name,
+            banners.map((banner) => ({
+                'Hình ảnh': banner.images.length > 0 ? banner.images[0] : 'Không có hình ảnh',
+                'Tên banner': banner.name,
             })),
         );
 
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Home slide');
+        XLSX.utils.book_append_sheet(wb, ws, 'Banner');
 
         // Xuất file Excel
-        XLSX.writeFile(wb, 'HomeSlide.xlsx');
+        XLSX.writeFile(wb, 'banner.xlsx');
     };
 
-    const handleSelectHomeSlide = (homeSlideId) => {
-        setSelectedHomeSlides((prevSelectedHomeSlides) => {
-            let updatedSelectedHomeSlides;
+    const handleSelectBanner = (bannerId) => {
+        setSelectedBanners((prevSelectedBanners) => {
+            let updatedSelectedBanners;
 
-            if (prevSelectedHomeSlides.includes(homeSlideId)) {
+            if (prevSelectedBanners.includes(bannerId)) {
                 // Nếu đã chọn thì bỏ chọn
-                updatedSelectedHomeSlides = prevSelectedHomeSlides.filter((id) => id !== homeSlideId);
+                updatedSelectedBanners = prevSelectedBanners.filter((id) => id !== bannerId);
             } else {
                 // Nếu chưa chọn thì chọn
-                updatedSelectedHomeSlides = [...prevSelectedHomeSlides, homeSlideId];
+                updatedSelectedBanners = [...prevSelectedBanners, bannerId];
             }
 
-            const allSelected = updatedSelectedHomeSlides?.length === homeSlides?.length;
+            const allSelected = updatedSelectedBanners.length === banners.length;
             setIsCheckedAll(allSelected);
-            const allSelectedOnPage = currentHomeSlides.every((homeSlide) =>
-                updatedSelectedHomeSlides.includes(homeSlide._id),
-            );
+            const allSelectedOnPage = currentBanners.every((banner) => updatedSelectedBanners.includes(banner._id));
             setIsCheckedAll(allSelectedOnPage);
 
-            return updatedSelectedHomeSlides;
+            return updatedSelectedBanners;
         });
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentHomeSlides.map((homeSlide) => homeSlide._id);
+        const currentPageIds = currentBanners.map((banner) => banner._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
-            const newSelected = Array.from(new Set([...selectedHomeSlides, ...currentPageIds]));
-            setSelectedHomeSlides(newSelected);
+            const newSelected = Array.from(new Set([...selectedBanners, ...currentPageIds]));
+            setSelectedBanners(newSelected);
             setIsCheckedAll(true);
         } else {
             // Bỏ các sản phẩm ở trang hiện tại
-            const newSelected = selectedHomeSlides.filter((id) => !currentPageIds.includes(id));
-            setSelectedHomeSlides(newSelected);
+            const newSelected = selectedBanners.filter((id) => !currentPageIds.includes(id));
+            setSelectedBanners(newSelected);
             setIsCheckedAll(false);
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentHomeSlides.every((homeSlide) => selectedHomeSlides.includes(homeSlide._id));
+        const allSelectedOnPage = currentBanners.every((banner) => selectedBanners.includes(banner._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentHomeSlides, selectedHomeSlides]);
+    }, [currentBanners, selectedBanners]);
 
     const handleClickOpen = (id) => {
         setOpen(true);
-        setHomeSlideId(id);
+        setBannerId(id);
     };
 
     const handleClose = () => {
@@ -112,31 +111,36 @@ const HomeSlidePage = () => {
     };
 
     useEffect(() => {
-        const getHomeSlides = async () => {
+        const getBanners = async () => {
             try {
-                const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
+                const { data } = await axiosClient.get('/api/banner/all-banners');
+                console.log('dataBanner: ', data);
                 if (data.success) {
-                    setHomeSlides(data?.homeSlides);
+                    setBanners(data?.banners);
                 } else {
-                    console.error('Lỗi lấy danh mục:', data.message);
+                    console.error('Lỗi lấy banner:', data.message);
                 }
             } catch (error) {
                 console.error('Lỗi API:', error);
                 return [];
             }
         };
-        getHomeSlides();
+        getBanners();
     }, [context?.isOpenFullScreenPanel]);
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const handleDeleteHomeSlide = async () => {
+    const handleChangeBannerFilterVal = (event) => {
+        setBannerFilterVal(event.target.value);
+    };
+
+    const handleDeleteBanner = async () => {
         setIsLoading(true);
         try {
-            const { data } = await axiosClient.delete(`/api/homeSlide/${homeSlideId}`);
+            const { data } = await axiosClient.delete(`/api/banner/${bannerId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                setHomeSlides((prev) => prev.filter((homeSlide) => homeSlide._id !== homeSlideId));
+                setBanners((prev) => prev.filter((banner) => banner._id !== bannerId));
                 handleClose();
             }
         } catch (error) {
@@ -146,17 +150,17 @@ const HomeSlidePage = () => {
             setIsLoading(false);
         }
     };
-
-    const handleDeleteMultipleHomeSlide = async () => {
+    const handleDeleteMultipleBanner = async () => {
         setIsLoadingMultiple(true);
 
         try {
-            const { data } = await axiosClient.delete('/api/homeSlide/deleteMultipleHomeSlides', {
-                data: { ids: selectedHomeSlides },
+            const { data } = await axiosClient.delete(`/api/banner/deleteMultipleBanner`, {
+                data: { ids: selectedBanners },
             });
+            console.log('data: ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getHomeSlides();
+                context.getBanners();
                 handleCloseMultiple();
             }
         } catch (error) {
@@ -170,14 +174,14 @@ const HomeSlidePage = () => {
     return (
         <>
             <div className="flex items-center justify-between px-2 py-0">
-                <h2 className="text-[18px] font-[600]">Danh sách home slide</h2>
+                <h2 className="text-[18px] font-[600]">Danh sách banner</h2>
 
                 <div
                     className={`col ${
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedHomeSlides.length > 1) && (
+                    {(isCheckedAll || selectedBanners.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -195,17 +199,41 @@ const HomeSlidePage = () => {
                         onClick={() =>
                             context.setIsOpenFullScreenPanel({
                                 open: true,
-                                model: 'Thêm home slide',
+                                model: 'Thêm banner',
                             })
                         }
                     >
                         <IoMdAdd />
-                        Thêm Home Slide
+                        Thêm banner
                     </Button>
                 </div>
             </div>
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
+                <div className="flex items-center w-full justify-between px-5">
+                    <div className="col w-[20%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
+
+                        <Select
+                            className="w-full"
+                            size="small"
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={bannerFilterVal}
+                            label="banner"
+                            onChange={handleChangeBannerFilterVal}
+                        >
+                            <MenuItem value={10}>Nam</MenuItem>
+                            <MenuItem value={20}>Nữ</MenuItem>
+                            <MenuItem value={30}>Trẻ em</MenuItem>
+                        </Select>
+                    </div>
+
+                    <div className="col w-[20%] ml-auto">
+                        <SearchBoxComponent />
+                    </div>
+                </div>
+
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
@@ -226,35 +254,41 @@ const HomeSlidePage = () => {
                                     Hình ảnh
                                 </th>
                                 <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                    Tên banner
+                                </th>
+                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
                                     Hành động
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {currentHomeSlides?.map((homeSlide) => (
-                                <tr key={homeSlide._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                            {currentBanners?.map((banner) => (
+                                <tr key={banner._id} className="odd:bg-white  even:bg-gray-50 border-b">
                                     <td className="px-6 pr-0 py-2">
                                         <div className="w-[60px]">
                                             <Checkbox
                                                 {...label}
-                                                checked={selectedHomeSlides.includes(homeSlide._id)}
-                                                onChange={() => handleSelectHomeSlide(homeSlide._id)}
+                                                checked={selectedBanners.includes(banner._id)}
+                                                onChange={() => handleSelectBanner(banner._id)}
                                                 size="small"
                                             />
                                         </div>
                                     </td>
                                     <td className="px-0 py-2">
-                                        <div className="flex items-center gap-4 w-[330px]">
-                                            <div className="img w-full rounded-md overflow-hidden group">
-                                                <Link to={`/home-slide/${homeSlide?._id}`}>
+                                        <div className="flex items-center gap-4 w-[80px]">
+                                            <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                <Link to={`/banner/${banner?._id}`}>
                                                     <img
-                                                        src={homeSlide?.image}
-                                                        className="w-full max-h-[100px] object-cover group-hover:scale-105 transition-all"
+                                                        src={banner?.images.length > 0 && banner?.images[0]}
+                                                        className="w-full group-hover:scale-105 transition-all"
                                                         alt=""
                                                     />
                                                 </Link>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-2">
+                                        <p className="w-[180px] line-clamp-2">{banner?.name}</p>
                                     </td>
 
                                     <td className="px-6 py-2">
@@ -265,8 +299,8 @@ const HomeSlidePage = () => {
                                                     onClick={() =>
                                                         context.setIsOpenFullScreenPanel({
                                                             open: true,
-                                                            model: 'Cập nhật home slide',
-                                                            id: homeSlide._id,
+                                                            model: 'Cập nhật banner',
+                                                            id: banner._id,
                                                         })
                                                     }
                                                 >
@@ -275,7 +309,7 @@ const HomeSlidePage = () => {
                                             </Tooltip>
                                             <Tooltip title="Xoá" placement="top">
                                                 <Button
-                                                    onClick={() => handleClickOpen(homeSlide._id)}
+                                                    onClick={() => handleClickOpen(banner._id)}
                                                     className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
                                                 >
                                                     <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
@@ -300,10 +334,10 @@ const HomeSlidePage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá home slide?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá banner?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá home slide này không?
+                        Bạn có chắc chắn xoá banner này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -311,7 +345,7 @@ const HomeSlidePage = () => {
                     {isLoading === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
-                        <Button className="btn-red" onClick={handleDeleteHomeSlide} autoFocus>
+                        <Button className="btn-red" onClick={handleDeleteBanner} autoFocus>
                             Xác nhận
                         </Button>
                     )}
@@ -323,10 +357,10 @@ const HomeSlidePage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả slide?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả banner?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả slide này không?
+                        Bạn có chắc chắn xoá tất cả banner này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -334,7 +368,7 @@ const HomeSlidePage = () => {
                     {isLoadingMultiple === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleHomeSlide} autoFocus>
+                        <Button className="btn-red" onClick={handleDeleteMultipleBanner} autoFocus>
                             Xác nhận
                         </Button>
                     )}
@@ -344,4 +378,4 @@ const HomeSlidePage = () => {
     );
 };
 
-export default HomeSlidePage;
+export default BannerPage;

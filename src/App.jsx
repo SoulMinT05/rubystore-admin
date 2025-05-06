@@ -28,6 +28,8 @@ import UpdateCategoryComponent from './components/UpdateCategoryComponent/Update
 import UpdateHomeSlideComponent from './components/UpdateHomeSlideComponent/UpdateHomeSlideComponent';
 import UpdateProductComponent from './components/UpdateProductComponent/UpdateProductComponent';
 import AddHomeSlideComponent from './components/AddHomeSlideComponent/AddHomeSlideComponent';
+import AddBannerComponent from './components/AddBannerComponent/AddBannerComponent';
+import UpdateBannerComponent from './components/UpdateBannerComponent/UpdateBannerComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -47,6 +49,7 @@ function App() {
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
     const [homeSlides, setHomeSlides] = useState([]);
+    const [banners, setBanners] = useState([]);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
@@ -100,6 +103,15 @@ function App() {
             console.log(error);
         }
     };
+    const getBanners = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/banner/all-banners');
+            console.log('dataBanners: ', data);
+            setBanners(data?.banners);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const openAlertBox = (status, message) => {
         if (status === 'success') {
@@ -135,6 +147,9 @@ function App() {
         homeSlides,
         setHomeSlides,
         getHomeSlides,
+        banners,
+        setBanners,
+        getBanners,
     };
 
     return (
@@ -174,7 +189,8 @@ function App() {
                         </Toolbar>
                     </AppBar>
 
-                    {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddHomeBannerComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddBannerComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật banner' && <UpdateBannerComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
@@ -182,7 +198,7 @@ function App() {
                     {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateHomeSlideComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
                 </Dialog>

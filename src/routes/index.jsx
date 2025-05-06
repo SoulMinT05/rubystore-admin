@@ -7,7 +7,7 @@ import UserPage from '../pages/UserPage/UserPage';
 import ProductPage from '../pages/ProductPage/ProductPage';
 import StaffPage from '../pages/StaffPage/StaffPage';
 import OrderPage from '../pages/OrderPage/OrderPage';
-import HomeBannerPage from '../pages/HomeBannerPage/HomeBannerPage';
+import BannerPage from '../pages/BannerPage/BannerPage';
 import CategoryPage from '../pages/CategoryPage/CategoryPage';
 import SubCategoryPage from '../pages/SubCategoryPage/SubCategoryPage';
 import HomeSlidePage from '../pages/HomeSlidePage/HomeSlidePage';
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
                 path: 'home-banner',
                 element: (
                     <PrivateRoute>
-                        <HomeBannerPage />
+                        <BannerPage />
                     </PrivateRoute>
                 ),
             },

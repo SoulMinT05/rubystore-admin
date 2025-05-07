@@ -25,6 +25,7 @@ import ProductDetailsPage from '../pages/ProductDetailsPage/ProductDetailsPage';
 import ProductRamPage from '../pages/ProductRamPage/ProductRamPage';
 import ProductWeightPage from '../pages/ProductWeightPage/ProductWeightPage';
 import ProductSizePage from '../pages/ProductSizePage/ProductSizePage';
+import BlogPage from '../pages/BlogPage/BlogPage';
 
 const router = createBrowserRouter([
     {
@@ -132,6 +133,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <OrderPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'blogs',
+                element: (
+                    <PrivateRoute>
+                        <BlogPage />
                     </PrivateRoute>
                 ),
             },

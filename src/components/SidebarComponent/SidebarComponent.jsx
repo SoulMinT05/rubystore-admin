@@ -15,6 +15,7 @@ import { IoMdLogOut } from 'react-icons/io';
 import { FaAngleDown } from 'react-icons/fa6';
 import { IoKeyOutline } from 'react-icons/io5';
 import { LuUserRoundPen } from 'react-icons/lu';
+import { RiBloggerLine } from 'react-icons/ri';
 
 import { Collapse } from 'react-collapse';
 import { MyContext } from '../../App';
@@ -343,6 +344,47 @@ const SidebarComponent = () => {
                             Quản lý đơn hàng
                         </Button>
                     </Link>
+                </li>
+
+                {/* Blog */}
+                <li>
+                    <Button
+                        className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
+                        onClick={() => isOpenSubMenu(7)}
+                    >
+                        <RiBloggerLine className="text-[18px]" />
+                        <Link to="/blogs">Quản lý bài viết</Link>
+                        <span className="ml-auto w-[30px] h-[30px] flex items-center justify-center">
+                            <FaAngleDown className={`transition-all ${submenuIndex === 7 ? 'rotate-180' : ''}`} />
+                        </span>
+                    </Button>
+
+                    <Collapse isOpened={submenuIndex === 7 ? true : false}>
+                        <ul className="w-full">
+                            <li className="w-full">
+                                <Link to="/blogs">
+                                    <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
+                                        <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                        Danh sách bài viết
+                                    </Button>
+                                </Link>
+                            </li>
+                            <li className="w-full">
+                                <Button
+                                    className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3"
+                                    onClick={() =>
+                                        context.setIsOpenFullScreenPanel({
+                                            open: true,
+                                            model: 'Thêm bài viết',
+                                        })
+                                    }
+                                >
+                                    <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                                    Thêm bài viết
+                                </Button>
+                            </li>
+                        </ul>
+                    </Collapse>
                 </li>
 
                 <Divider />

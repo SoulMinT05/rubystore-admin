@@ -160,3 +160,7 @@ input[type='number'] {
 .MuiDialog-paper {
     width: 100% !important;
 }
+.rsw-editor {
+    min-height: 200px !important;
+    background-color: #fff !important;
+}

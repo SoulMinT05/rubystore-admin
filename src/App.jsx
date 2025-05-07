@@ -9,6 +9,7 @@ import AddProductComponent from './components/AddProductComponent/AddProductComp
 import AddHomeBannerComponent from './components/AddHomeBannerComponent/AddHomeBannerComponent';
 import AddCategoryComponent from './components/AddCategoryComponent/AddCategoryComponent';
 import AddSubCategoryComponent from './components/AddSubCategoryComponent/AddSubCategoryComponent';
+import AddBlogComponent from './components/AddBlogComponent/AddBlogComponent';
 
 import axiosClient from './apis/axiosClient';
 
@@ -30,6 +31,7 @@ import UpdateProductComponent from './components/UpdateProductComponent/UpdatePr
 import AddHomeSlideComponent from './components/AddHomeSlideComponent/AddHomeSlideComponent';
 import AddBannerComponent from './components/AddBannerComponent/AddBannerComponent';
 import UpdateBannerComponent from './components/UpdateBannerComponent/UpdateBannerComponent';
+import UpdateBlogComponent from './components/UpdateBlogComponent/UpdateBlogComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -53,6 +55,7 @@ function App() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
+    const [blogs, setBlogs] = useState([]);
 
     useEffect(() => {
         const getUserDetails = async () => {
@@ -97,7 +100,6 @@ function App() {
     const getHomeSlides = async () => {
         try {
             const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
-            console.log('dataSlide: ', data);
             setHomeSlides(data?.homeSlides);
         } catch (error) {
             console.log(error);
@@ -106,8 +108,15 @@ function App() {
     const getBanners = async () => {
         try {
             const { data } = await axiosClient.get('/api/banner/all-banners');
-            console.log('dataBanners: ', data);
             setBanners(data?.banners);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    const getBlogs = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/blog/all-blogs');
+            setBlogs(data?.blogs);
         } catch (error) {
             console.log(error);
         }
@@ -150,6 +159,9 @@ function App() {
         banners,
         setBanners,
         getBanners,
+        blogs,
+        setBlogs,
+        getBlogs,
     };
 
     return (
@@ -200,6 +212,8 @@ function App() {
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
                     {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
+                    {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
+                    {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
                     {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
                 </Dialog>
             </MyContext.Provider>

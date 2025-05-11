@@ -13,6 +13,7 @@ import { FaCloudUploadAlt } from 'react-icons/fa';
 import { Button, CircularProgress } from '@mui/material';
 import axiosClient from '../../apis/axiosClient';
 import { MyContext } from '../../App';
+import Editor from 'react-simple-wysiwyg';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -26,6 +27,7 @@ const MenuProps = {
 };
 
 const UpdateProductComponent = () => {
+    const [html, setHtml] = useState('');
     const [formFields, setFormFields] = useState({
         name: '',
         images: [], // ảnh cũ từ server trả về
@@ -100,6 +102,7 @@ const UpdateProductComponent = () => {
                     setProductRam(data.product.productRam);
                     setProductWeight(data.product.productWeight);
                     setProductSize(data.product.productSize);
+                    setHtml(data?.product?.description);
                 }
             } catch (error) {
                 console.log(error);
@@ -224,6 +227,11 @@ const UpdateProductComponent = () => {
         });
     };
 
+    const handleChangeDescription = (e) => {
+        setHtml(e.target.value);
+        formFields.description = e.target.value;
+    };
+
     const handleUploadImages = (files) => {
         const imagesArray = files.map((file) => ({
             file,
@@ -343,14 +351,11 @@ const UpdateProductComponent = () => {
                     <div className="grid grid-cols-1 mb-3">
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Mô tả sản phẩm</h3>
-                            <textarea
-                                name="description"
-                                value={formFields.description}
-                                disabled={isLoading === true ? true : false}
-                                onChange={handleChange}
-                                type="text"
-                                className="w-full h-[150px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
+                            <Editor
+                                value={html}
+                                containerProps={{ style: { resize: 'vertical' } }}
+                                onChange={handleChangeDescription}
+                            ></Editor>
                         </div>
                     </div>
                     <div className="grid grid-cols-4 mb-3 gap-4 ">

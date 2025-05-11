@@ -19,6 +19,7 @@ import { BsPatchCheckFill } from 'react-icons/bs';
 import './ProductDetailsPage.scss';
 import axiosClient from '../../apis/axiosClient';
 import { CircularProgress, Rating } from '@mui/material';
+import DOMPurify from 'dompurify';
 
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -30,6 +31,10 @@ function formatDate(dateString) {
 const ProductDetailsPage = () => {
     const { id } = useParams();
     const [product, setProduct] = useState();
+    const sanitizedDescription = DOMPurify.sanitize(product?.description, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li', 'span', 'img'],
+        ALLOWED_ATTR: ['src', 'alt', 'title', 'width', 'height', 'style'],
+    });
 
     const [slideIndex, setSlideIndex] = useState(0);
     const zoomSliderBig = useRef();
@@ -199,8 +204,15 @@ const ProductDetailsPage = () => {
                 </div>
             )}
             <br /> <br />
-            <h2 className="text-[20px] font-[500] mb-4">Mô tả sản phẩm</h2>
-            {product?.description && <p className="text-[14px]">{product?.description}</p>}
+            <h2 className="text-[20px] font-[500] mb-6">Mô tả sản phẩm</h2>
+            <div
+                className="w-full description-content"
+                style={{
+                    maxWidth: '100%',
+                    wordWrap: 'break-word',
+                }}
+                dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+            />
             <br /> <br />
             <h2 className="text-[20px] font-[500] mb-4">Đánh giá khách hàng</h2>
             <div className="reviewsWrap mt-3">

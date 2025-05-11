@@ -41,3 +41,27 @@
 .inner-image-zoom--icon {
     display: none !important;
 }
+
+.description-content {
+    /* Đặt khoảng cách giữa các phần tử con */
+    & > * {
+        margin-bottom: 15px;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 15px 0; /* Canh giữa hình ảnh */
+        object-fit: contain;
+
+        // Ghi de lai
+        position: relative !important; /* Tránh bị đè lên nhau */
+        pointer-events: none; /* Cho phép tương tác nếu cần */
+    }
+
+    p {
+        margin-bottom: 15px;
+        line-height: 1.8;
+    }
+}

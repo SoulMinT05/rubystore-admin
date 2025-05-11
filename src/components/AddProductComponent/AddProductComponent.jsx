@@ -10,6 +10,7 @@ import './AddProductComponent.scss';
 import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import Editor from 'react-simple-wysiwyg';
 
 import { IoMdClose } from 'react-icons/io';
 import { FaCloudUploadAlt } from 'react-icons/fa';
@@ -50,6 +51,7 @@ const AddProductComponent = () => {
         productSize: [],
         productWeight: [],
     });
+    const [html, setHtml] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { setProducts } = useContext(MyContext);
 
@@ -180,6 +182,10 @@ const AddProductComponent = () => {
             images: newImages,
         }));
     };
+    const handleChangeDescription = (e) => {
+        setHtml(e.target.value);
+        formFields.description = e.target.value;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -260,14 +266,11 @@ const AddProductComponent = () => {
                     <div className="grid grid-cols-1 mb-3">
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Mô tả sản phẩm</h3>
-                            <textarea
-                                name="description"
-                                value={formFields.description}
-                                disabled={isLoading === true ? true : false}
-                                onChange={handleChange}
-                                type="text"
-                                className="w-full h-[150px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
+                            <Editor
+                                value={html}
+                                containerProps={{ style: { resize: 'vertical' } }}
+                                onChange={handleChangeDescription}
+                            ></Editor>
                         </div>
                     </div>
                     <div className="grid grid-cols-4 mb-3 gap-4 ">

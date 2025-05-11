@@ -467,109 +467,113 @@ const ProductPage = () => {
                         <tbody>
                             {isLoadingProducts === false ? (
                                 currentProducts?.length > 0 &&
-                                currentProducts?.map((product) => (
-                                    <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
-                                        <td className="px-6 pr-0 py-2">
-                                            <div className="w-[60px]">
-                                                <Checkbox
-                                                    {...label}
-                                                    checked={selectedProducts.includes(product._id)}
-                                                    onChange={() => handleSelectProduct(product._id)}
+                                currentProducts?.map((product) => {
+                                    return (
+                                        <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                            <td className="px-6 pr-0 py-2">
+                                                <div className="w-[60px]">
+                                                    <Checkbox
+                                                        {...label}
+                                                        checked={selectedProducts.includes(product._id)}
+                                                        onChange={() => handleSelectProduct(product._id)}
+                                                        size="small"
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="px-0 py-2">
+                                                <div className="flex items-center gap-4 w-[330px]">
+                                                    <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                        <Link to={`/product/${product?._id}`}>
+                                                            <img
+                                                                src={product?.images[0]}
+                                                                className="w-full group-hover:scale-105 transition-all"
+                                                                alt=""
+                                                            />
+                                                        </Link>
+                                                    </div>
+                                                    <div className="info w-[75%]">
+                                                        <h3 className="text-[12px] font-[600] leading-4 hover:text-primary transition-all">
+                                                            <Link to={`/product/${product?._id}`}>{product?.name}</Link>
+                                                        </h3>
+                                                        <span className="text-[12px]">{product?.brand}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[80px]">{product?.categoryName}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[80px]">{product?.subCategoryName}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <div className="flex gap-1 flex-col">
+                                                    <span className="oldPrice line-through leading-3 text-gray-500 text-[14px] font-[500]">
+                                                        {formatCurrency(product?.oldPrice)}
+                                                    </span>
+                                                    <span className="price text-primary text-[14px] font-[600]">
+                                                        {formatCurrency(product?.price)}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="text-[14px] w-[130px]">
+                                                    <span className="font-[600]">
+                                                        {getStockLabelByQuantity(product?.countInStock || 0)}{' '}
+                                                    </span>
+                                                    ({product?.countInStock || 0})
+                                                </p>
+                                                <ProgressProductStatusComponent
+                                                    value={product?.countInStock}
+                                                    status={getProductStatusBackgroundByStock(
+                                                        product?.countInStock || 0,
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <Rating
+                                                    name="size-small"
+                                                    defaultValue={product?.rating}
+                                                    readOnly
                                                     size="small"
                                                 />
-                                            </div>
-                                        </td>
-                                        <td className="px-0 py-2">
-                                            <div className="flex items-center gap-4 w-[330px]">
-                                                <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                    <Link to={`/product/${product?._id}`}>
-                                                        <img
-                                                            src={product?.images[0]}
-                                                            className="w-full group-hover:scale-105 transition-all"
-                                                            alt=""
-                                                        />
-                                                    </Link>
-                                                </div>
-                                                <div className="info w-[75%]">
-                                                    <h3 className="text-[12px] font-[600] leading-4 hover:text-primary transition-all">
-                                                        <Link to={`/product/${product?._id}`}>{product?.name}</Link>
-                                                    </h3>
-                                                    <span className="text-[12px]">{product?.brand}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <p className="w-[80px]">{product?.categoryName}</p>
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <p className="w-[80px]">{product?.subCategoryName}</p>
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <div className="flex gap-1 flex-col">
-                                                <span className="oldPrice line-through leading-3 text-gray-500 text-[14px] font-[500]">
-                                                    {formatCurrency(product?.oldPrice)}
-                                                </span>
-                                                <span className="price text-primary text-[14px] font-[600]">
-                                                    {formatCurrency(product?.price)}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <p className="text-[14px] w-[130px]">
-                                                <span className="font-[600]">
-                                                    {getStockLabelByQuantity(product?.countInStock || 0)}{' '}
-                                                </span>
-                                                ({product?.countInStock || 0})
-                                            </p>
-                                            <ProgressProductStatusComponent
-                                                value={product?.countInStock}
-                                                status={getProductStatusBackgroundByStock(product?.countInStock || 0)}
-                                            />
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <Rating
-                                                name="size-small"
-                                                defaultValue={product?.rating}
-                                                readOnly
-                                                size="small"
-                                            />
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <div className="flex items-center gap-1">
-                                                <Tooltip
-                                                    title="Chỉnh sửa"
-                                                    placement="top"
-                                                    onClick={() =>
-                                                        context.setIsOpenFullScreenPanel({
-                                                            open: true,
-                                                            model: 'Cập nhật sản phẩm',
-                                                            id: product?._id,
-                                                        })
-                                                    }
-                                                >
-                                                    <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                        <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                                    </Button>
-                                                </Tooltip>
-                                                <Tooltip title="Xem chi tiết" placement="top">
-                                                    <Link to={`/product/${product?._id}`}>
-                                                        <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                            <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                        </Button>
-                                                    </Link>
-                                                </Tooltip>
-                                                <Tooltip title="Xoá" placement="top">
-                                                    <Button
-                                                        onClick={() => handleClickOpen(product._id)}
-                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <div className="flex items-center gap-1">
+                                                    <Tooltip
+                                                        title="Chỉnh sửa"
+                                                        placement="top"
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Cập nhật sản phẩm',
+                                                                id: product?._id,
+                                                            })
+                                                        }
                                                     >
-                                                        <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                    </Button>
-                                                </Tooltip>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                        <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                            <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip title="Xem chi tiết" placement="top">
+                                                        <Link to={`/product/${product?._id}`}>
+                                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                            </Button>
+                                                        </Link>
+                                                    </Tooltip>
+                                                    <Tooltip title="Xoá" placement="top">
+                                                        <Button
+                                                            onClick={() => handleClickOpen(product._id)}
+                                                            className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        >
+                                                            <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={999}>

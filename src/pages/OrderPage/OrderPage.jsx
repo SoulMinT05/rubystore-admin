@@ -1,7 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
 import './OrderPage.scss';
+import * as XLSX from 'xlsx';
 import {
     Button,
     MenuItem,
@@ -14,11 +15,13 @@ import {
     Dialog,
     DialogContent,
     Divider,
+    CircularProgress,
 } from '@mui/material';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import { BiExport } from 'react-icons/bi';
 import { MyContext } from '../../App';
-import { Link } from 'react-router-dom';
-import { AiOutlineEdit } from 'react-icons/ai';
 import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
@@ -26,18 +29,35 @@ import { IoCloseSharp } from 'react-icons/io5';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 import BadgeOrderStatusComponent from '../../components/BadgeOrderStatusComponent/BadgeOrderStatusComponent';
+import axiosClient from '../../apis/axiosClient';
 
 const OrderPage = () => {
     const context = useContext(MyContext);
-    const [openProductDetailsModal, setOpenProductDetailsModal] = useState(false);
-
+    const { orders } = useContext(MyContext);
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const handleCloseProductDetailsModal = () => {
-        setOpenProductDetailsModal(false);
+    const [orderId, setOrderId] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [isLoadingDeleteOrder, setIsLoadingDeleteOrder] = useState(false);
+    const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+    const [openMultiple, setOpenMultiple] = useState(false);
+    const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
+    const [isCheckedAll, setIsCheckedAll] = useState(false);
+    const [selectedOrders, setSelectedOrders] = useState([]);
+
+    const [openOrderDetailsModal, setOpenOrderDetailsModal] = useState({
+        open: false,
+        order: null,
+    });
+
+    const handleCloseOrderDetailsModal = () => {
+        setOpenOrderDetailsModal({
+            open: false,
+            order: null,
+        });
     };
     const printPDF = async () => {
-        const element = document.getElementById('order-details-admin');
+        const element = document.getElementById('order-details');
         if (!element) {
             console.error('Không tìm thấy element');
             return;
@@ -52,7 +72,7 @@ const OrderPage = () => {
                     img.onload = resolve;
                     img.onerror = resolve;
                 });
-            }),
+            })
         );
 
         // Delay nhỏ để chắc chắn ảnh được render hoàn chỉnh
@@ -71,11 +91,195 @@ const OrderPage = () => {
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save('order-details-admin.pdf');
+                pdf.save('order-details.pdf');
             } catch (err) {
                 console.error('Lỗi tạo PDF:', err);
             }
         }, 300);
+    };
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            setIsLoadingOrders(true);
+            try {
+                const { data } = await axiosClient.get('/api/order/ordersFromAdmin');
+                if (data.success) {
+                    context.setOrders(data?.orders);
+                }
+            } catch (error) {
+                console.error('error: ', error);
+            } finally {
+                setIsLoadingOrders(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    const itemsPerPage = 10;
+    // State lưu trang hiện tại
+    const [currentPage, setCurrentPage] = useState(1);
+    // Tính tổng số trang
+    const totalPages = Math.ceil(orders.length / itemsPerPage);
+    // Xử lý khi đổi trang
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+    };
+    // Cắt dữ liệu theo trang
+    const currentOrders = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleExportExcel = () => {
+        const exportData = [];
+
+        orders.forEach((order) => {
+            const cartItems = order?.selectedCartItems || [];
+
+            cartItems.forEach((cartItem, index) => {
+                exportData.push({
+                    // Chỉ hiển thị thông tin đơn hàng ở dòng đầu tiên
+                    'Mã đơn hàng': index === 0 ? order?._id : '',
+                    'Ngày đặt hàng': index === 0 ? formatDate(order?.createdAt) : '',
+                    'Trạng thái đơn hàng': index === 0 ? order?.orderStatus : '',
+                    'Phương thức thanh toán':
+                        index === 0
+                            ? order?.paymentMethod === 'cod'
+                                ? 'Thanh toán khi nhận hàng'
+                                : order?.paymentMethod === 'momo'
+                                ? 'Thanh toán bằng Momo'
+                                : order?.paymentMethod === 'vnpay'
+                                ? 'Thanh toán bằng VnPay'
+                                : 'Không xác định'
+                            : '',
+
+                    // Khách hàng
+                    'Tên khách hàng': index === 0 ? order?.userId?.name : '',
+                    'Email khách hàng': index === 0 ? order?.userId?.email : '',
+                    'SĐT khách hàng': index === 0 ? order?.userId?.phoneNumber : '',
+                    'Địa chỉ giao hàng':
+                        index === 0
+                            ? `Đường ${order?.shippingAddress?.streetLine || ''}, Phường ${
+                                  order?.shippingAddress?.ward || ''
+                              }, Quận ${order?.shippingAddress?.district || ''}, Thành phố ${
+                                  order?.shippingAddress?.city || ''
+                              }`
+                            : '',
+
+                    // Sản phẩm
+                    'Tên sản phẩm': cartItem?.name,
+                    Size: cartItem?.sizeProduct,
+                    'Số lượng': cartItem?.quantityProduct,
+                    Giá: formatCurrency(cartItem?.price),
+
+                    // Tổng quan đơn (hiện 1 lần)
+                    'Tổng số lượng': index === 0 ? order?.totalQuantity : '',
+                    'Tổng tiền sản phẩm': index === 0 ? formatCurrency(order?.totalPrice) : '',
+                    'Phí vận chuyển': index === 0 ? formatCurrency(order?.shippingFee) : '',
+                    'Voucher giảm giá':
+                        index === 0
+                            ? order?.discountType === 'percent'
+                                ? `${order?.discountValue}%`
+                                : formatCurrency(order?.discountValue)
+                            : '',
+                    'Tổng thanh toán': index === 0 ? formatCurrency(order?.finalPrice) : '',
+                });
+            });
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'ChiTietDonHang');
+
+        XLSX.writeFile(wb, 'ChiTietDonHang.xlsx');
+    };
+
+    const handleSelectOrder = (orderId) => {
+        setSelectedOrders((prevSelectedOrders) => {
+            let updatedSelectedOrders;
+
+            if (prevSelectedOrders.includes(orderId)) {
+                // Nếu đã chọn thì bỏ chọn
+                updatedSelectedOrders = prevSelectedOrders.filter((id) => id !== orderId);
+            } else {
+                // Nếu chưa chọn thì chọn
+                updatedSelectedOrders = [...prevSelectedOrders, orderId];
+            }
+
+            const allSelectedOnPage = currentOrders.every((order) => updatedSelectedOrders.includes(order._id));
+            setIsCheckedAll(allSelectedOnPage);
+
+            return updatedSelectedOrders;
+        });
+    };
+
+    const handleSelectAll = () => {
+        const currentPageIds = currentOrders.map((product) => product._id);
+        if (!isCheckedAll) {
+            // Thêm các sản phẩm ở trang hiện tại
+            const newSelected = Array.from(new Set([...selectedOrders, ...currentPageIds]));
+            setSelectedOrders(newSelected);
+            setIsCheckedAll(true);
+        } else {
+            // Bỏ các sản phẩm ở trang hiện tại
+            const newSelected = selectedOrders.filter((id) => !currentPageIds.includes(id));
+            setSelectedOrders(newSelected);
+            setIsCheckedAll(false);
+        }
+    };
+    useEffect(() => {
+        const allSelectedOnPage = currentOrders.every((order) => selectedOrders.includes(order._id));
+        setIsCheckedAll(allSelectedOnPage);
+    }, [currentOrders, selectedOrders]);
+
+    useEffect(() => {
+        setSelectedOrders(selectedOrders);
+    }, [selectedOrders]);
+
+    const handleDeleteMultipleOrder = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/order/deleteMultipleOrdersFromAdmin`, {
+                data: { orderIds: selectedOrders },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getOrders();
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
+    };
+
+    const handleClickOpen = (id) => {
+        setOpen(true);
+        setOrderId(id);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleCloseMultiple = () => {
+        setOpenMultiple(false);
+    };
+    const handleDeleteOrder = async () => {
+        setIsLoadingDeleteOrder(true);
+        try {
+            const { data } = await axiosClient.delete(`/api/order/${orderId}`);
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getOrders();
+                handleClose();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingDeleteOrder(false);
+        }
     };
 
     return (
@@ -88,7 +292,16 @@ const OrderPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    <Button className="btn !bg-green-500 !text-white !normal-case gap-1">
+                    {(isCheckedAll || selectedOrders.length > 1) && (
+                        <Button
+                            onClick={() => setOpenMultiple(true)}
+                            className="btn !bg-red-500 !text-white !normal-case gap-1"
+                        >
+                            <BiExport />
+                            Xoá tất cả
+                        </Button>
+                    )}
+                    <Button onClick={handleExportExcel} className="btn !bg-green-500 !text-white !normal-case gap-1">
                         <BiExport />
                         Xuất file
                     </Button>
@@ -104,221 +317,177 @@ const OrderPage = () => {
 
                 <br />
 
-                {/* <div className="relative overflow-x-auto mt-1 pb-5">
-                    <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        <thead className="text-xs text-gray-700 uppercase bg-white">
-                            <tr>
-                                <th scope="col" className="px-6 pr-0 py-2 ">
-                                    <div className="w-[60px]">
-                                        <Checkbox {...label} size="small" />
-                                    </div>
-                                </th>
-                                <th scope="col" className="px-0 py-3 whitespace-nowrap">
-                                    Avatar
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Họ và tên
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Username
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Email
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Số điện thoại
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Địa chỉ
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Trạng thái
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Ngày tạo
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Hành động
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr className="odd:bg-white  even:bg-gray-50 border-b">
-                                <td className="px-6 pr-0 py-2">
-                                    <div className="w-[60px]">
-                                        <Checkbox {...label} size="small" />
-                                    </div>
-                                </td>
-                                <td className="px-0 py-2">
-                                    <div className="flex items-center gap-4 w-[100px]">
-                                        <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                            <Link to="/product/2">
-                                                <img
-                                                    src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                    className="w-full group-hover:scale-105 transition-all"
-                                                    alt=""
-                                                />
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">Tam Nguyen</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">tamnguyen</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[150px]">tamnguyen@gmail.com</p>
-                                </td>
-                                <td className="px-6 py-2">092812122</td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[150px]">137 Trần Bình Thạnh, q.Cái Răng, Tp Hồ Chí Minh</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <label className="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" value="" className="sr-only peer" />
-                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </td>
-
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">{formatDate(20022024)}</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <div className="flex items-center gap-1">
-                                        <Tooltip title="Chỉnh sửa" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Xem chi tiết" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Xoá" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div> */}
-
                 <div className="card my-4 shadow-md sm:rounded-lg bg-white">
                     <div className="relative overflow-x-auto">
                         <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                            <thead className="text-xs text-gray-700 uppercase bg-white">
-                                <tr>
-                                    <th scope="col" className="px-6 pr-0 py-2 ">
-                                        <div className="w-[60px]">
-                                            <Checkbox {...label} size="small" />
-                                        </div>
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Order ID
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Sản phẩm
-                                    </th>
+                            {!isLoadingOrders && currentOrders?.length > 0 && (
+                                <thead className="text-xs text-gray-700 uppercase bg-white">
+                                    <tr>
+                                        <th scope="col" className="px-6 pr-0 py-2 ">
+                                            <div className="w-[60px]">
+                                                <Checkbox
+                                                    {...label}
+                                                    size="small"
+                                                    checked={isCheckedAll}
+                                                    onChange={handleSelectAll}
+                                                />
+                                            </div>
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Order ID
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Sản phẩm
+                                        </th>
 
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Phương thức thanh toán
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Họ và tên
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Email
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Số điện thoại
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Địa chỉ
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Tổng tiền
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Trạng thái
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Ngày đặt hàng
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 whitespace-nowrap"></th>
-                                </tr>
-                            </thead>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Phương thức thanh toán
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Họ và tên
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Email
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Số điện thoại
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Địa chỉ
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Tổng thanh toán
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Trạng thái
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                            Ngày đặt hàng
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 whitespace-nowrap"></th>
+                                    </tr>
+                                </thead>
+                            )}
+
                             <tbody>
-                                <tr className="bg-white border-b">
-                                    <td className="px-6 pr-0 py-2">
-                                        <div className="w-[60px]">
-                                            <Checkbox {...label} size="small" />
-                                        </div>
-                                    </td>
+                                {isLoadingOrders === false ? (
+                                    orders?.length > 0 &&
+                                    orders?.map((order) => {
+                                        return (
+                                            <tr key={order?._id} className="bg-white border-b">
+                                                <td className="px-6 pr-0 py-2">
+                                                    <div className="w-[60px]">
+                                                        <Checkbox
+                                                            {...label}
+                                                            size="small"
+                                                            checked={selectedOrders.includes(order._id)}
+                                                            onChange={() => handleSelectOrder(order._id)}
+                                                        />
+                                                    </div>
+                                                </td>
 
-                                    <td className="px-6 py-4">
-                                        <span className="text-primary font-[600]">6b9283273230ase</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex gap-2 items-center rounded-md overflow-hidden group">
-                                            <img
-                                                src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                alt=""
-                                                className="w-[70px] h-[70px] object-cover rounded-md group-hover:scale-105 transition-all cursor-pointer"
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-primary font-[600]">Tiền mặt</span>
-                                    </td>
-                                    <td className="px-6 py-4">Tam Nguyen</td>
-                                    <td className="px-6 py-4">tamnguyenforwork@gmail.com</td>
-                                    <td className="px-6 py-4">02199232323</td>
-                                    <td className="px-6 py-4">
-                                        <span className="block w-[400px]">
-                                            137 Trần Hoà Bình, Phường 17, Quận Gò Vấp, Thành phố Hồ Chí Minh
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">{formatCurrency(250000)}</td>
-                                    <td className="px-6 py-4">
-                                        <BadgeOrderStatusComponent status="success" />
-                                    </td>
-                                    <td className="px-6 py-4">{formatDate('2025-04-10')}</td>
-                                    <td
-                                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                                        onClick={() => setOpenProductDetailsModal(true)}
-                                    >
-                                        <span className="text-gray-500 link transition-all">Xem chi tiết</span>
-                                    </td>
-                                </tr>
+                                                <td className="px-6 py-4">
+                                                    <span
+                                                        onClick={() =>
+                                                            setOpenOrderDetailsModal({
+                                                                open: true,
+                                                                order: order,
+                                                            })
+                                                        }
+                                                        className="text-red font-[600] cursor-pointer"
+                                                    >
+                                                        {order?._id}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex gap-2 items-center rounded-md overflow-hidden group">
+                                                        <img
+                                                            src={order?.selectedCartItems[0]?.images[0]}
+                                                            alt=""
+                                                            className="w-[70px] h-[70px] object-cover rounded-md group-hover:scale-105 transition-all cursor-pointer"
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-primary font-[600]">
+                                                        {order?.paymentMethod === 'cod' && 'Thanh toán khi nhận hàng'}
+                                                        {order?.paymentMethod === 'momo' && 'Thanh toán bằng Momo'}
+                                                        {order?.paymentMethod === 'vnoay' && 'Thanh toán bằng VnPay'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">{order?.userId?.name}</td>
+                                                <td className="px-6 py-4">{order?.userId?.email}</td>
+                                                <td className="px-6 py-4">{order?.userId?.phoneNumber}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className="block w-[400px]">
+                                                        {`Đường ${order?.shippingAddress?.streetLine}, Phường  ${order?.shippingAddress?.ward}, Quận  ${order?.shippingAddress?.district},  Thành phố ${order?.shippingAddress?.city}`}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">{formatCurrency(order?.finalPrice)}</td>
+                                                <td className="px-6 py-4">
+                                                    <BadgeOrderStatusComponent status={order?.orderStatus} />
+                                                </td>
+                                                <td className="px-6 py-4">{formatDate(order?.createdAt)}</td>
+                                                <td className="px-6 py-2">
+                                                    <div className="flex items-center gap-1">
+                                                        <Tooltip title="Xem chi tiết" placement="top">
+                                                            <Button
+                                                                onClick={() =>
+                                                                    setOpenOrderDetailsModal({
+                                                                        open: true,
+                                                                        order: order,
+                                                                    })
+                                                                }
+                                                                className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                            >
+                                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                            </Button>
+                                                        </Tooltip>
+                                                        <Tooltip title="Xoá" placement="top">
+                                                            <Button
+                                                                onClick={() => handleClickOpen(order._id)}
+                                                                className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                            >
+                                                                <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                            </Button>
+                                                        </Tooltip>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan={999}>
+                                            <div className="flex items-center justify-center w-full min-h-[400px]">
+                                                <CircularProgress color="inherit" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                             <Dialog
                                 fullWidth={true}
                                 maxWidth="lg"
-                                open={openProductDetailsModal}
-                                onClose={handleCloseProductDetailsModal}
+                                open={openOrderDetailsModal.open}
+                                onClose={handleCloseOrderDetailsModal}
                                 aria-labelledby="alert-dialog-title"
                                 aria-describedby="alert-dialog-description"
-                                className="productDetailsModal"
+                                className="orderDetailsModal"
                             >
                                 <DialogContent>
                                     <div className="bg-[#fff] p-4 container">
-                                        <div className="flex items-center w-full productDetailsModalContainer relative">
+                                        <div className="w-full orderDetailsModalContainer relative">
                                             <Button
-                                                className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[-8px] right-[-12px] !bg-[#f1f1f1]"
-                                                onClick={handleCloseProductDetailsModal}
+                                                className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
+                                                onClick={handleCloseOrderDetailsModal}
                                             >
                                                 <IoCloseSharp className="text-[20px]" />
                                             </Button>
 
                                             <div
                                                 className="container bg-white p-6 rounded-lg shadow-md"
-                                                id="order-details-admin"
+                                                id="order-details"
                                             >
                                                 <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
                                                     Chi tiết đơn hàng
@@ -330,20 +499,33 @@ const OrderPage = () => {
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Order ID</span>
-                                                        <span className="text-gray-700">6b9283273230ase</span>
+                                                        <span className="text-red">
+                                                            {openOrderDetailsModal?.order?._id}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Phương thức thanh toán</span>
-                                                        <span className="text-gray-700">Tiền mặt</span>
+                                                        <span className="text-gray-700 text-blue">
+                                                            {openOrderDetailsModal?.order?.paymentMethod === 'cod' &&
+                                                                'Thanh toán khi nhận hàng'}
+                                                            {openOrderDetailsModal?.order?.paymentMethod === 'momo' &&
+                                                                'Thanh toán bằng Momo'}
+                                                            {openOrderDetailsModal?.order?.paymentMethod === 'vnoay' &&
+                                                                'Thanh toán bằng VnPay'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Ngày đặt hàng</span>
-                                                        <span className="text-gray-700">24 November 2023</span>
+                                                        <span className="text-gray-700">
+                                                            {formatDate(openOrderDetailsModal?.order?.createdAt)}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Trạng thái</span>
                                                         <span className="text-gray-700">
-                                                            <BadgeOrderStatusComponent status="success" />
+                                                            <BadgeOrderStatusComponent
+                                                                status={openOrderDetailsModal?.order?.orderStatus}
+                                                            />
                                                         </span>
                                                     </div>
                                                 </div>
@@ -355,20 +537,38 @@ const OrderPage = () => {
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Họ và tên</span>
-                                                        <span className="text-gray-700">Tam Soo</span>
+                                                        <span className="text-gray-700">
+                                                            {openOrderDetailsModal?.order?.userId?.name}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Email</span>
-                                                        <span className="text-gray-700">name@example.com</span>
+                                                        <span className="text-gray-700">
+                                                            {openOrderDetailsModal?.order?.userId?.email}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Số điện thoại</span>
-                                                        <span className="text-gray-700">+123 456 7890</span>
+                                                        <span className="text-gray-700">
+                                                            {openOrderDetailsModal?.order?.userId?.phoneNumber}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-gray-500">Địa chỉ</span>
                                                         <span className="text-gray-700">
-                                                            62 Miles Drive St, Newark, NJ 07103, California
+                                                            {`Đường ${
+                                                                openOrderDetailsModal?.order?.shippingAddress
+                                                                    ?.streetLine || ''
+                                                            }, Phường ${
+                                                                openOrderDetailsModal?.order?.shippingAddress?.ward ||
+                                                                ''
+                                                            }, Quận ${
+                                                                openOrderDetailsModal?.order?.shippingAddress
+                                                                    ?.district || ''
+                                                            }, Thành phố ${
+                                                                openOrderDetailsModal?.order?.shippingAddress?.city ||
+                                                                ''
+                                                            }`}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -378,108 +578,105 @@ const OrderPage = () => {
                                                     Thông tin sản phẩm
                                                 </h3>
                                                 <div className="mt-4">
-                                                    <div className="flex items-center bg-gray-50 p-4 rounded-lg">
-                                                        <div className="w-[20%] group cursor-pointer">
-                                                            <img
-                                                                alt="Image of an Apple iMac"
-                                                                className="w-[70px] h-[70px] object-cover rounded-md mr-4 group-hover:scale-105 transition-all"
-                                                                src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                            />
-                                                        </div>
-                                                        <div className="mx-4 w-[60%]">
-                                                            <p className="text-gray-700">
-                                                                PC system All in One APPLE iMac (2023) mqrq3ro/a, Apple
-                                                                M3, 24" Retina 4.5K, 8GB, SSD 256GB, 10-core GPU, macOS
-                                                                Sonoma, Blue, Keyboard layout INT
-                                                            </p>
-                                                        </div>
-                                                        <div className="w-[20%] flex items-center justify-end gap-5">
-                                                            <p className="text-gray-700">x1</p>
-                                                            <p className="text-gray-700 font-[600]">
-                                                                {formatCurrency(3000000)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center bg-gray-50 p-4 rounded-lg">
-                                                        <div className="w-[20%] group cursor-pointer">
-                                                            <img
-                                                                alt="Image of an Apple iMac"
-                                                                className="w-[70px] h-[70px] object-cover rounded-md mr-4 group-hover:scale-105 transition-all"
-                                                                src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                            />
-                                                        </div>
-                                                        <div className="mx-4 w-[60%]">
-                                                            <p className="text-gray-700">
-                                                                PC system All in One APPLE iMac (2023) mqrq3ro/a, Apple
-                                                                M3, 24" Retina 4.5K, 8GB, SSD 256GB, 10-core GPU, macOS
-                                                                Sonoma, Blue, Keyboard layout INT
-                                                            </p>
-                                                        </div>
-                                                        <div className="w-[20%] flex items-center justify-end gap-5">
-                                                            <p className="text-gray-700">x1</p>
-                                                            <p className="text-gray-700 font-[600]">
-                                                                {formatCurrency(3000000)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center bg-gray-50 p-4 rounded-lg">
-                                                        <div className="w-[20%] group cursor-pointer">
-                                                            <img
-                                                                alt="Image of an Apple iMac"
-                                                                className="w-[70px] h-[70px] object-cover rounded-md mr-4 group-hover:scale-105 transition-all"
-                                                                src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                            />
-                                                        </div>
-                                                        <div className="mx-4 w-[60%]">
-                                                            <p className="text-gray-700">
-                                                                PC system All in One APPLE iMac (2023) mqrq3ro/a, Apple
-                                                                M3, 24" Retina 4.5K, 8GB, SSD 256GB, 10-core GPU, macOS
-                                                                Sonoma, Blue, Keyboard layout INT
-                                                            </p>
-                                                        </div>
-                                                        <div className="w-[20%] flex items-center justify-end gap-5">
-                                                            <p className="text-gray-700">x1</p>
-                                                            <p className="text-gray-700 font-[600]">
-                                                                {formatCurrency(3000000)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    {openOrderDetailsModal?.order?.selectedCartItems?.length > 0 &&
+                                                        openOrderDetailsModal?.order?.selectedCartItems?.map(
+                                                            (cartItem) => {
+                                                                return (
+                                                                    <div
+                                                                        key={cartItem?._id}
+                                                                        className="flex items-center bg-gray-50 p-4 rounded-lg"
+                                                                    >
+                                                                        <div className="w-[20%] group cursor-pointer">
+                                                                            <img
+                                                                                alt="Image of an Apple iMac"
+                                                                                className="w-[70px] h-[70px] object-cover rounded-md mr-4 group-hover:scale-105 transition-all"
+                                                                                src={cartItem?.images[0]}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="mx-4 w-[47%]">
+                                                                            <p className="text-gray-700">
+                                                                                {cartItem?.name}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="w-[33%] flex items-center justify-end gap-5">
+                                                                            <p className="text-gray-700">
+                                                                                {cartItem?.sizeProduct}
+                                                                            </p>
+                                                                            <p className="text-gray-700">
+                                                                                {cartItem?.quantityProduct}
+                                                                            </p>
+                                                                            <p className="text-gray-700 font-[600]">
+                                                                                {formatCurrency(cartItem?.price)}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            }
+                                                        )}
 
-                                                {/* Price info */}
-                                                <h3 className="text-gray-700 text-xl pb-4 mb-1 mt-6 font-[600]">
-                                                    Tổng quan giá
-                                                </h3>
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-gray-500">Giá sản phẩm</span>
-                                                        <span className="text-gray-700">{formatCurrency(3000000)}</span>
+                                                    {/* Price info */}
+                                                    <h3 className="text-gray-700 text-xl pb-4 mb-1 mt-6 font-[600]">
+                                                        Tổng quan giá
+                                                    </h3>
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-500">Tổng số lượng</span>
+                                                            <span className="text-gray-700">
+                                                                {openOrderDetailsModal?.order?.totalQuantity}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-500">Tổng tiền đơn</span>
+                                                            <span className="text-gray-700">
+                                                                {formatCurrency(
+                                                                    openOrderDetailsModal?.order?.totalPrice
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-500">
+                                                                Tổng tiền phí vận chuyển
+                                                            </span>
+                                                            <span className="text-gray-700">
+                                                                {formatCurrency(
+                                                                    openOrderDetailsModal?.order?.shippingFee
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-500">Voucher</span>
+                                                            <span className="text-gray-700">
+                                                                {openOrderDetailsModal?.order?.discountType ===
+                                                                'percent'
+                                                                    ? `${openOrderDetailsModal?.order?.discountValue}%`
+                                                                    : `${formatCurrency(
+                                                                          openOrderDetailsModal?.order?.discountValue
+                                                                      )}`}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-gray-500">Phí ship</span>
-                                                        <span className="text-gray-700">{formatCurrency(0)}</span>
+                                                    <div className="mb-1 mt-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-700 text-xl pb-4 font-[600]">
+                                                                Tổng thanh toán
+                                                            </span>
+                                                            <span className="font-[600] text-[28px] text-red">
+                                                                {formatCurrency(
+                                                                    openOrderDetailsModal?.order?.finalPrice
+                                                                )}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div className="mb-1 mt-6">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-gray-700 text-xl pb-4 font-[600]">
-                                                            Tổng giá
-                                                        </span>
-                                                        <span className="text-gray-700 font-[600]">
-                                                            {formatCurrency(3000000)}
-                                                        </span>
-                                                    </div>
-                                                </div>
 
-                                                <Divider />
+                                                    <Divider />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="pt-6 pb-3 rounded-lg">
-                                            <div className="flex items-center justify-between gap-3 mt-4">
-                                                <Button className="btn-org btn-login" onClick={printPDF}>
-                                                    In đơn hàng
-                                                </Button>
-                                                <Button className="btn-border btn-login">Huỷ đơn</Button>
+                                            <div className="p-6 rounded-lg">
+                                                <div className="flex items-center justify-end gap-3 mt-4">
+                                                    <Button className="btn-org btn-login" onClick={printPDF}>
+                                                        In đơn hàng
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -489,10 +686,60 @@ const OrderPage = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-center pt-5 pb-5 px-4">
-                    <Pagination count={10} color="primary" />
-                </div>
+                {!isLoadingOrders && currentOrders?.length > 0 && (
+                    <div className="flex items-center justify-center pt-5 pb-5 px-4">
+                        <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
+                    </div>
+                )}
             </div>
+
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá đơn hàng?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá đơn hàng này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Huỷ</Button>
+                    {isLoadingDeleteOrder === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteOrder} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openMultiple}
+                onClose={handleCloseMultiple}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả đơn hàng?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá tất cả đơn hàng này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                    {isLoadingMultiple === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteMultipleOrder} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

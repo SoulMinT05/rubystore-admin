@@ -7,6 +7,10 @@ body {
     background-color: #f1f1f1;
 }
 
+.text-red {
+    color: #ff5252 !important;
+}
+
 .btn-org {
     background-color: #ff5252 !important;
     color: #fff !important;

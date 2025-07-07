@@ -55,6 +55,7 @@ function App() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
+    const [orders, setOrders] = useState([]);
     const [blogs, setBlogs] = useState([]);
 
     useEffect(() => {
@@ -93,6 +94,14 @@ function App() {
         try {
             const { data } = await axiosClient.get('/api/product/all-products-admin');
             setProducts(data?.products);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    const getOrders = async () => {
+        try {
+            const { data } = await axiosClient.get('/api/order/ordersFromAdmin');
+            setOrders(data?.orders);
         } catch (error) {
             console.log(error);
         }
@@ -162,6 +171,9 @@ function App() {
         blogs,
         setBlogs,
         getBlogs,
+        orders,
+        setOrders,
+        getOrders,
     };
 
     return (

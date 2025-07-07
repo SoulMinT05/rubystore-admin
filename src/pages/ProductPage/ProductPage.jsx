@@ -3,6 +3,7 @@ import { IoMdAdd } from 'react-icons/io';
 
 import './ProductPage.scss';
 import { Button, MenuItem, Select, Checkbox, Rating, Tooltip, Pagination, CircularProgress } from '@mui/material';
+
 import { BiExport } from 'react-icons/bi';
 import { MyContext } from '../../App';
 import { Link } from 'react-router-dom';
@@ -37,7 +38,7 @@ const ProductPage = () => {
     const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
 
     const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingDeleteProduct, setIsLoadingDeleteProduct] = useState(false);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
@@ -86,7 +87,7 @@ const ProductPage = () => {
                 'RAM sản phẩm': product?.productRam,
                 'Kích cỡ': product?.productSize,
                 'Cân nặng': product?.productWeight,
-            })),
+            }))
         );
 
         const wb = XLSX.utils.book_new();
@@ -253,7 +254,7 @@ const ProductPage = () => {
     }, [context?.isOpenFullScreenPanel]);
 
     const handleDeleteProduct = async () => {
-        setIsLoading(true);
+        setIsLoadingDeleteProduct(true);
         try {
             const { data } = await axiosClient.delete(`/api/product/${productId}`);
             if (data.success) {
@@ -265,7 +266,7 @@ const ProductPage = () => {
             console.error('Lỗi khi cập nhật:', error);
             context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
-            setIsLoading(false);
+            setIsLoadingDeleteProduct(false);
         }
     };
 
@@ -525,7 +526,7 @@ const ProductPage = () => {
                                                 <ProgressProductStatusComponent
                                                     value={product?.countInStock}
                                                     status={getProductStatusBackgroundByStock(
-                                                        product?.countInStock || 0,
+                                                        product?.countInStock || 0
                                                     )}
                                                 />
                                             </td>
@@ -608,7 +609,7 @@ const ProductPage = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoading === true ? (
+                    {isLoadingDeleteProduct === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
                         <Button className="btn-red" onClick={handleDeleteProduct} autoFocus>

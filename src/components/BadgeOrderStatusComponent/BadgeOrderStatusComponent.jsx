@@ -10,7 +10,7 @@ const getStatusText = (status) => {
             return 'Đang giao hàng';
         case 'success':
             return 'Hoàn thành';
-        case 'cancel':
+        case 'cancelled':
             return 'Đã huỷ';
         default:
             return status;
@@ -25,7 +25,7 @@ const getStatusColor = (status) => {
             return 'bg-yellow-500 text-white';
         case 'success':
             return 'bg-green-500 text-white';
-        case 'cancel':
+        case 'cancelled':
             return 'bg-red-500 text-white';
         default:
             return 'bg-gray-300 text-black';

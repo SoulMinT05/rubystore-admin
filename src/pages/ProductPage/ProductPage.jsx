@@ -540,6 +540,13 @@ const ProductPage = () => {
                                             </td>
                                             <td className="px-6 py-2">
                                                 <div className="flex items-center gap-1">
+                                                    <Tooltip title="Xem chi tiết" placement="top">
+                                                        <Link to={`/product/${product?._id}`}>
+                                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                            </Button>
+                                                        </Link>
+                                                    </Tooltip>
                                                     <Tooltip
                                                         title="Chỉnh sửa"
                                                         placement="top"
@@ -555,13 +562,7 @@ const ProductPage = () => {
                                                             <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
                                                         </Button>
                                                     </Tooltip>
-                                                    <Tooltip title="Xem chi tiết" placement="top">
-                                                        <Link to={`/product/${product?._id}`}>
-                                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                            </Button>
-                                                        </Link>
-                                                    </Tooltip>
+
                                                     <Tooltip title="Xoá" placement="top">
                                                         <Button
                                                             onClick={() => handleClickOpen(product._id)}

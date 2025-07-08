@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
-import './AddUserComponent.scss';
+import './UpdateUserComponent.scss';
 import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
@@ -11,9 +11,9 @@ import { Button, CircularProgress } from '@mui/material';
 import { MyContext } from '../../App';
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch } from 'react-redux';
-import { addUser } from '../../redux/userSlice';
+import { updateUserInfo } from '../../redux/userSlice';
 
-const AddUserComponent = () => {
+const UpdateUserComponent = () => {
     const dispatch = useDispatch();
     const context = useContext(MyContext);
     const [name, setName] = useState('');
@@ -23,57 +23,83 @@ const AddUserComponent = () => {
     const [ward, setWard] = useState('');
     const [district, setDistrict] = useState('');
     const [city, setCity] = useState('');
-    const [password, setPassword] = useState('');
 
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
 
-    const [isLoadingAddUser, setIsLoadingAddUser] = useState(false);
+    const [isLoadingUpdateUser, setIsLoadingUpdateUser] = useState(false);
+    const { id } = context.isOpenFullScreenPanel || {};
+
+    useEffect(() => {
+        const getUserDetails = async () => {
+            try {
+                const { data } = await axiosClient.get(`/api/user/userDetailsFromAdmin/${id}`);
+                if (data.success) {
+                    setName(data?.user?.name);
+                    setEmail(data?.user?.email);
+                    setPhoneNumber(data?.user?.phoneNumber);
+                    setStreetLine(data?.user?.address?.streetLine);
+                    setWard(data?.user?.address?.ward);
+                    setDistrict(data?.user?.address?.district);
+                    setCity(data?.user?.address?.city);
+                    setAvatarPreview(data?.user?.avatar);
+                }
+            } catch (error) {
+                console.error('error: ', error);
+            }
+        };
+        getUserDetails();
+    }, []);
 
     const handleUploadAvatar = (file) => {
         setAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
     };
 
-    const handleCreateUser = async (e) => {
+    const handleUpdateUser = async (e) => {
         e.preventDefault();
-        setIsLoadingAddUser(true);
+        setIsLoadingUpdateUser(true);
 
         try {
             const formData = new FormData();
             formData.append('name', name);
-            formData.append('email', email);
-            formData.append('password', password);
             formData.append('phoneNumber', phoneNumber);
             formData.append('streetLine', streetLine);
             formData.append('ward', ward);
             formData.append('district', district);
             formData.append('city', city);
-            formData.append('avatar', avatarFile); // là file từ input
 
-            const { data } = await axiosClient.post('/api/user/addUserFromAdmin', formData, {
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+            const { data } = await axiosClient.patch(`/api/user/updateUserInfoFromAdmin/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(addUser(data?.user));
+                dispatch(
+                    updateUserInfo({
+                        user: data?.user,
+                        userId: data?.userId,
+                    })
+                );
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });
             }
         } catch (error) {
-            console.log('error: ', error);
+            console.error('error: ', error);
             context.openAlertBox('error', error.response.data.message);
         } finally {
-            setIsLoadingAddUser(false);
+            setIsLoadingUpdateUser(false);
         }
     };
 
     return (
         <section className="p-5 bg-gray-50">
-            <form onSubmit={handleCreateUser} className="form p-8 py-3 max-h-[800px] ">
+            <form onSubmit={handleUpdateUser} className="form p-8 py-3 max-h-[800px] ">
                 <div className="scroll overflow-y-scroll">
                     <div className="grid grid-cols-3 gap-4 mb-3">
                         <div className="col">
@@ -89,7 +115,8 @@ const AddUserComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Email</h3>
                             <input
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                disabled
+                                // onChange={(e) => setEmail(e.target.value)}
                                 type="email"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
                             />
@@ -142,20 +169,6 @@ const AddUserComponent = () => {
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-4 mb-3">
-                        <div className="col">
-                            <h3 className="text-[14px] font-[500] mb-1 text-black">Mật khẩu</h3>
-                            <input
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                type="text"
-                                className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
-                            <p className="text-[12px] italic text-gray-500 mt-1">
-                                Nếu không nhập mật khẩu, thì mật khẩu mặc định sẽ là Xinchaorubystore_123
-                            </p>
-                        </div>
-                    </div>
 
                     <div className="col w-full p-5 px-0">
                         <h3 className="font-[700] text-[18px] mb-3">Ảnh đại diện</h3>
@@ -195,12 +208,12 @@ const AddUserComponent = () => {
 
                     <br />
                     <Button type="submit" className="btn-blue w-full !normal-case flex gap-2">
-                        {isLoadingAddUser ? (
+                        {isLoadingUpdateUser ? (
                             <CircularProgress color="inherit" />
                         ) : (
                             <>
                                 <FaCloudUploadAlt className="text-[25px] text-white" />
-                                <span className="text-[16px]">Thêm người dùng</span>
+                                <span className="text-[16px]">Cập nhật thông tin người dùng</span>
                             </>
                         )}
                     </Button>
@@ -210,4 +223,4 @@ const AddUserComponent = () => {
     );
 };
 
-export default AddUserComponent;
+export default UpdateUserComponent;

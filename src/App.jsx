@@ -22,6 +22,9 @@ import Slide from '@mui/material/Slide';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { Provider } from 'react-redux';
+import store from './redux/store';
+
 import { IoMdClose } from 'react-icons/io';
 import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
@@ -32,6 +35,7 @@ import AddHomeSlideComponent from './components/AddHomeSlideComponent/AddHomeSli
 import AddBannerComponent from './components/AddBannerComponent/AddBannerComponent';
 import UpdateBannerComponent from './components/UpdateBannerComponent/UpdateBannerComponent';
 import UpdateBlogComponent from './components/UpdateBlogComponent/UpdateBlogComponent';
+import UpdateUserComponent from './components/UpdateUserComponent/UpdateUserComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -178,57 +182,60 @@ function App() {
 
     return (
         <>
-            <MyContext.Provider value={values}>
-                <RouterProvider router={router} />
+            <Provider store={store}>
+                <MyContext.Provider value={values}>
+                    <RouterProvider router={router} />
 
-                <ToastContainer />
+                    <ToastContainer />
 
-                <Dialog
-                    fullScreen
-                    open={isOpenFullScreenPanel.open}
-                    onClose={() =>
-                        setIsOpenFullScreenPanel({
-                            open: false,
-                        })
-                    }
-                    TransitionComponent={Transition}
-                >
-                    <AppBar sx={{ position: 'relative' }}>
-                        <Toolbar>
-                            <IconButton
-                                edge="start"
-                                color="inherit"
-                                onClick={() =>
-                                    setIsOpenFullScreenPanel({
-                                        open: false,
-                                    })
-                                }
-                                aria-label="close"
-                            >
-                                <IoMdClose className="text-gray-800" />
-                            </IconButton>
-                            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                                <span className="text-gray-800">{isOpenFullScreenPanel?.model}</span>
-                            </Typography>
-                        </Toolbar>
-                    </AppBar>
+                    <Dialog
+                        fullScreen
+                        open={isOpenFullScreenPanel.open}
+                        onClose={() =>
+                            setIsOpenFullScreenPanel({
+                                open: false,
+                            })
+                        }
+                        TransitionComponent={Transition}
+                    >
+                        <AppBar sx={{ position: 'relative' }}>
+                            <Toolbar>
+                                <IconButton
+                                    edge="start"
+                                    color="inherit"
+                                    onClick={() =>
+                                        setIsOpenFullScreenPanel({
+                                            open: false,
+                                        })
+                                    }
+                                    aria-label="close"
+                                >
+                                    <IoMdClose className="text-gray-800" />
+                                </IconButton>
+                                <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                                    <span className="text-gray-800">{isOpenFullScreenPanel?.model}</span>
+                                </Typography>
+                            </Toolbar>
+                        </AppBar>
 
-                    {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddBannerComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật banner' && <UpdateBannerComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
-                    {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
-                    {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
-                </Dialog>
-            </MyContext.Provider>
+                        {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddBannerComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật banner' && <UpdateBannerComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật người dùng' && <UpdateUserComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
+                    </Dialog>
+                </MyContext.Provider>
+            </Provider>
         </>
     );
 }

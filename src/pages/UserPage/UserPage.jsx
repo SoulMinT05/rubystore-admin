@@ -1,8 +1,28 @@
-import React, { useContext } from 'react';
+import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
 import './UserPage.scss';
-import { Button, MenuItem, Select, Checkbox, Tooltip, Pagination, Stack, Typography } from '@mui/material';
+import {
+    Button,
+    MenuItem,
+    Select,
+    Checkbox,
+    Tooltip,
+    Pagination,
+    Stack,
+    Typography,
+    Dialog,
+    DialogContent,
+    Divider,
+    CircularProgress,
+    AppBar,
+    IconButton,
+    Slide,
+} from '@mui/material';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import { IoCloseSharp } from 'react-icons/io5';
 import { BiExport } from 'react-icons/bi';
 import { MyContext } from '../../App';
 import { Link } from 'react-router-dom';
@@ -10,11 +30,209 @@ import { AiOutlineEdit } from 'react-icons/ai';
 import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
+import axiosClient from '../../apis/axiosClient';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteMultipleUsers, deleteUser, fetchUsers, toggleLockedUser } from '../../redux/userSlice';
+import * as XLSX from 'xlsx';
+import { Toolbar } from 'react-simple-wysiwyg';
+import { IoMdClose } from 'react-icons/io';
+
+const Transition = forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const UserPage = () => {
     const context = useContext(MyContext);
-
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
+
+    const { users } = useSelector((state) => state.users);
+    const dispatch = useDispatch();
+
+    const [userId, setUserId] = useState(null);
+    const [open, setOpen] = useState(false);
+    const [isLoadingDeleteUser, setIsLoadingDeleteUser] = useState(false);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [openMultiple, setOpenMultiple] = useState(false);
+    const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
+    const [isCheckedAll, setIsCheckedAll] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+
+    const [openUserDetailsModal, setOpenUserDetailsModal] = useState({
+        open: false,
+        user: null,
+    });
+
+    const handleCloseUserDetailsModal = () => {
+        setOpenUserDetailsModal({
+            open: false,
+            user: null,
+        });
+    };
+
+    useEffect(() => {
+        const getUsers = async () => {
+            setIsLoadingUsers(true);
+            try {
+                const { data } = await axiosClient.get('/api/user/usersFromAdmin');
+                if (data.success) {
+                    dispatch(fetchUsers(data?.users));
+                }
+            } catch (error) {
+                console.error('error: ', error);
+            } finally {
+                setIsLoadingUsers(false);
+            }
+        };
+        getUsers();
+    }, []);
+
+    const itemsPerPage = 10;
+    // State lưu trang hiện tại
+    const [currentPage, setCurrentPage] = useState(1);
+    // Tính tổng số trang
+    const totalPages = Math.ceil(users?.length / itemsPerPage);
+    // Xử lý khi đổi trang
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+    };
+    // Cắt dữ liệu theo trang
+    const currentUsers = users?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleExportExcel = () => {
+        const ws = XLSX.utils.json_to_sheet(
+            users.map((user) => ({
+                Avatar: user?.avatar !== '' ? user?.avatar : 'Không có avatar',
+                'Tên người dùng': user?.name,
+                Email: user?.email,
+                'Số điện thoại': user?.phoneNumber,
+                'Địa chỉ':
+                    user?.address?.streetLine && user?.address?.ward && user?.address?.district && user?.address?.city
+                        ? `Đường ${user?.address?.streetLine || ''}, Phường ${user?.address?.ward || ''}, Quận ${
+                              user?.address?.district || ''
+                          }, Thành phố ${user?.address?.city || ''}, ${user?.address?.country || 'Việt Nam'}`
+                        : '',
+                'Trạng thái tài khoản': user?.isLocked ? 'Đã khóa' : 'Hoạt động',
+                'Ngày đăng nhập gần nhất': user?.lastLoginDate ? formatDate(user?.lastLoginDate) : 'Chưa đăng nhập',
+                'Ngày tạo tài khoản': user?.createdAt ? formatDate(user?.createdAt) : '',
+            }))
+        );
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Người dùng');
+
+        // Xuất file Excel
+        XLSX.writeFile(wb, 'NguoiDung.xlsx');
+    };
+
+    const handleSelectUser = (userId) => {
+        setSelectedUsers((prevSelectedUsers) => {
+            let updatedSelectedUsers;
+
+            if (prevSelectedUsers?.includes(userId)) {
+                // Nếu đã chọn thì bỏ chọn
+                updatedSelectedUsers = prevSelectedUsers?.filter((id) => id !== userId);
+            } else {
+                // Nếu chưa chọn thì chọn
+                updatedSelectedUsers = [...prevSelectedUsers, userId];
+            }
+
+            const allSelectedOnPage = currentUsers?.every((user) => updatedSelectedUsers?.includes(user._id));
+            setIsCheckedAll(allSelectedOnPage);
+
+            return updatedSelectedUsers;
+        });
+    };
+
+    const handleSelectAll = () => {
+        const currentPageIds = currentUsers?.map((product) => product._id);
+        if (!isCheckedAll) {
+            // Thêm các sản phẩm ở trang hiện tại
+            const newSelected = Array.from(new Set([...selectedUsers, ...currentPageIds]));
+            setSelectedUsers(newSelected);
+            setIsCheckedAll(true);
+        } else {
+            // Bỏ các sản phẩm ở trang hiện tại
+            const newSelected = selectedUsers?.filter((id) => !currentPageIds.includes(id));
+            setSelectedUsers(newSelected);
+            setIsCheckedAll(false);
+        }
+    };
+    useEffect(() => {
+        const allSelectedOnPage = currentUsers?.every((user) => selectedUsers?.includes(user._id));
+        setIsCheckedAll(allSelectedOnPage);
+    }, [currentUsers, selectedUsers]);
+
+    useEffect(() => {
+        setSelectedUsers(selectedUsers);
+    }, [selectedUsers]);
+
+    const handleDeleteMultipleUsers = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/user/deleteMultipleUsersFromAdmin`, {
+                data: { userIds: selectedUsers },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                dispatch(deleteMultipleUsers({ userIds: selectedUsers }));
+
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
+    };
+
+    const handleClickOpen = (id) => {
+        setOpen(true);
+        setUserId(id);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleCloseMultiple = () => {
+        setOpenMultiple(false);
+    };
+    const handleDeleteUser = async () => {
+        setIsLoadingDeleteUser(true);
+        try {
+            const { data } = await axiosClient.delete(`/api/user/deleteUserFromAdmin/${userId}`);
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                dispatch(deleteUser({ _id: userId }));
+                handleClose();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingDeleteUser(false);
+        }
+    };
+
+    const handleToggleIsLocked = async (userId) => {
+        try {
+            const { data } = await axiosClient.patch(`/api/user/toggleUserLockStatus/${userId}`);
+            if (data.success) {
+                dispatch(
+                    toggleLockedUser({
+                        userId,
+                        isLocked: data.isLocked,
+                    })
+                );
+                context.openAlertBox('success', data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật isLocked:', error);
+            context.openAlertBox('error', 'Cập nhật trạng thái thất bại');
+        }
+    };
 
     return (
         <>
@@ -26,7 +244,16 @@ const UserPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    <Button className="btn !bg-green-500 !text-white !normal-case gap-1">
+                    {(isCheckedAll || selectedUsers?.length > 1) && (
+                        <Button
+                            onClick={() => setOpenMultiple(true)}
+                            className="btn !bg-red-500 !text-white !normal-case gap-1"
+                        >
+                            <BiExport />
+                            Xoá tất cả
+                        </Button>
+                    )}
+                    <Button onClick={handleExportExcel} className="btn !bg-green-500 !text-white !normal-case gap-1">
                         <BiExport />
                         Xuất file
                     </Button>
@@ -56,113 +283,302 @@ const UserPage = () => {
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        <thead className="text-xs text-gray-700 uppercase bg-white">
-                            <tr>
-                                <th scope="col" className="px-6 pr-0 py-2 ">
-                                    <div className="w-[60px]">
-                                        <Checkbox {...label} size="small" />
-                                    </div>
-                                </th>
-                                <th scope="col" className="px-0 py-3 whitespace-nowrap">
-                                    Avatar
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Họ và tên
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Username
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Email
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Số điện thoại
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Địa chỉ
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Trạng thái
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Ngày tạo
-                                </th>
-                                <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                    Hành động
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr className="odd:bg-white  even:bg-gray-50 border-b">
-                                <td className="px-6 pr-0 py-2">
-                                    <div className="w-[60px]">
-                                        <Checkbox {...label} size="small" />
-                                    </div>
-                                </td>
-                                <td className="px-0 py-2">
-                                    <div className="flex items-center gap-4 w-[100px]">
-                                        <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                            <Link to="/product/2">
-                                                <img
-                                                    src="https://image.tienphong.vn/w1000/Uploaded/2025/neg-sleclyr/2023_03_23/cd1617e3ac74acc9dac4766027234fd8-2045.jpeg"
-                                                    className="w-full group-hover:scale-105 transition-all"
-                                                    alt=""
-                                                />
-                                            </Link>
+                        {!isLoadingUsers && currentUsers?.length > 0 && (
+                            <thead className="text-xs text-gray-700 uppercase bg-white">
+                                <tr>
+                                    <th scope="col" className="px-6 pr-0 py-2 ">
+                                        <div className="w-[60px]">
+                                            <Checkbox
+                                                {...label}
+                                                size="small"
+                                                checked={isCheckedAll}
+                                                onChange={handleSelectAll}
+                                            />
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">Tam Nguyen</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">tamnguyen</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[150px]">tamnguyen@gmail.com</p>
-                                </td>
-                                <td className="px-6 py-2">092812122</td>
-                                <td className="px-6 py-2">
-                                    <p className="w-[150px]">137 Trần Bình Thạnh, q.Cái Răng, Tp Hồ Chí Minh</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <label className="inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" value="" className="sr-only peer" />
-                                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </td>
+                                    </th>
+                                    <th scope="col" className="px-0 py-3 whitespace-nowrap">
+                                        Avatar
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Họ và tên
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Email
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Số điện thoại
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Địa chỉ
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Trạng thái tài khoản
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Ngày tạo
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Hành động
+                                    </th>
+                                </tr>
+                            </thead>
+                        )}
 
-                                <td className="px-6 py-2">
-                                    <p className="w-[80px]">{formatDate(20022024)}</p>
-                                </td>
-                                <td className="px-6 py-2">
-                                    <div className="flex items-center gap-1">
-                                        <Tooltip title="Chỉnh sửa" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Xem chi tiết" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip title="Xoá" placement="top">
-                                            <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-                                </td>
-                            </tr>
+                        <tbody>
+                            {isLoadingUsers === false ? (
+                                users?.length > 0 &&
+                                users?.map((user) => {
+                                    return (
+                                        <tr key={user._id} className="odd:bg-white even:bg-gray-50 border-b">
+                                            <td className="px-6 pr-0 py-2">
+                                                <div className="w-[60px]">
+                                                    <Checkbox
+                                                        {...label}
+                                                        size="small"
+                                                        checked={selectedUsers?.includes(user._id)}
+                                                        onChange={() => handleSelectUser(user._id)}
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="px-0 py-2">
+                                                <div className="flex items-center gap-4 w-[100px]">
+                                                    <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                        <Link to="/product/2">
+                                                            <img
+                                                                src={user?.avatar}
+                                                                className="w-full group-hover:scale-105 transition-all"
+                                                                alt="Avatar"
+                                                            />
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[120px]">{user.name}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[260px] max-w-[280px]">{user.email}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[80px]">{user.phoneNumber}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[250px]">
+                                                    {user.address?.streetLine &&
+                                                    user.address?.ward &&
+                                                    user.address?.district &&
+                                                    user.address?.city
+                                                        ? `Đường ${user.address.streetLine}, Phường ${user.address.ward}, Quận ${user.address.district}, Thành phố ${user.address.city}`
+                                                        : ''}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <label className="inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        checked={user.isLocked}
+                                                        onChange={() => handleToggleIsLocked(user._id)}
+                                                        type="checkbox"
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                                                </label>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[80px]">{formatDate(user.createdAt)}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <div className="flex items-center gap-1">
+                                                    <Tooltip title="Xem chi tiết" placement="top">
+                                                        <Button
+                                                            onClick={() =>
+                                                                setOpenUserDetailsModal({
+                                                                    open: true,
+                                                                    user: user,
+                                                                })
+                                                            }
+                                                            className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        >
+                                                            <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip
+                                                        title="Cập nhật"
+                                                        placement="top"
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Cập nhật người dùng',
+                                                                id: user?._id,
+                                                            })
+                                                        }
+                                                    >
+                                                        <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
+                                                            <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip title="Xoá" placement="top">
+                                                        <Button
+                                                            onClick={() => handleClickOpen(user._id)}
+                                                            className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        >
+                                                            <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
 
-                <div className="flex items-center justify-center pt-5 pb-5 px-4">
-                    <Pagination count={10} color="primary" />
-                </div>
+                {!isLoadingUsers && currentUsers?.length > 0 && (
+                    <div className="flex items-center justify-center pt-5 pb-5 px-4">
+                        <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
+                    </div>
+                )}
             </div>
+
+            {/* User Details */}
+            <Dialog
+                fullWidth={true}
+                maxWidth="lg"
+                open={openUserDetailsModal.open}
+                onClose={handleCloseUserDetailsModal}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+                className="orderDetailsModal"
+            >
+                <DialogContent>
+                    <div className="bg-[#fff] p-4 container">
+                        <div className="w-full userDetailsModalContainer relative">
+                            <Button
+                                className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
+                                onClick={handleCloseUserDetailsModal}
+                            >
+                                <IoCloseSharp className="text-[20px]" />
+                            </Button>
+
+                            <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
+                                <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
+                                    Thông tin khách hàng
+                                </h2>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Avatar</span>
+                                        <img
+                                            className="w-[70px] h-[70px] object-cover rounded-md"
+                                            src={openUserDetailsModal?.user?.avatar}
+                                            alt="Avatar"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Họ và tên</span>
+                                        <span className="text-gray-700">{openUserDetailsModal?.user?.name}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Email</span>
+                                        <span className="text-gray-700">{openUserDetailsModal?.user?.email}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Số điện thoại</span>
+                                        <span className="text-gray-700">{openUserDetailsModal?.user?.phoneNumber}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Địa chỉ</span>
+                                        <span className="text-gray-700">
+                                            {`Đường ${openUserDetailsModal?.user?.address?.streetLine || ''}, Phường ${
+                                                openUserDetailsModal?.user?.address?.ward || ''
+                                            }, Quận ${openUserDetailsModal?.user?.address?.district || ''}, Thành phố ${
+                                                openUserDetailsModal?.user?.address?.city || ''
+                                            }`}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Trạng thái tài khoản</span>
+                                        {openUserDetailsModal?.user?.isLocked ? (
+                                            <span className="text-red-500 text-[14px]">Bị khóa</span>
+                                        ) : (
+                                            <span className="text-green-500 text-[14px]">Hoạt động</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
+                                        <span className="text-gray-700">
+                                            {formatDate(openUserDetailsModal?.user?.lastLoginDate)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Ngày tạo</span>
+                                        <span className="text-gray-700">
+                                            {formatDate(openUserDetailsModal?.user?.createdAt)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá người dùng?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá người dùng này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Huỷ</Button>
+                    {isLoadingDeleteUser === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteUser} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openMultiple}
+                onClose={handleCloseMultiple}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả người dùng?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá tất cả người dùng này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                    {isLoadingMultiple === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteMultipleUsers} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

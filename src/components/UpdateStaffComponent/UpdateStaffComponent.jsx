@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
-import './AddStaffComponent.scss';
+import './UpdateStaffComponent.scss';
 import UploadImagesComponent from '../UploadImagesComponent/UploadImagesComponent';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
@@ -11,9 +11,9 @@ import { Button, CircularProgress } from '@mui/material';
 import { MyContext } from '../../App';
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch } from 'react-redux';
-import { addStaff } from '../../redux/staffSlice';
+import { updateStaffInfo } from '../../redux/staffSlice';
 
-const AddStaffComponent = () => {
+const UpdateStaffComponent = () => {
     const dispatch = useDispatch();
     const context = useContext(MyContext);
     const [name, setName] = useState('');
@@ -23,60 +23,87 @@ const AddStaffComponent = () => {
     const [ward, setWard] = useState('');
     const [district, setDistrict] = useState('');
     const [city, setCity] = useState('');
-    const [password, setPassword] = useState('');
+    const [role, setRole] = useState('');
 
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
 
-    const [isLoadingAddUser, setIsLoadingAddUser] = useState(false);
+    const [isLoadingUpdateUser, setIsLoadingUpdateUser] = useState(false);
+    const { id } = context.isOpenFullScreenPanel || {};
+
+    useEffect(() => {
+        const getUserDetails = async () => {
+            try {
+                const { data } = await axiosClient.get(`/api/staff/getStaffOrAdminDetails/${id}`);
+                if (data.success) {
+                    setName(data?.staff?.name);
+                    setEmail(data?.staff?.email);
+                    setPhoneNumber(data?.staff?.phoneNumber);
+                    setRole(data?.staff?.role);
+                    setStreetLine(data?.staff?.address?.streetLine);
+                    setWard(data?.staff?.address?.ward);
+                    setDistrict(data?.staff?.address?.district);
+                    setCity(data?.staff?.address?.city);
+                    setAvatarPreview(data?.staff?.avatar);
+                }
+            } catch (error) {
+                console.error('error: ', error);
+            }
+        };
+        getUserDetails();
+    }, []);
 
     const handleUploadAvatar = (file) => {
         setAvatarFile(file);
         setAvatarPreview(URL.createObjectURL(file));
     };
 
-    const handleCreateUser = async (e) => {
+    const handleUpdateUser = async (e) => {
         e.preventDefault();
-        setIsLoadingAddUser(true);
+        setIsLoadingUpdateUser(true);
 
         try {
             const formData = new FormData();
             formData.append('name', name);
-            formData.append('email', email);
-            formData.append('password', password);
             formData.append('phoneNumber', phoneNumber);
             formData.append('streetLine', streetLine);
             formData.append('ward', ward);
             formData.append('district', district);
             formData.append('city', city);
-            formData.append('avatar', avatarFile); // là file từ input
 
-            const { data } = await axiosClient.post('/api/staff/addStaffFromAdmin', formData, {
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+            const { data } = await axiosClient.patch(`/api/staff/updateStaffInfoFromAdmin/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('dataAdd: ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(addStaff(data?.staff));
+                dispatch(
+                    updateStaffInfo({
+                        staff: data?.staff,
+                        staffId: data?.staffId,
+                    })
+                );
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });
             }
         } catch (error) {
-            console.log('error: ', error);
+            console.error('error: ', error);
             context.openAlertBox('error', error.response.data.message);
         } finally {
-            setIsLoadingAddUser(false);
+            setIsLoadingUpdateUser(false);
         }
     };
 
     return (
         <section className="p-5 bg-gray-50">
-            <form onSubmit={handleCreateUser} className="form p-8 py-3 max-h-[800px] ">
+            <form onSubmit={handleUpdateUser} className="form p-8 py-3 max-h-[800px] ">
                 <div className="scroll overflow-y-scroll">
-                    <div className="grid grid-cols-3 gap-4 mb-3">
+                    <div className="grid grid-cols-4 gap-4 mb-3">
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Họ và tên</h3>
                             <input
@@ -90,7 +117,8 @@ const AddStaffComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Email</h3>
                             <input
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                disabled
+                                // onChange={(e) => setEmail(e.target.value)}
                                 type="email"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
                             />
@@ -98,18 +126,34 @@ const AddStaffComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Số điện thoại</h3>
                             <input
-                                value={phoneNumber}
+                                value={phoneNumber || ''}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
                             />
+                        </div>
+                        <div className="col">
+                            <h3 className="text-[14px] font-[500] mb-1 text-black">Vai trò</h3>
+                            {/* <input
+                                disabled
+                                value={role}
+                                type="text"
+                                className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
+                            /> */}
+                            <div
+                                className={`w-full h-[40px] border border-[rgba(0,0,0,0.2)] rounded-sm p-3 text-sm flex items-center 
+            ${role === 'staff' ? 'text-blue-600' : 'text-green-600'}
+            bg-gray-100 cursor-not-allowed`}
+                            >
+                                {role === 'admin' ? 'Quản lý' : 'Nhân viên'}
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-4 mb-3 gap-3">
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Đường</h3>
                             <input
-                                value={streetLine}
+                                value={streetLine || ''}
                                 onChange={(e) => setStreetLine(e.target.value)}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
@@ -118,7 +162,7 @@ const AddStaffComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Phường</h3>
                             <input
-                                value={ward}
+                                value={ward || ''}
                                 onChange={(e) => setWard(e.target.value)}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
@@ -127,7 +171,7 @@ const AddStaffComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Quận</h3>
                             <input
-                                value={district}
+                                value={district || ''}
                                 onChange={(e) => setDistrict(e.target.value)}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
@@ -136,25 +180,11 @@ const AddStaffComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Thành phố</h3>
                             <input
-                                value={city}
+                                value={city || ''}
                                 onChange={(e) => setCity(e.target.value)}
                                 type="text"
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
                             />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 mb-3">
-                        <div className="col">
-                            <h3 className="text-[14px] font-[500] mb-1 text-black">Mật khẩu</h3>
-                            <input
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                type="text"
-                                className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
-                            <p className="text-[12px] italic text-gray-500 mt-1">
-                                Nếu không nhập mật khẩu, thì mật khẩu mặc định sẽ là Xinchaorubystore_123
-                            </p>
                         </div>
                     </div>
 
@@ -196,12 +226,12 @@ const AddStaffComponent = () => {
 
                     <br />
                     <Button type="submit" className="btn-blue w-full !normal-case flex gap-2">
-                        {isLoadingAddUser ? (
+                        {isLoadingUpdateUser ? (
                             <CircularProgress color="inherit" />
                         ) : (
                             <>
                                 <FaCloudUploadAlt className="text-[25px] text-white" />
-                                <span className="text-[16px]">Thêm người dùng</span>
+                                <span className="text-[16px]">Cập nhật thông tin người dùng</span>
                             </>
                         )}
                     </Button>
@@ -211,4 +241,4 @@ const AddStaffComponent = () => {
     );
 };
 
-export default AddStaffComponent;
+export default UpdateStaffComponent;

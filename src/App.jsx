@@ -36,6 +36,7 @@ import AddBannerComponent from './components/AddBannerComponent/AddBannerCompone
 import UpdateBannerComponent from './components/UpdateBannerComponent/UpdateBannerComponent';
 import UpdateBlogComponent from './components/UpdateBlogComponent/UpdateBlogComponent';
 import UpdateUserComponent from './components/UpdateUserComponent/UpdateUserComponent';
+import UpdateStaffComponent from './components/UpdateStaffComponent/UpdateStaffComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -225,6 +226,7 @@ function App() {
                         {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
                         {isOpenFullScreenPanel?.model === 'Cập nhật người dùng' && <UpdateUserComponent />}
                         {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật nhân viên' && <UpdateStaffComponent />}
                         {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
                         {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
                         {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}

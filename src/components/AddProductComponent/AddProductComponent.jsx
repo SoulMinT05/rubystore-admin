@@ -35,7 +35,6 @@ const AddProductComponent = () => {
         description: '',
         images: [],
         brand: '',
-        price: '',
         oldPrice: '',
         categoryId: '',
         categoryName: '',
@@ -195,7 +194,6 @@ const AddProductComponent = () => {
             formData.append('name', formFields.name);
             formData.append('description', formFields.description);
             formData.append('brand', formFields.brand);
-            formData.append('price', formFields.price);
             formData.append('oldPrice', formFields.oldPrice);
             formData.append('categoryId', formFields.categoryId);
             formData.append('categoryName', formFields.categoryName);
@@ -362,17 +360,6 @@ const AddProductComponent = () => {
                                     })}
                                 </Select>
                             )}
-                        </div>
-                        <div className="col">
-                            <h3 className="text-[14px] font-[500] mb-1 text-black">Giá mới</h3>
-                            <input
-                                type="number"
-                                name="price"
-                                value={formFields.price}
-                                disabled={isLoading === true ? true : false}
-                                onChange={handleChange}
-                                className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
                         </div>
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Giá cũ</h3>

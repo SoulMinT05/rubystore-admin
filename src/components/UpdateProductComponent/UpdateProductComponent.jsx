@@ -35,7 +35,6 @@ const UpdateProductComponent = () => {
         deletedImages: [], // những ảnh user bấm xoá
         description: '',
         brand: '',
-        price: '',
         oldPrice: '',
         categoryId: '',
         categoryName: '',
@@ -78,7 +77,6 @@ const UpdateProductComponent = () => {
                         newImages: data?.product?.images,
                         description: data?.product?.description,
                         brand: data?.product?.brand,
-                        price: data?.product?.price,
                         oldPrice: data?.product?.oldPrice,
                         categoryId: data?.product?.categoryId,
                         categoryName: data?.product?.categoryName,
@@ -245,9 +243,6 @@ const UpdateProductComponent = () => {
     };
 
     const handleRemoveImage = (index, imgUrl) => {
-        const isConfirmed = window.confirm('Bạn có chắc chắn muốn xóa ảnh này?');
-        if (!isConfirmed) return;
-
         let deletedImage = null;
 
         setFormFields((prev) => {
@@ -278,7 +273,6 @@ const UpdateProductComponent = () => {
             formData.append('name', formFields.name);
             formData.append('description', formFields.description);
             formData.append('brand', formFields.brand);
-            formData.append('price', formFields.price);
             formData.append('oldPrice', formFields.oldPrice);
             formData.append('categoryId', formFields.categoryId);
             formData.append('categoryName', formFields.categoryName);
@@ -453,17 +447,6 @@ const UpdateProductComponent = () => {
                                     })}
                                 </Select>
                             )}
-                        </div>
-                        <div className="col">
-                            <h3 className="text-[14px] font-[500] mb-1 text-black">Giá mới</h3>
-                            <input
-                                type="number"
-                                name="price"
-                                value={formFields.price}
-                                disabled={isLoading === true ? true : false}
-                                onChange={handleChange}
-                                className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
-                            />
                         </div>
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Giá cũ</h3>

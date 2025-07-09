@@ -8,8 +8,8 @@ const getStatusText = (status) => {
             return 'Đang xác nhận';
         case 'shipping':
             return 'Đang giao hàng';
-        case 'success':
-            return 'Hoàn thành';
+        case 'delivered':
+            return 'Đã giao hàng';
         case 'cancelled':
             return 'Đã huỷ';
         default:
@@ -23,7 +23,7 @@ const getStatusColor = (status) => {
             return 'bg-blue-500 text-white';
         case 'shipping':
             return 'bg-yellow-500 text-white';
-        case 'success':
+        case 'delivered':
             return 'bg-green-500 text-white';
         case 'cancelled':
             return 'bg-red-500 text-white';

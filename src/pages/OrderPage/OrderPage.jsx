@@ -30,10 +30,13 @@ import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 import BadgeOrderStatusComponent from '../../components/BadgeOrderStatusComponent/BadgeOrderStatusComponent';
 import axiosClient from '../../apis/axiosClient';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteMultipleOrders, deleteOrder, fetchOrders, updateOrderStatus } from '../../redux/orderSlice';
 
 const OrderPage = () => {
     const context = useContext(MyContext);
-    const { orders } = useContext(MyContext);
+    const dispatch = useDispatch();
+    const { orders } = useSelector((state) => state.orders);
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
     const [orderId, setOrderId] = useState(null);
@@ -105,12 +108,13 @@ const OrderPage = () => {
     };
 
     useEffect(() => {
-        const fetchOrders = async () => {
+        const getOrders = async () => {
             setIsLoadingOrders(true);
             try {
                 const { data } = await axiosClient.get('/api/order/ordersFromAdmin');
+                console.log('dataOrders: ', data);
                 if (data.success) {
-                    context.setOrders(data?.orders);
+                    dispatch(fetchOrders(data?.orders));
                 }
             } catch (error) {
                 console.error('error: ', error);
@@ -118,7 +122,7 @@ const OrderPage = () => {
                 setIsLoadingOrders(false);
             }
         };
-        fetchOrders();
+        getOrders();
     }, []);
 
     const itemsPerPage = 10;
@@ -248,7 +252,8 @@ const OrderPage = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getOrders();
+                dispatch(deleteMultipleOrders({ orderIds: selectedOrders }));
+
                 handleCloseMultiple();
             }
         } catch (error) {
@@ -277,7 +282,7 @@ const OrderPage = () => {
             const { data } = await axiosClient.delete(`/api/order/${orderId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getOrders();
+                dispatch(deleteOrder({ _id: orderId }));
                 handleClose();
             }
         } catch (error) {
@@ -285,6 +290,30 @@ const OrderPage = () => {
             context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
             setIsLoadingDeleteOrder(false);
+        }
+    };
+
+    const handleChangeOrderStatus = async (orderId, currentStatus, newStatus) => {
+        if (currentStatus === newStatus) return;
+        console.log('newStatus: ', newStatus);
+
+        try {
+            const { data } = await axiosClient.patch(`/api/order/updateOrderStatusByAdmin/${orderId}`, {
+                newStatus,
+            });
+            console.log('dataChange: ', data);
+            if (data.success) {
+                context.openAlertBox('success', 'Cập nhật trạng thái thành công');
+                dispatch(
+                    updateOrderStatus({
+                        orderStatus: data?.order?.orderStatus,
+                        orderId,
+                    })
+                );
+            }
+        } catch (err) {
+            console.error(err);
+            context.openAlertBox('error', 'Lỗi khi cập nhật trạng thái');
         }
     };
 
@@ -429,9 +458,65 @@ const OrderPage = () => {
                                                         {`Đường ${order?.shippingAddress?.streetLine}, Phường  ${order?.shippingAddress?.ward}, Quận  ${order?.shippingAddress?.district},  Thành phố ${order?.shippingAddress?.city}`}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">{formatCurrency(order?.finalPrice)}</td>
                                                 <td className="px-6 py-4">
-                                                    <BadgeOrderStatusComponent status={order?.orderStatus} />
+                                                    <span className="text-red font-[600]">
+                                                        {formatCurrency(order?.finalPrice)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Select
+                                                        labelId="demo-simple-select-label"
+                                                        id="orderStatusOrder"
+                                                        size="medium"
+                                                        className="w-full"
+                                                        label="Trạng thái đơn hàng"
+                                                        sx={{
+                                                            color:
+                                                                order?.orderStatus === 'pending'
+                                                                    ? '#3b82f6'
+                                                                    : order?.orderStatus === 'shipping'
+                                                                    ? '#ca8a04'
+                                                                    : order?.orderStatus === 'delivered'
+                                                                    ? '#22c55e'
+                                                                    : order?.orderStatus === 'cancelled'
+                                                                    ? '#ef4444'
+                                                                    : 'inherit',
+                                                            fontWeight: 400,
+                                                        }}
+                                                        value={order?.orderStatus}
+                                                        onChange={(e) =>
+                                                            handleChangeOrderStatus(
+                                                                order?._id,
+                                                                order?.orderStatus,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    >
+                                                        <MenuItem
+                                                            value="pending"
+                                                            sx={{ color: '#3b82f6', fontWeight: 400 }}
+                                                        >
+                                                            Đang xử lý
+                                                        </MenuItem>
+                                                        <MenuItem
+                                                            value="shipping"
+                                                            sx={{ color: '#ca8a04', fontWeight: 400 }}
+                                                        >
+                                                            Đang giao hàng
+                                                        </MenuItem>
+                                                        <MenuItem
+                                                            value="delivered"
+                                                            sx={{ color: '#22c55e', fontWeight: 400 }}
+                                                        >
+                                                            Đã giao hàng
+                                                        </MenuItem>
+                                                        <MenuItem
+                                                            value="cancelled"
+                                                            sx={{ color: '#ef4444', fontWeight: 400 }}
+                                                        >
+                                                            Đã huỷ
+                                                        </MenuItem>
+                                                    </Select>
                                                 </td>
                                                 <td className="px-6 py-4">{formatDate(order?.createdAt)}</td>
                                                 <td className="px-6 py-2">
@@ -449,6 +534,17 @@ const OrderPage = () => {
                                                                 <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
                                                             </Button>
                                                         </Tooltip>
+                                                        <Tooltip
+                                                            title="Cập nhật"
+                                                            placement="top"
+                                                            onClick={() =>
+                                                                context.setIsOpenFullScreenPanel({
+                                                                    open: true,
+                                                                    model: 'Cập nhật đơn hàng',
+                                                                    id: order?._id,
+                                                                })
+                                                            }
+                                                        ></Tooltip>
                                                         <Tooltip title="Xoá" placement="top">
                                                             <Button
                                                                 onClick={() => handleClickOpen(order._id)}

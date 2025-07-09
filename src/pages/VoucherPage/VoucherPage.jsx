@@ -111,24 +111,13 @@ const VoucherPage = () => {
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
             vouchers.map((voucher) => ({
-                Avatar: voucher?.avatar !== '' ? voucher?.avatar : 'Không có avatar',
-                'Tên voucher': voucher?.name,
-                Email: voucher?.email,
-                'Số điện thoại': voucher?.phoneNumber,
-                'Địa chỉ':
-                    voucher?.address?.streetLine &&
-                    voucher?.address?.ward &&
-                    voucher?.address?.district &&
-                    voucher?.address?.city
-                        ? `Đường ${voucher?.address?.streetLine || ''}, Phường ${voucher?.address?.ward || ''}, Quận ${
-                              voucher?.address?.district || ''
-                          }, Thành phố ${voucher?.address?.city || ''}, ${voucher?.address?.country || 'Việt Nam'}`
-                        : '',
-                'Trạng thái tài khoản': voucher?.isLocked ? 'Đã khóa' : 'Hoạt động',
-                'Ngày đăng nhập gần nhất': voucher?.lastLoginDate
-                    ? formatDate(voucher?.lastLoginDate)
-                    : 'Chưa đăng nhập',
-                'Ngày tạo tài khoản': voucher?.createdAt ? formatDate(voucher?.createdAt) : '',
+                Code: voucher?.code,
+                'Loại voucher': voucher?.discountType === 'fixed' ? '%' : 'VND',
+                'Giá trị voucher': voucher?.discountValue,
+                'Giá trị đơn hàng tối thiểu': voucher?.minOrderValue,
+                'Trạng thái voucher': voucher?.isActive ? 'Kích hoạt' : 'Vô hiệu hóa',
+                'Ngày hết hạn': voucher?.expiresAt ? formatDate(voucher?.expiresAt) : 'Chưa có',
+                'Ngày tạo': voucher?.createdAt ? formatDate(voucher?.createdAt) : '',
             }))
         );
 

@@ -28,6 +28,7 @@ import store from './redux/store';
 import { IoMdClose } from 'react-icons/io';
 import router from './routes';
 import AddAddressComponent from './components/AddAddressComponent/AddAddressComponent';
+import AddVoucherComponent from './components/AddVoucherComponent/AddVoucherComponent';
 import UpdateCategoryComponent from './components/UpdateCategoryComponent/UpdateCategoryComponent';
 import UpdateHomeSlideComponent from './components/UpdateHomeSlideComponent/UpdateHomeSlideComponent';
 import UpdateProductComponent from './components/UpdateProductComponent/UpdateProductComponent';
@@ -37,6 +38,7 @@ import UpdateBannerComponent from './components/UpdateBannerComponent/UpdateBann
 import UpdateBlogComponent from './components/UpdateBlogComponent/UpdateBlogComponent';
 import UpdateUserComponent from './components/UpdateUserComponent/UpdateUserComponent';
 import UpdateStaffComponent from './components/UpdateStaffComponent/UpdateStaffComponent';
+import UpdateVoucherComponent from './components/UpdateVoucherComponent/UpdateVoucherComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -235,6 +237,8 @@ function App() {
                         {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
                         {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
                         {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
+                        {isOpenFullScreenPanel?.model === 'Thêm voucher' && <AddVoucherComponent />}
+                        {isOpenFullScreenPanel?.model === 'Cập nhật voucher' && <UpdateVoucherComponent />}
                     </Dialog>
                 </MyContext.Provider>
             </Provider>

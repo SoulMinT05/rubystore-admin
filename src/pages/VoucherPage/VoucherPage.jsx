@@ -1,7 +1,7 @@
 import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
-import './StaffPage.scss';
+import './VoucherPage.scss';
 import {
     Button,
     MenuItem,
@@ -30,163 +30,169 @@ import { AiOutlineEdit } from 'react-icons/ai';
 import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
-import BadgeRoleStatusComponent from '../../components/BadgeRoleStatusComponent/BadgeRoleStatusComponent';
-
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
 import * as XLSX from 'xlsx';
 import { Toolbar } from 'react-simple-wysiwyg';
 import { IoMdClose } from 'react-icons/io';
-import { deleteMultipleStaffs, deleteStaff, fetchStaffs, toggleLockedStaff } from '../../redux/staffSlice';
+import { deleteMultipleVouchers, deleteVoucher, fetchVouchers, toggleActiveVoucher } from '../../redux/voucherSlice';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const StaffPage = () => {
+const VoucherPage = () => {
     const context = useContext(MyContext);
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const { staffs } = useSelector((state) => state.staffs);
+    const { vouchers } = useSelector((state) => state.vouchers);
     const dispatch = useDispatch();
 
-    const [staffId, setStaffId] = useState(null);
+    const [voucherId, setVoucherId] = useState(null);
     const [open, setOpen] = useState(false);
-    const [isLoadingDeleteStaff, setIsLoadingDeleteStaff] = useState(false);
-    const [isLoadingStaffs, setIsLoadingStaffs] = useState(false);
+    const [isLoadingDeleteVoucher, setIsLoadingDeleteVoucher] = useState(false);
+    const [isLoadingVouchers, setIsLoadingVouchers] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
-    const [selectedStaffs, setSelectedStaffs] = useState([]);
+    const [selectedVouchers, setSelectedVouchers] = useState([]);
 
-    const [openStaffDetailsModal, setOpenStaffDetailsModal] = useState({
+    const [openVoucherDetailsModal, setOpenVoucherDetailsModal] = useState({
         open: false,
-        staff: null,
+        voucher: null,
     });
 
-    const handleCloseStaffDetailsModal = () => {
-        setOpenStaffDetailsModal((prev) => ({
+    const handleCloseVoucherDetailsModal = () => {
+        // Bước 1: chỉ đóng modal
+        setOpenVoucherDetailsModal((prev) => ({
             ...prev,
             open: false,
         }));
+
+        // Bước 2: sau khi modal thực sự đóng, mới xóa voucher (delay ~300ms là đủ)
         setTimeout(() => {
-            setOpenStaffDetailsModal({
+            setOpenVoucherDetailsModal({
                 open: false,
-                staff: null,
+                voucher: null,
             });
         }, 300);
     };
 
     useEffect(() => {
-        const getStaffs = async () => {
-            setIsLoadingStaffs(true);
+        const getVouchers = async () => {
+            setIsLoadingVouchers(true);
             try {
-                const { data } = await axiosClient.get('/api/staff/getStaffsAndAdmin');
+                const { data } = await axiosClient.get('/api/voucher/getAllVouchers');
+                console.log('dataVouchers: ', data);
                 if (data.success) {
-                    dispatch(fetchStaffs(data?.staffs));
+                    dispatch(fetchVouchers(data?.vouchers));
                 }
             } catch (error) {
                 console.error('error: ', error);
             } finally {
-                setIsLoadingStaffs(false);
+                setIsLoadingVouchers(false);
             }
         };
-        getStaffs();
+        getVouchers();
     }, []);
 
     const itemsPerPage = 10;
     // State lưu trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
     // Tính tổng số trang
-    const totalPages = Math.ceil(staffs?.length / itemsPerPage);
+    const totalPages = Math.ceil(vouchers?.length / itemsPerPage);
     // Xử lý khi đổi trang
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
     // Cắt dữ liệu theo trang
-    const currentStaffs = staffs?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const currentVouchers = vouchers?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
-            staffs.map((staff) => ({
-                Avatar: staff?.avatar !== '' ? staff?.avatar : 'Không có avatar',
-                'Tên nhân viên': staff?.name,
-                Email: staff?.email,
-                'Số điện thoại': staff?.phoneNumber,
+            vouchers.map((voucher) => ({
+                Avatar: voucher?.avatar !== '' ? voucher?.avatar : 'Không có avatar',
+                'Tên voucher': voucher?.name,
+                Email: voucher?.email,
+                'Số điện thoại': voucher?.phoneNumber,
                 'Địa chỉ':
-                    staff?.address?.streetLine &&
-                    staff?.address?.ward &&
-                    staff?.address?.district &&
-                    staff?.address?.city
-                        ? `Đường ${staff?.address?.streetLine || ''}, Phường ${staff?.address?.ward || ''}, Quận ${
-                              staff?.address?.district || ''
-                          }, Thành phố ${staff?.address?.city || ''}, ${staff?.address?.country || 'Việt Nam'}`
+                    voucher?.address?.streetLine &&
+                    voucher?.address?.ward &&
+                    voucher?.address?.district &&
+                    voucher?.address?.city
+                        ? `Đường ${voucher?.address?.streetLine || ''}, Phường ${voucher?.address?.ward || ''}, Quận ${
+                              voucher?.address?.district || ''
+                          }, Thành phố ${voucher?.address?.city || ''}, ${voucher?.address?.country || 'Việt Nam'}`
                         : '',
-                'Trạng thái tài khoản': staff?.isLocked ? 'Đã khóa' : 'Hoạt động',
-                'Ngày đăng nhập gần nhất': staff?.lastLoginDate ? formatDate(staff?.lastLoginDate) : 'Chưa đăng nhập',
-                'Ngày tạo tài khoản': staff?.createdAt ? formatDate(staff?.createdAt) : '',
+                'Trạng thái tài khoản': voucher?.isLocked ? 'Đã khóa' : 'Hoạt động',
+                'Ngày đăng nhập gần nhất': voucher?.lastLoginDate
+                    ? formatDate(voucher?.lastLoginDate)
+                    : 'Chưa đăng nhập',
+                'Ngày tạo tài khoản': voucher?.createdAt ? formatDate(voucher?.createdAt) : '',
             }))
         );
 
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Nhân viên / Quản lý');
+        XLSX.utils.book_append_sheet(wb, ws, 'Voucher');
 
         // Xuất file Excel
-        XLSX.writeFile(wb, 'NhanVien_QuanLy.xlsx');
+        XLSX.writeFile(wb, 'Voucher.xlsx');
     };
 
-    const handleSelectStaff = (staffId) => {
-        setSelectedStaffs((prevSelectedStaffs) => {
-            let updatedSelectedStaffs;
+    const handleSelectVoucher = (voucherId) => {
+        setSelectedVouchers((prevSelectedVouchers) => {
+            let updatedSelectedVouchers;
 
-            if (prevSelectedStaffs?.includes(staffId)) {
+            if (prevSelectedVouchers?.includes(voucherId)) {
                 // Nếu đã chọn thì bỏ chọn
-                updatedSelectedStaffs = prevSelectedStaffs?.filter((id) => id !== staffId);
+                updatedSelectedVouchers = prevSelectedVouchers?.filter((id) => id !== voucherId);
             } else {
                 // Nếu chưa chọn thì chọn
-                updatedSelectedStaffs = [...prevSelectedStaffs, staffId];
+                updatedSelectedVouchers = [...prevSelectedVouchers, voucherId];
             }
 
-            const allSelectedOnPage = currentStaffs?.every((staff) => updatedSelectedStaffs?.includes(staff._id));
+            const allSelectedOnPage = currentVouchers?.every((voucher) =>
+                updatedSelectedVouchers?.includes(voucher._id)
+            );
             setIsCheckedAll(allSelectedOnPage);
 
-            return updatedSelectedStaffs;
+            return updatedSelectedVouchers;
         });
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentStaffs?.map((staff) => staff._id);
+        const currentPageIds = currentVouchers?.map((product) => product._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
-            const newSelected = Array.from(new Set([...selectedStaffs, ...currentPageIds]));
-            setSelectedStaffs(newSelected);
+            const newSelected = Array.from(new Set([...selectedVouchers, ...currentPageIds]));
+            setSelectedVouchers(newSelected);
             setIsCheckedAll(true);
         } else {
             // Bỏ các sản phẩm ở trang hiện tại
-            const newSelected = selectedStaffs?.filter((id) => !currentPageIds.includes(id));
-            setSelectedStaffs(newSelected);
+            const newSelected = selectedVouchers?.filter((id) => !currentPageIds.includes(id));
+            setSelectedVouchers(newSelected);
             setIsCheckedAll(false);
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentStaffs?.every((staff) => selectedStaffs?.includes(staff._id));
+        const allSelectedOnPage = currentVouchers?.every((voucher) => selectedVouchers?.includes(voucher._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentStaffs, selectedStaffs]);
+    }, [currentVouchers, selectedVouchers]);
 
     useEffect(() => {
-        setSelectedStaffs(selectedStaffs);
-    }, [selectedStaffs]);
+        setSelectedVouchers(selectedVouchers);
+    }, [selectedVouchers]);
 
-    const handleDeleteMultipleStaffs = async () => {
+    const handleDeleteMultipleVouchers = async () => {
         setIsLoadingMultiple(true);
 
         try {
-            const { data } = await axiosClient.delete(`/api/staff/deleteMultipleStaffsFromAdmin`, {
-                data: { staffIds: selectedStaffs },
+            const { data } = await axiosClient.delete(`/api/voucher/deleteMultipleVouchers`, {
+                data: { voucherIds: selectedVouchers },
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleStaffs({ staffIds: selectedStaffs }));
+                dispatch(deleteMultipleVouchers({ voucherIds: selectedVouchers }));
 
                 handleCloseMultiple();
             }
@@ -200,7 +206,7 @@ const StaffPage = () => {
 
     const handleClickOpen = (id) => {
         setOpen(true);
-        setStaffId(id);
+        setVoucherId(id);
     };
 
     const handleClose = () => {
@@ -210,52 +216,52 @@ const StaffPage = () => {
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
     };
-    const handleDeleteStaff = async () => {
-        setIsLoadingDeleteStaff(true);
+    const handleDeleteVoucher = async () => {
+        setIsLoadingDeleteVoucher(true);
         try {
-            const { data } = await axiosClient.delete(`/api/staff/deleteStaffFromAdmin/${staffId}`);
+            const { data } = await axiosClient.delete(`/api/voucher/deleteVoucher/${voucherId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(deleteStaff({ _id: staffId }));
+                dispatch(deleteVoucher({ _id: voucherId }));
                 handleClose();
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', error.response.data.message);
+            context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
-            setIsLoadingDeleteStaff(false);
+            setIsLoadingDeleteVoucher(false);
         }
     };
 
-    const handleToggleIsLocked = async (staffId) => {
+    const handleToggleIsActive = async (voucherId) => {
         try {
-            const { data } = await axiosClient.patch(`/api/staff/toggleStaffLockStatusFromAdmin/${staffId}`);
+            const { data } = await axiosClient.patch(`/api/voucher/toggleVoucherActiveStatus/${voucherId}`);
             if (data.success) {
                 dispatch(
-                    toggleLockedStaff({
-                        staffId,
-                        isLocked: data.isLocked,
+                    toggleActiveVoucher({
+                        voucherId,
+                        isActive: data.isActive,
                     })
                 );
                 context.openAlertBox('success', data.message);
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật isLocked:', error);
-            context.openAlertBox('error', error.response.data.message);
+            context.openAlertBox('error', 'Cập nhật trạng thái thất bại');
         }
     };
 
     return (
         <>
             <div className="flex items-center justify-between px-2 py-0">
-                <h2 className="text-[18px] font-[600]">Danh sách nhân viên</h2>
+                <h2 className="text-[18px] font-[600]">Danh sách voucher</h2>
 
                 <div
                     className={`col ${
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedStaffs?.length > 1) && (
+                    {(isCheckedAll || selectedVouchers?.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -273,12 +279,12 @@ const StaffPage = () => {
                         onClick={() =>
                             context.setIsOpenFullScreenPanel({
                                 open: true,
-                                model: 'Thêm nhân viên',
+                                model: 'Thêm voucher',
                             })
                         }
                     >
                         <IoMdAdd />
-                        Thêm nhân viên
+                        Thêm voucher
                     </Button>
                 </div>
             </div>
@@ -294,7 +300,7 @@ const StaffPage = () => {
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingStaffs && currentStaffs?.length > 0 && (
+                        {!isLoadingVouchers && currentVouchers?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -307,26 +313,26 @@ const StaffPage = () => {
                                             />
                                         </div>
                                     </th>
-                                    <th scope="col" className="px-0 py-3 whitespace-nowrap">
-                                        Avatar
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Code
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Họ và tên
+                                        Loại voucher
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Email
+                                        Giá trị voucher
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Số điện thoại
+                                        Giá trị đơn hàng tối thiểu
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Địa chỉ
+                                        Số lượng voucher
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Vai trò
+                                        Trạng thái voucher
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Trạng thái tài khoản
+                                        Ngày hết hạn
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
                                         Ngày tạo
@@ -339,67 +345,61 @@ const StaffPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingStaffs === false ? (
-                                staffs?.length > 0 &&
-                                staffs?.map((staff) => {
+                            {isLoadingVouchers === false ? (
+                                vouchers?.length > 0 &&
+                                vouchers?.map((voucher) => {
                                     return (
-                                        <tr key={staff._id} className="odd:bg-white even:bg-gray-50 border-b">
+                                        <tr key={voucher._id} className="odd:bg-white even:bg-gray-50 border-b">
                                             <td className="px-6 pr-0 py-2">
                                                 <div className="w-[60px]">
                                                     <Checkbox
                                                         {...label}
                                                         size="small"
-                                                        checked={selectedStaffs?.includes(staff._id)}
-                                                        onChange={() => handleSelectStaff(staff._id)}
+                                                        checked={selectedVouchers?.includes(voucher._id)}
+                                                        onChange={() => handleSelectVoucher(voucher._id)}
                                                     />
                                                 </div>
                                             </td>
-                                            <td className="px-0 py-2">
-                                                <div className="flex items-center gap-4 w-[100px]">
-                                                    <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                        <Link to="/product/2">
-                                                            {staff?.avatar ? (
-                                                                <img
-                                                                    src={staff.avatar}
-                                                                    className="w-full group-hover:scale-105 transition-all"
-                                                                    alt="Avatar"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                                                                    No image
-                                                                </div>
-                                                            )}
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[120px]">{staff.name}</p>
-                                            </td>
-                                            <td className="px-6 py-2">
-                                                <p className="w-[260px] max-w-[280px]">{staff.email}</p>
-                                            </td>
-                                            <td className="px-6 py-2">
-                                                <p className="w-[80px]">{staff.phoneNumber}</p>
-                                            </td>
-                                            <td className="px-6 py-2">
-                                                <p className="w-[250px]">
-                                                    {staff.address?.streetLine &&
-                                                    staff.address?.ward &&
-                                                    staff.address?.district &&
-                                                    staff.address?.city
-                                                        ? `Đường ${staff.address.streetLine}, Phường ${staff.address.ward}, Quận ${staff.address.district}, Thành phố ${staff.address.city}`
-                                                        : ''}
+                                                <p
+                                                    onClick={() =>
+                                                        setOpenVoucherDetailsModal({
+                                                            open: true,
+                                                            voucher: voucher,
+                                                        })
+                                                    }
+                                                    className="w-[120px] text-red cursor-pointer"
+                                                >
+                                                    {voucher.code}
                                                 </p>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <BadgeRoleStatusComponent status={staff?.role} />
+                                                <p className="w-[60px]">
+                                                    {voucher.discountType === 'fixed' ? (
+                                                        <span className="text-blue-500 text-[14px]">VND</span>
+                                                    ) : (
+                                                        <span className="text-yellow-500 text-[14px]">%</span>
+                                                    )}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[250px]">
+                                                    {voucher.discountType === 'fixed'
+                                                        ? `${formatCurrency(voucher.discountValue)}`
+                                                        : `${voucher.discountValue}%`}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[250px]">{formatCurrency(voucher.minOrderValue)}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[120px]">{voucher.quantityVoucher || 0}</p>
                                             </td>
                                             <td className="px-6 py-2">
                                                 <label className="inline-flex items-center cursor-pointer">
                                                     <input
-                                                        checked={staff.isLocked}
-                                                        onChange={() => handleToggleIsLocked(staff._id)}
+                                                        checked={voucher.isActive}
+                                                        onChange={() => handleToggleIsActive(voucher._id)}
                                                         type="checkbox"
                                                         className="sr-only peer"
                                                     />
@@ -407,16 +407,19 @@ const StaffPage = () => {
                                                 </label>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[80px]">{formatDate(staff.createdAt)}</p>
+                                                <p className="w-[100px]">{formatDate(voucher.expiresAt)}</p>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[100px]">{formatDate(voucher.createdAt)}</p>
                                             </td>
                                             <td className="px-6 py-2">
                                                 <div className="flex items-center gap-1">
                                                     <Tooltip title="Xem chi tiết" placement="top">
                                                         <Button
                                                             onClick={() =>
-                                                                setOpenStaffDetailsModal({
+                                                                setOpenVoucherDetailsModal({
                                                                     open: true,
-                                                                    staff: staff,
+                                                                    voucher: voucher,
                                                                 })
                                                             }
                                                             className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
@@ -430,8 +433,8 @@ const StaffPage = () => {
                                                         onClick={() =>
                                                             context.setIsOpenFullScreenPanel({
                                                                 open: true,
-                                                                model: 'Cập nhật nhân viên',
-                                                                id: staff?._id,
+                                                                model: 'Cập nhật voucher',
+                                                                id: voucher?._id,
                                                             })
                                                         }
                                                     >
@@ -441,7 +444,7 @@ const StaffPage = () => {
                                                     </Tooltip>
                                                     <Tooltip title="Xoá" placement="top">
                                                         <Button
-                                                            onClick={() => handleClickOpen(staff._id)}
+                                                            onClick={() => handleClickOpen(voucher._id)}
                                                             className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
                                                         >
                                                             <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
@@ -465,89 +468,85 @@ const StaffPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingStaffs && currentStaffs?.length > 0 && (
+                {!isLoadingVouchers && currentVouchers?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>
                 )}
             </div>
 
-            {/* staff Details */}
+            {/* Voucher Details */}
             <Dialog
                 fullWidth={true}
                 maxWidth="lg"
-                open={openStaffDetailsModal.open}
-                onClose={handleCloseStaffDetailsModal}
+                open={openVoucherDetailsModal.open}
+                onClose={handleCloseVoucherDetailsModal}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
                 className="orderDetailsModal"
             >
                 <DialogContent>
                     <div className="bg-[#fff] p-4 container">
-                        <div className="w-full staffDetailsModalContainer relative">
+                        <div className="w-full userDetailsModalContainer relative">
                             <Button
                                 className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
-                                onClick={handleCloseStaffDetailsModal}
+                                onClick={handleCloseVoucherDetailsModal}
                             >
                                 <IoCloseSharp className="text-[20px]" />
                             </Button>
 
                             <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
                                 <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
-                                    Thông tin khách hàng
+                                    Thông tin voucher
                                 </h2>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Avatar</span>
-                                        <img
-                                            className="w-[70px] h-[70px] object-cover rounded-md"
-                                            src={openStaffDetailsModal?.staff?.avatar}
-                                            alt="Avatar"
-                                        />
+                                        <span className="text-gray-500">Code</span>
+                                        <span className="text-red">{openVoucherDetailsModal?.voucher?.code}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Họ và tên</span>
-                                        <span className="text-gray-700">{openStaffDetailsModal?.staff?.name}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Email</span>
-                                        <span className="text-gray-700">{openStaffDetailsModal?.staff?.email}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Số điện thoại</span>
+                                        <span className="text-gray-500">Loại voucher</span>
                                         <span className="text-gray-700">
-                                            {openStaffDetailsModal?.staff?.phoneNumber}
+                                            {openVoucherDetailsModal?.voucher?.discountType === 'fixed' ? (
+                                                <span className="text-blue-500 text-[14px]">VND</span>
+                                            ) : (
+                                                <span className="text-yellow-500 text-[14px]">%</span>
+                                            )}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Địa chỉ</span>
+                                        <span className="text-gray-500">Giá trị voucher</span>
                                         <span className="text-gray-700">
-                                            {`Đường ${
-                                                openStaffDetailsModal?.staff?.address?.streetLine || ''
-                                            }, Phường ${openStaffDetailsModal?.staff?.address?.ward || ''}, Quận ${
-                                                openStaffDetailsModal?.staff?.address?.district || ''
-                                            }, Thành phố ${openStaffDetailsModal?.staff?.address?.city || ''}`}
+                                            {openVoucherDetailsModal?.voucher?.discountType === 'fixed'
+                                                ? `${formatCurrency(openVoucherDetailsModal?.voucher?.discountValue)}`
+                                                : `${openVoucherDetailsModal?.voucher?.discountValue}%`}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Giá trị đơn hàng tối thiểu</span>
+                                        <span className="text-gray-700">
+                                            {formatCurrency(openVoucherDetailsModal?.voucher?.minOrderValue)}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Trạng thái tài khoản</span>
-                                        {openStaffDetailsModal?.staff?.isLocked ? (
-                                            <span className="text-red-500 text-[14px]">Bị khóa</span>
+                                        <span className="text-gray-500">Trạng thái voucher</span>
+                                        {openVoucherDetailsModal?.voucher?.isActive ? (
+                                            <span className="text-green-500 text-[14px]">Kích hoạt</span>
                                         ) : (
-                                            <span className="text-green-500 text-[14px]">Hoạt động</span>
+                                            <span className="text-red-500 text-[14px]">Vô hiệu hóa</span>
                                         )}
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
+                                        <span className="text-gray-500">Ngày hết hạn</span>
                                         <span className="text-gray-700">
-                                            {formatDate(openStaffDetailsModal?.staff?.lastLoginDate)}
+                                            {formatDate(openVoucherDetailsModal?.voucher?.createdAt)}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Ngày tạo</span>
                                         <span className="text-gray-700">
-                                            {formatDate(openStaffDetailsModal?.staff?.createdAt)}
+                                            {formatDate(openVoucherDetailsModal?.voucher?.createdAt)}
                                         </span>
                                     </div>
                                 </div>
@@ -563,18 +562,18 @@ const StaffPage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá nhân viên?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá voucher?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá nhân viên này không?
+                        Bạn có chắc chắn xoá voucher này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteStaff === true ? (
+                    {isLoadingDeleteVoucher === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
-                        <Button className="btn-red" onClick={handleDeleteStaff} autoFocus>
+                        <Button className="btn-red" onClick={handleDeleteVoucher} autoFocus>
                             Xác nhận
                         </Button>
                     )}
@@ -587,10 +586,10 @@ const StaffPage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả nhân viên?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả voucher?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả nhân viên này không?
+                        Bạn có chắc chắn xoá tất cả voucher này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -598,7 +597,7 @@ const StaffPage = () => {
                     {isLoadingMultiple === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleStaffs} autoFocus>
+                        <Button className="btn-red" onClick={handleDeleteMultipleVouchers} autoFocus>
                             Xác nhận
                         </Button>
                     )}
@@ -608,7 +607,7 @@ const StaffPage = () => {
     );
 };
 
-export default StaffPage;
+export default VoucherPage;
 
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -617,3 +616,9 @@ function formatDate(dateString) {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 }
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+    }).format(amount);
+};

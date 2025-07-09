@@ -63,10 +63,20 @@ const UserPage = () => {
     });
 
     const handleCloseUserDetailsModal = () => {
-        setOpenUserDetailsModal({
+        // setOpenUserDetailsModal({
+        //     open: false,
+        //     user: null,
+        // });
+        setOpenUserDetailsModal((prev) => ({
+            ...prev,
             open: false,
-            user: null,
-        });
+        }));
+        setTimeout(() => {
+            setOpenUserDetailsModal({
+                open: false,
+                user: null,
+            });
+        }, 300);
     };
 
     useEffect(() => {

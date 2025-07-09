@@ -51,10 +51,16 @@ const OrderPage = () => {
     });
 
     const handleCloseOrderDetailsModal = () => {
-        setOpenOrderDetailsModal({
+        setOpenOrderDetailsModal((prev) => ({
+            ...prev,
             open: false,
-            order: null,
-        });
+        }));
+        setTimeout(() => {
+            setOpenOrderDetailsModal({
+                open: false,
+                order: null,
+            });
+        }, 300);
     };
     const printPDF = async () => {
         const element = document.getElementById('order-details');

@@ -26,6 +26,7 @@ import ProductRamPage from '../pages/ProductRamPage/ProductRamPage';
 import ProductWeightPage from '../pages/ProductWeightPage/ProductWeightPage';
 import ProductSizePage from '../pages/ProductSizePage/ProductSizePage';
 import BlogPage from '../pages/BlogPage/BlogPage';
+import VoucherPage from '../pages/VoucherPage/VoucherPage';
 
 const router = createBrowserRouter([
     {
@@ -133,6 +134,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <OrderPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'vouchers',
+                element: (
+                    <PrivateRoute>
+                        <VoucherPage />
                     </PrivateRoute>
                 ),
             },

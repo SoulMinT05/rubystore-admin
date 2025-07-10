@@ -5,7 +5,7 @@ import './BadgeOrderStatusComponent.scss';
 const getStatusText = (status) => {
     switch (status) {
         case 'pending':
-            return 'Đang xác nhận';
+            return 'Chờ xác nhận';
         case 'shipping':
             return 'Đang giao hàng';
         case 'delivered':

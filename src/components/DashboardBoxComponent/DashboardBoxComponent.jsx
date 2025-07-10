@@ -40,6 +40,7 @@ const DashboardBoxComponent = () => {
     useEffect(() => {
         const getStatistics = async () => {
             const { data } = await axiosClient.get('/api/statistic/getDashboardStatistics');
+            console.log('dataStatis: ', data);
             if (data.success) {
                 setStatistics(data?.statistics);
             }

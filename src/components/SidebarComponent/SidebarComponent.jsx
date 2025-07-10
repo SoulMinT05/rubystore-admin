@@ -38,7 +38,7 @@ const SidebarComponent = () => {
         <div
             className={`sidebar fixed top-0 left-0 bg-[#fff] ${
                 context.isOpenSidebar === true ? 'w-[18%]' : 'w-[0px]'
-            } h-full border-r border-[rgba(0,0,0,0.1)] px-4 py-2`}
+            } h-full overflow-y-auto border-r border-[rgba(0,0,0,0.1)] px-4 py-2`}
         >
             <div className="py-2 w-full">
                 <Link to="/">

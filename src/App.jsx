@@ -40,6 +40,9 @@ import UpdateUserComponent from './components/UpdateUserComponent/UpdateUserComp
 import UpdateStaffComponent from './components/UpdateStaffComponent/UpdateStaffComponent';
 import UpdateVoucherComponent from './components/UpdateVoucherComponent/UpdateVoucherComponent';
 
+// SOCKET IO
+import { socket } from './config/socket';
+
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -64,6 +67,15 @@ function App() {
     const [subCategories, setSubCategories] = useState([]);
     const [orders, setOrders] = useState([]);
     const [blogs, setBlogs] = useState([]);
+
+    useEffect(() => {
+        socket.on('sendMessage', (message) => {
+            console.log('message: ', message);
+        });
+        return () => {
+            socket.off('sendMessage');
+        };
+    }, []);
 
     useEffect(() => {
         const getUserDetails = async () => {

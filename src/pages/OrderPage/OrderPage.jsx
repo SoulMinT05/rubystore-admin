@@ -32,6 +32,7 @@ import BadgeOrderStatusComponent from '../../components/BadgeOrderStatusComponen
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteMultipleOrders, deleteOrder, fetchOrders, updateOrderStatus } from '../../redux/orderSlice';
+import { socket } from '../../config/socket';
 
 const OrderPage = () => {
     const context = useContext(MyContext);
@@ -106,6 +107,21 @@ const OrderPage = () => {
             }
         }, 300);
     };
+
+    useEffect(() => {
+        socket.on('updateOrderStatus', (data) => {
+            console.log('Admin nhan su kien dataOrderStatus: ', data);
+            dispatch(
+                updateOrderStatus({
+                    orderId: data?.orderId,
+                    orderStatus: data?.newStatus,
+                })
+            );
+        });
+        return () => {
+            socket.off('updateOrderStatus');
+        };
+    }, []);
 
     useEffect(() => {
         const getOrders = async () => {
@@ -496,7 +512,7 @@ const OrderPage = () => {
                                                             value="pending"
                                                             sx={{ color: '#3b82f6', fontWeight: 400 }}
                                                         >
-                                                            Đang xử lý
+                                                            Chờ xác nhận
                                                         </MenuItem>
                                                         <MenuItem
                                                             value="shipping"

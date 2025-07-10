@@ -1,86 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import './DashboardPage.scss';
 import DashboardBoxComponent from '../../components/DashboardBoxComponent/DashboardBoxComponent';
 
 import imgDashboard from '../../assets/img-dashboard.webp';
+import axiosClient from '../../apis/axiosClient';
 
 const DashboardPage = () => {
-    const chartSimpleLineData = [
-        {
-            name: '1',
-            'Tổng người dùng': 4000,
-            'Tổng doanh thu': 2400,
-            amt: 2400,
-        },
-        {
-            name: '2',
-            'Tổng người dùng': 3000,
-            'Tổng doanh thu': 1398,
-            amt: 2210,
-        },
-        {
-            name: '3',
-            'Tổng người dùng': 2000,
-            'Tổng doanh thu': 9800,
-            amt: 2290,
-        },
-        {
-            name: '4',
-            'Tổng người dùng': 2780,
-            'Tổng doanh thu': 3908,
-            amt: 2000,
-        },
-        {
-            name: '5',
-            'Tổng người dùng': 1890,
-            'Tổng doanh thu': 4800,
-            amt: 2181,
-        },
-        {
-            name: '6',
-            'Tổng người dùng': 2390,
-            'Tổng doanh thu': 3800,
-            amt: 2500,
-        },
-        {
-            name: '7',
-            'Tổng người dùng': 3490,
-            'Tổng doanh thu': 4300,
-            amt: 2100,
-        },
-        {
-            name: '8',
-            'Tổng người dùng': 2000,
-            'Tổng doanh thu': 9800,
-            amt: 2290,
-        },
-        {
-            name: '9',
-            'Tổng người dùng': 2780,
-            'Tổng doanh thu': 3908,
-            amt: 2000,
-        },
-        {
-            name: '10',
-            'Tổng người dùng': 1890,
-            'Tổng doanh thu': 4800,
-            amt: 2181,
-        },
-        {
-            name: '11',
-            'Tổng người dùng': 2390,
-            'Tổng doanh thu': 3800,
-            amt: 2500,
-        },
-        {
-            name: '12',
-            'Tổng người dùng': 3490,
-            'Tổng doanh thu': 4300,
-            amt: 2100,
-        },
-    ];
+    const [barChartData, setBarChartData] = useState([]);
+
+    useEffect(() => {
+        const fetchChartData = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/statistic/getMonthlyStatisticsBarChart');
+                if (data.success) {
+                    setBarChartData(data?.barChartData);
+                }
+            } catch (error) {
+                console.error('fetchChartData error:', error);
+            }
+        };
+        fetchChartData();
+    }, []);
 
     return (
         <>
@@ -118,7 +60,7 @@ const DashboardPage = () => {
                 <LineChart
                     width={1150}
                     height={500}
-                    data={chartSimpleLineData}
+                    data={barChartData}
                     margin={{
                         top: 5,
                         right: 30,

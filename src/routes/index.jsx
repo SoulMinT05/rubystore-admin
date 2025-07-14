@@ -27,6 +27,8 @@ import ProductWeightPage from '../pages/ProductWeightPage/ProductWeightPage';
 import ProductSizePage from '../pages/ProductSizePage/ProductSizePage';
 import BlogPage from '../pages/BlogPage/BlogPage';
 import VoucherPage from '../pages/VoucherPage/VoucherPage';
+import MessagePageDetails from '../pages/MessagePageDetails/MessagePageDetails';
+import MessagePage from '../pages/MessagePage/MessagePage';
 
 const router = createBrowserRouter([
     {
@@ -186,6 +188,14 @@ const router = createBrowserRouter([
     {
         path: '/verify',
         element: <VerifyPage />,
+    },
+    {
+        path: '/message',
+        element: <MessagePage />,
+    },
+    {
+        path: '/message/:id',
+        element: <MessagePageDetails />,
     },
 ]);
 

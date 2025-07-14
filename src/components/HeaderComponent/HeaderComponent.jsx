@@ -13,6 +13,7 @@ import axiosToken from '../../apis/axiosToken';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoKeyOutline } from 'react-icons/io5';
 import Cookies from 'js-cookie';
+import { LuSend } from 'react-icons/lu';
 
 const HeaderComponent = () => {
     const [anchorMyAccount, setAnchorMyAccount] = useState(null);
@@ -178,6 +179,12 @@ const HeaderComponent = () => {
                                 <Link to="/user-details" className="flex items-center gap-3">
                                     <FaRegUser className="text-[16px]" />
                                     <span className="text-[14px]">Thông tin cá nhân</span>
+                                </Link>
+                            </MenuItem>
+                            <MenuItem onClick={handleCloseMyAccount}>
+                                <Link to="/message" className="flex items-center gap-3">
+                                    <LuSend className="text-[16px]" />
+                                    <span className="text-[14px]">Tin nhắn</span>
                                 </Link>
                             </MenuItem>
                             <MenuItem onClick={handleCloseMyAccount}>

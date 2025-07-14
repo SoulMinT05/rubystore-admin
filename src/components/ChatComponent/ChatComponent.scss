@@ -1,0 +1,43 @@
+.center {
+    .message {
+        max-width: 70%;
+        display: flex;
+        gap: 20px;
+
+        &.own {
+            align-self: flex-end; // chỉ căn duy nhất 1 phần tử, khác align-items: nhiều phần tử
+
+            .texts {
+                p {
+                    color: #ffffff;
+                    background-color: #1860f7;
+                }
+            }
+        }
+    }
+    .texts {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        img {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        p {
+            padding: 20px;
+            border-radius: 10px;
+            color: #414142;
+            background-color: #f0f0f0;
+        }
+        span {
+            font-size: 13px;
+            margin-top: -8px;
+            text-align: right;
+        }
+    }
+}

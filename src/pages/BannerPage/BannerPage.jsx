@@ -42,13 +42,12 @@ const BannerPage = () => {
     };
     // Cắt dữ liệu theo trang
     const currentBanners = banners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-    console.log('currentBanners: ', currentBanners);
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
             banners.map((banner) => ({
                 'Hình ảnh': banner.images.length > 0 ? banner.images[0] : 'Không có hình ảnh',
                 'Tên banner': banner.name,
-            })),
+            }))
         );
 
         const wb = XLSX.utils.book_new();

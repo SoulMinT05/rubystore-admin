@@ -3,6 +3,7 @@ import userReducer from './userSlice';
 import staffReducer from './staffSlice';
 import orderReducer from './orderSlice';
 import voucherReducer from './voucherSlice';
+import messageReducer from './messageSlice';
 
 const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
         staffs: staffReducer,
         orders: orderReducer,
         vouchers: voucherReducer,
+        message: messageReducer,
     },
 });
 

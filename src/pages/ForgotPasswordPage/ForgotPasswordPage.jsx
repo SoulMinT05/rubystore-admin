@@ -52,7 +52,15 @@ const ForgotPasswordPage = () => {
                 </Link>
 
                 <div className="flex items-center gap-0">
-                    <NavLink to="/register" exact={true} activeClassName="isActive">
+                    <NavLink
+                        to="/register"
+                        exact={true}
+                        className={({ isActive }) =>
+                            isActive
+                                ? 'active w-full' // hoặc bất kỳ class nào bạn muốn thêm
+                                : 'w-full'
+                        }
+                    >
                         <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-2">
                             <FaRegUser className="text-[15px]" />
                             Đăng ký

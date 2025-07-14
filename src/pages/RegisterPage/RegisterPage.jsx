@@ -94,7 +94,15 @@ const RegisterPage = () => {
                 </Link>
 
                 <div className="flex items-center gap-0">
-                    <NavLink to="/login" exact={true} activeClassName="isActive">
+                    <NavLink
+                        to="/login"
+                        exact={true}
+                        className={({ isActive }) =>
+                            isActive
+                                ? 'active w-full' // hoặc bất kỳ class nào bạn muốn thêm
+                                : 'w-full'
+                        }
+                    >
                         <Button className="!rounded-full !text-[rgba(0,0,0,0.8)] !px-5 flex gap-2">
                             <CgLogIn className="text-[18px]" />
                             Đăng nhập

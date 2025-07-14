@@ -78,6 +78,10 @@ function App() {
     }, []);
 
     useEffect(() => {
+        socket.emit('joinMessageRoom', userInfo?._id);
+    }, [isLogin, userInfo?._id]);
+
+    useEffect(() => {
         const getUserDetails = async () => {
             try {
                 const { data } = await axiosClient.get('/api/staff/user-details');

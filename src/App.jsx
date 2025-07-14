@@ -82,6 +82,16 @@ function App() {
     }, [isLogin, userInfo?._id]);
 
     useEffect(() => {
+        socket.on('notificationNewMessage', (data) => {
+            console.log('ADmin nhan notificationNewMessage: ', data);
+            // dispatch(addNotification(data));
+        });
+        return () => {
+            socket.off('notificationNewMessage');
+        };
+    }, []);
+
+    useEffect(() => {
         const getUserDetails = async () => {
             try {
                 const { data } = await axiosClient.get('/api/staff/user-details');

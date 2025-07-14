@@ -5,31 +5,39 @@
         gap: 20px;
 
         &.own {
-            align-self: flex-end; // chỉ căn duy nhất 1 phần tử, khác align-items: nhiều phần tử
+            align-self: flex-end;
 
             .texts {
+                align-items: flex-end;
+                img {
+                    width: 300px; // 👈 fix chiều ngang ảnh gửi
+                }
                 p {
                     color: #ffffff;
                     background-color: #1860f7;
+                }
+                span {
+                    align-self: flex-end;
                 }
             }
         }
     }
     .texts {
-        flex: 1;
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: 5px;
 
         img {
             width: 100%;
+            max-width: 300px;
             height: 300px;
             border-radius: 10px;
             object-fit: cover;
         }
 
         p {
-            padding: 20px;
+            padding: 8px 12px;
             border-radius: 10px;
             color: #414142;
             background-color: #f0f0f0;
@@ -37,7 +45,16 @@
         span {
             font-size: 13px;
             margin-top: -8px;
-            text-align: right;
+            align-self: flex-start;
         }
+    }
+}
+.bottom {
+    button .MuiCircularProgress-root {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    .circ-white .MuiCircularProgress-circle {
+        stroke: white !important;
     }
 }

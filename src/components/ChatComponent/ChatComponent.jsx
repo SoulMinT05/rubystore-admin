@@ -26,6 +26,7 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
     const dispatch = useDispatch();
     const messagesEndRef = useRef(null);
     const messageContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     const [text, setText] = useState('');
     const [openEmoji, setOpenEmoji] = useState(false);
@@ -61,16 +62,53 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
         setOpenEmoji(false);
     };
 
+    const handlePhotoClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileImagesChange = async (e) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsSendMessage(true);
+        try {
+            const fileArray = Array.from(files);
+
+            for (const file of fileArray) {
+                const formData = new FormData();
+                formData.append('images', file); // Gửi từng ảnh riêng
+
+                const { data } = await axiosClient.post(`/api/message/sendMessage/${receiverId}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                console.log('dataSendImages: ', data);
+                if (data.success) {
+                    const fixedMessage = {
+                        ...data.newMessage,
+                        senderId: context.userInfo,
+                    };
+                    dispatch(sendMessage(fixedMessage));
+                }
+            }
+        } catch (error) {
+            console.log('error: ', error);
+            context.openAlertBox(error.response?.data?.error || 'Lỗi gửi ảnh');
+        } finally {
+            setIsSendMessage(false);
+        }
+    };
+
     const handleSendMessage = async () => {
+        if (!text) return;
         setIsSendMessage(true);
         try {
             const formData = new FormData();
             formData.append('text', text);
 
-            // Append hình ảnh
-            // formFields.images.forEach((img) => {
-            //     formData.append('images', img.file);
-            // });
             const { data } = await axiosClient.post(`/api/message/sendMessage/${receiverId}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -158,14 +196,27 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
             <div className="bottom mt-auto p-5 flex items-center justify-between ">
                 <div className="icons">
                     <Button className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200">
-                        <MdOutlineInsertPhoto className="text-[20px] text-gray-800" />
-                    </Button>
-                    <Button className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200">
                         <MdOutlineCameraAlt className="text-[20px] text-gray-800" />
                     </Button>
                     <Button className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200">
                         <HiMicrophone className="text-[20px] text-gray-800" />
                     </Button>
+                    <Button
+                        onClick={handlePhotoClick}
+                        className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200"
+                    >
+                        <MdOutlineInsertPhoto className="text-[20px] text-gray-800" />
+                    </Button>
+                    {/* 👇 Hidden file input */}
+                    <input
+                        type="file"
+                        name="images"
+                        accept="image/*"
+                        multiple
+                        ref={fileInputRef}
+                        onChange={handleFileImagesChange}
+                        className="hidden"
+                    />
                 </div>
                 <div className="relative flex-1 h-[40px]">
                     <input
@@ -200,7 +251,11 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
                     onClick={handleSendMessage}
                     className=" bg-blue-500 hover:bg-blue-600 text-white normal-case px-[18px] py-2 rounded-md transition duration-200"
                 >
-                    {isSendMessage ? <CircularProgress color="inherit" /> : 'Gửi'}
+                    {isSendMessage ? (
+                        <CircularProgress className="circ-white" size={20} thickness={5} sx={{ color: 'white' }} />
+                    ) : (
+                        'Gửi'
+                    )}
                 </button>
             </div>
         </div>

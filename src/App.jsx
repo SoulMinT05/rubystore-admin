@@ -84,6 +84,10 @@ function App() {
     }, [isLogin, userInfo?._id]);
 
     useEffect(() => {
+        socket.emit('joinRoom', userInfo?._id);
+    }, [isLogin, userInfo?._id]);
+
+    useEffect(() => {
         socket.on('notificationNewMessage', (data) => {
             console.log('ADmin nhan notificationNewMessage: ', data);
             // dispatch(addNotification(data));

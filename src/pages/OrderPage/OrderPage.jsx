@@ -31,7 +31,7 @@ import jsPDF from 'jspdf';
 import BadgeOrderStatusComponent from '../../components/BadgeOrderStatusComponent/BadgeOrderStatusComponent';
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteMultipleOrders, deleteOrder, fetchOrders, updateOrderStatus } from '../../redux/orderSlice';
+import { addOrder, deleteMultipleOrders, deleteOrder, fetchOrders, updateOrderStatus } from '../../redux/orderSlice';
 import { socket } from '../../config/socket';
 import { Link } from 'react-router-dom';
 
@@ -119,8 +119,14 @@ const OrderPage = () => {
                 })
             );
         });
+        socket.on('staffNewOrder', (data) => {
+            console.log('Admin nhan su kien newOrder tu user: ', data);
+            dispatch(addOrder(data));
+        });
+
         return () => {
             socket.off('updateOrderStatus');
+            socket.off('staffNewOrder');
         };
     }, []);
 
@@ -129,7 +135,6 @@ const OrderPage = () => {
             setIsLoadingOrders(true);
             try {
                 const { data } = await axiosClient.get('/api/order/ordersFromAdmin');
-                console.log('dataOrders: ', data);
                 if (data.success) {
                     dispatch(fetchOrders(data?.orders));
                 }
@@ -312,15 +317,13 @@ const OrderPage = () => {
 
     const handleChangeOrderStatus = async (orderId, currentStatus, newStatus) => {
         if (currentStatus === newStatus) return;
-        console.log('newStatus: ', newStatus);
 
         try {
             const { data } = await axiosClient.patch(`/api/order/updateOrderStatusByAdmin/${orderId}`, {
                 newStatus,
             });
-            console.log('dataChange: ', data);
             if (data.success) {
-                context.openAlertBox('success', 'Cập nhật trạng thái thành công');
+                // context.openAlertBox('success', 'Cập nhật trạng thái thành công');
                 dispatch(
                     updateOrderStatus({
                         orderStatus: data?.order?.orderStatus,
@@ -333,8 +336,6 @@ const OrderPage = () => {
             context.openAlertBox('error', 'Lỗi khi cập nhật trạng thái');
         }
     };
-
-    console.log('orders: ', orders);
 
     return (
         <>

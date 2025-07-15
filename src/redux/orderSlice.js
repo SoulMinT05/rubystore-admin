@@ -12,6 +12,9 @@ const orderSlice = createSlice({
         fetchOrders: (state, action) => {
             state.orders = action.payload;
         },
+        addOrder: (state, action) => {
+            state.orders.unshift(action.payload);
+        },
         updateOrderStatus: (state, action) => {
             const index = state.orders.findIndex((u) => u._id === action.payload.orderId);
             if (index !== -1) {
@@ -31,6 +34,6 @@ const orderSlice = createSlice({
     },
 });
 
-export const { fetchOrders, updateOrderStatus, deleteOrder, deleteMultipleOrders } = orderSlice.actions;
+export const { fetchOrders, addOrder, updateOrderStatus, deleteOrder, deleteMultipleOrders } = orderSlice.actions;
 
 export default orderSlice.reducer;

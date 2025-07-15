@@ -1,7 +1,7 @@
 import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
 
-import './UserPage.scss';
+import './ReviewPage.scss';
 import {
     Button,
     MenuItem,
@@ -18,6 +18,8 @@ import {
     AppBar,
     IconButton,
     Slide,
+    Rating,
+    TextField,
 } from '@mui/material';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContentText from '@mui/material/DialogContentText';
@@ -32,87 +34,84 @@ import { GoTrash } from 'react-icons/go';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteMultipleUsers, deleteUser, fetchUsers, toggleLockedUser } from '../../redux/userSlice';
 import * as XLSX from 'xlsx';
-import { Toolbar } from 'react-simple-wysiwyg';
-import { IoMdClose } from 'react-icons/io';
+import { deleteMultipleUsers, deleteUser } from '../../redux/userSlice';
+import { fetchReviews } from '../../redux/reviewSlice';
+import { LuSend } from 'react-icons/lu';
+import ReplyInputComponent from '../../components/ReplyInputComponent/ReplyInputComponent';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const UserPage = () => {
+const ReviewPage = () => {
     const context = useContext(MyContext);
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const { users } = useSelector((state) => state.users);
+    const { reviews } = useSelector((state) => state.reviews);
     const dispatch = useDispatch();
 
-    const [userId, setUserId] = useState(null);
+    const [reviewId, setReviewId] = useState(null);
     const [open, setOpen] = useState(false);
-    const [isLoadingDeleteUser, setIsLoadingDeleteUser] = useState(false);
-    const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [isLoadingDeleteReview, setIsLoadingDeleteReview] = useState(false);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
-    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [selectedReviews, setSelectedReviews] = useState([]);
 
-    const [openUserDetailsModal, setOpenUserDetailsModal] = useState({
+    const [openReviewDetailsModal, setOpenReviewDetailsModal] = useState({
         open: false,
-        user: null,
+        review: null,
     });
 
-    const handleCloseUserDetailsModal = () => {
-        // setOpenUserDetailsModal({
-        //     open: false,
-        //     user: null,
-        // });
-        setOpenUserDetailsModal((prev) => ({
+    const handleCloseReviewDetailsModal = () => {
+        setOpenReviewDetailsModal((prev) => ({
             ...prev,
             open: false,
         }));
         setTimeout(() => {
-            setOpenUserDetailsModal({
+            setOpenReviewDetailsModal({
                 open: false,
-                user: null,
+                review: null,
             });
         }, 300);
     };
 
     useEffect(() => {
-        const getUsers = async () => {
-            setIsLoadingUsers(true);
+        const getReviews = async () => {
+            setIsLoadingReviews(true);
             try {
-                const { data } = await axiosClient.get('/api/user/usersFromAdmin');
+                const { data } = await axiosClient.get('/api/review/getAllReviews');
                 if (data.success) {
-                    dispatch(fetchUsers(data?.users));
+                    dispatch(fetchReviews(data?.reviews));
                 }
             } catch (error) {
                 console.error('error: ', error);
             } finally {
-                setIsLoadingUsers(false);
+                setIsLoadingReviews(false);
             }
         };
-        getUsers();
+        getReviews();
     }, []);
 
     const itemsPerPage = 10;
     // State lưu trang hiện tại
     const [currentPage, setCurrentPage] = useState(1);
     // Tính tổng số trang
-    const totalPages = Math.ceil(users?.length / itemsPerPage);
+    const totalPages = Math.ceil(reviews?.length / itemsPerPage);
     // Xử lý khi đổi trang
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
     // Cắt dữ liệu theo trang
-    const currentUsers = users?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const currentReviews = reviews?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
-            users.map((user) => ({
+            reviews.map((user) => ({
                 Avatar: user?.avatar !== '' ? user?.avatar : 'Không có avatar',
-                'Tên người dùng': user?.name,
+                'Tên đánh giá': user?.name,
                 Email: user?.email,
                 'Số điện thoại': user?.phoneNumber,
                 'Địa chỉ':
@@ -128,64 +127,64 @@ const UserPage = () => {
         );
 
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Người dùng');
+        XLSX.utils.book_append_sheet(wb, ws, 'Đánh giá sản phẩm');
 
         // Xuất file Excel
-        XLSX.writeFile(wb, 'NguoiDung.xlsx');
+        XLSX.writeFile(wb, 'DanhGiaSanPham.xlsx');
     };
 
-    const handleSelectUser = (userId) => {
-        setSelectedUsers((prevSelectedUsers) => {
-            let updatedSelectedUsers;
+    const handleSelectReview = (reviewId) => {
+        setSelectedReviews((prevSelectedReviews) => {
+            let updatedSelectedReviews;
 
-            if (prevSelectedUsers?.includes(userId)) {
+            if (prevSelectedReviews?.includes(reviewId)) {
                 // Nếu đã chọn thì bỏ chọn
-                updatedSelectedUsers = prevSelectedUsers?.filter((id) => id !== userId);
+                updatedSelectedReviews = prevSelectedReviews?.filter((id) => id !== reviewId);
             } else {
                 // Nếu chưa chọn thì chọn
-                updatedSelectedUsers = [...prevSelectedUsers, userId];
+                updatedSelectedReviews = [...prevSelectedReviews, reviewId];
             }
 
-            const allSelectedOnPage = currentUsers?.every((user) => updatedSelectedUsers?.includes(user._id));
+            const allSelectedOnPage = currentReviews?.every((user) => updatedSelectedReviews?.includes(user._id));
             setIsCheckedAll(allSelectedOnPage);
 
-            return updatedSelectedUsers;
+            return updatedSelectedReviews;
         });
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentUsers?.map((product) => product._id);
+        const currentPageIds = currentReviews?.map((product) => product._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
-            const newSelected = Array.from(new Set([...selectedUsers, ...currentPageIds]));
-            setSelectedUsers(newSelected);
+            const newSelected = Array.from(new Set([...selectedReviews, ...currentPageIds]));
+            setSelectedReviews(newSelected);
             setIsCheckedAll(true);
         } else {
             // Bỏ các sản phẩm ở trang hiện tại
-            const newSelected = selectedUsers?.filter((id) => !currentPageIds.includes(id));
-            setSelectedUsers(newSelected);
+            const newSelected = selectedReviews?.filter((id) => !currentPageIds.includes(id));
+            setSelectedReviews(newSelected);
             setIsCheckedAll(false);
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentUsers?.every((user) => selectedUsers?.includes(user._id));
+        const allSelectedOnPage = currentReviews?.every((user) => selectedReviews?.includes(user._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentUsers, selectedUsers]);
+    }, [currentReviews, selectedReviews]);
 
     useEffect(() => {
-        setSelectedUsers(selectedUsers);
-    }, [selectedUsers]);
+        setSelectedReviews(selectedReviews);
+    }, [selectedReviews]);
 
     const handleDeleteMultipleUsers = async () => {
         setIsLoadingMultiple(true);
 
         try {
             const { data } = await axiosClient.delete(`/api/user/deleteMultipleUsersFromAdmin`, {
-                data: { userIds: selectedUsers },
+                data: { reviewIds: selectedReviews },
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleUsers({ userIds: selectedUsers }));
+                dispatch(deleteMultipleUsers({ reviewIds: selectedReviews }));
 
                 handleCloseMultiple();
             }
@@ -199,7 +198,7 @@ const UserPage = () => {
 
     const handleClickOpen = (id) => {
         setOpen(true);
-        setUserId(id);
+        setReviewId(id);
     };
 
     const handleClose = () => {
@@ -210,51 +209,33 @@ const UserPage = () => {
         setOpenMultiple(false);
     };
     const handleDeleteUser = async () => {
-        setIsLoadingDeleteUser(true);
+        setIsLoadingDeleteReview(true);
         try {
-            const { data } = await axiosClient.delete(`/api/user/deleteUserFromAdmin/${userId}`);
+            const { data } = await axiosClient.delete(`/api/user/deleteUserFromAdmin/${reviewId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(deleteUser({ _id: userId }));
+                dispatch(deleteUser({ _id: reviewId }));
                 handleClose();
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật:', error);
             context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
-            setIsLoadingDeleteUser(false);
-        }
-    };
-
-    const handleToggleIsLocked = async (userId) => {
-        try {
-            const { data } = await axiosClient.patch(`/api/user/toggleUserLockStatus/${userId}`);
-            if (data.success) {
-                dispatch(
-                    toggleLockedUser({
-                        userId,
-                        isLocked: data.isLocked,
-                    })
-                );
-                context.openAlertBox('success', data.message);
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật isLocked:', error);
-            context.openAlertBox('error', 'Cập nhật trạng thái thất bại');
+            setIsLoadingDeleteReview(false);
         }
     };
 
     return (
         <>
             <div className="flex items-center justify-between px-2 py-0">
-                <h2 className="text-[18px] font-[600]">Danh sách người dùng</h2>
+                <h2 className="text-[18px] font-[600]">Danh sách đánh giá</h2>
 
                 <div
                     className={`col ${
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedUsers?.length > 1) && (
+                    {(isCheckedAll || selectedReviews?.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -266,18 +247,6 @@ const UserPage = () => {
                     <Button onClick={handleExportExcel} className="btn !bg-green-500 !text-white !normal-case gap-1">
                         <BiExport />
                         Xuất file
-                    </Button>
-                    <Button
-                        className="btn-blue !text-white !normal-case"
-                        onClick={() =>
-                            context.setIsOpenFullScreenPanel({
-                                open: true,
-                                model: 'Thêm người dùng',
-                            })
-                        }
-                    >
-                        <IoMdAdd />
-                        Thêm người dùng
                     </Button>
                 </div>
             </div>
@@ -293,7 +262,7 @@ const UserPage = () => {
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingUsers && currentUsers?.length > 0 && (
+                        {!isLoadingReviews && currentReviews?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -307,25 +276,28 @@ const UserPage = () => {
                                         </div>
                                     </th>
                                     <th scope="col" className="px-0 py-3 whitespace-nowrap">
-                                        Avatar
+                                        Avatar khách hàng
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Họ và tên
+                                        Họ và tên khách hàng
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Email
+                                        Hình ảnh sản phẩm
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Số điện thoại
+                                        Tên sản phẩm
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Địa chỉ
+                                        Câu đánh giá
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Trạng thái tài khoản
+                                        Đánh giá sao
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
-                                        Ngày tạo
+                                        Phản hồi
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 whitespace-nowrap">
+                                        Ngày đánh giá
                                     </th>
                                     <th scope="col" className="px-6 py-3 whitespace-nowrap">
                                         Hành động
@@ -335,85 +307,117 @@ const UserPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingUsers === false ? (
-                                users?.length > 0 &&
-                                users?.map((user) => {
+                            {isLoadingReviews === false ? (
+                                reviews?.length > 0 &&
+                                reviews?.map((review) => {
                                     return (
-                                        <tr key={user._id} className="odd:bg-white even:bg-gray-50 border-b">
+                                        <tr key={review._id} className="odd:bg-white even:bg-gray-50 border-b">
                                             <td className="px-6 pr-0 py-2">
                                                 <div className="w-[60px]">
                                                     <Checkbox
                                                         {...label}
                                                         size="small"
-                                                        checked={selectedUsers?.includes(user._id)}
-                                                        onChange={() => handleSelectUser(user._id)}
+                                                        checked={selectedReviews?.includes(review._id)}
+                                                        onChange={() => handleSelectReview(review._id)}
                                                     />
                                                 </div>
                                             </td>
                                             <td className="px-0 py-2">
                                                 <div className="flex items-center gap-4 w-[100px]">
                                                     <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                        <Link to="/product/2">
-                                                            <img
-                                                                src={user?.avatar}
-                                                                className="w-full group-hover:scale-105 transition-all"
-                                                                alt="Avatar"
-                                                            />
-                                                        </Link>
+                                                        <img
+                                                            src={review?.userId?.avatar}
+                                                            className="w-full group-hover:scale-105 transition-all"
+                                                            alt="Avatar"
+                                                        />
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-2">
                                                 <p
                                                     onClick={() =>
-                                                        setOpenUserDetailsModal({
+                                                        setOpenReviewDetailsModal({
                                                             open: true,
-                                                            user: user,
+                                                            review: review,
                                                         })
                                                     }
                                                     className="w-[120px] text-primary font-[500] cursor-pointer"
                                                 >
-                                                    {user.name}
+                                                    {review?.userId?.name}
                                                 </p>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[260px] max-w-[280px]">{user.email}</p>
+                                                <div className="flex items-center gap-4 w-[100px]">
+                                                    <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                        <img
+                                                            src={review?.productId?.images[0]}
+                                                            className="w-full group-hover:scale-105 transition-all"
+                                                            alt="Avatar"
+                                                        />
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[80px]">{user.phoneNumber}</p>
+                                                <p className="w-[160px] max-w-[180px] line-clamp-2 ">
+                                                    {review?.productId?.name}
+                                                </p>
                                             </td>
+
                                             <td className="px-6 py-2">
-                                                <p className="w-[250px]">
-                                                    {user.address?.streetLine &&
-                                                    user.address?.ward &&
-                                                    user.address?.district &&
-                                                    user.address?.city
-                                                        ? `Đường ${user.address.streetLine}, Phường ${user.address.ward}, Quận ${user.address.district}, Thành phố ${user.address.city}`
-                                                        : ''}
+                                                <p className="w-[260px] max-w-[280px] line-clamp-2">
+                                                    {review?.comment}
                                                 </p>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <label className="inline-flex items-center cursor-pointer">
-                                                    <input
-                                                        checked={user.isLocked}
-                                                        onChange={() => handleToggleIsLocked(user._id)}
-                                                        type="checkbox"
-                                                        className="sr-only peer"
-                                                    />
-                                                    <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-                                                </label>
+                                                <Rating
+                                                    name="size-small"
+                                                    value={Number(review?.rating) || 0}
+                                                    readOnly
+                                                    size="small"
+                                                />
                                             </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[80px]">{formatDate(user.createdAt)}</p>
+                                                {review?.replies[0]?.replyText ? (
+                                                    <p
+                                                        className="w-[110px] text-green-500 cursor-pointer hover:underline transition-all"
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Phản hồi',
+                                                                id: review?._id,
+                                                            })
+                                                        }
+                                                    >
+                                                        Xem phản hồi
+                                                    </p>
+                                                ) : (
+                                                    <span
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Phản hồi',
+                                                                id: review?._id,
+                                                            })
+                                                        }
+                                                        className="w-[110px] text-blue-500 cursor-pointer hover:underline transition-all"
+                                                    >
+                                                        Phản hồi ngay
+                                                    </span>
+                                                )}
                                             </td>
+
+                                            <td className="px-6 py-2">
+                                                <p className="w-[80px]">{formatDate(review.createdAt)}</p>
+                                            </td>
+
                                             <td className="px-6 py-2">
                                                 <div className="flex items-center gap-1">
                                                     <Tooltip title="Xem chi tiết" placement="top">
                                                         <Button
                                                             onClick={() =>
-                                                                setOpenUserDetailsModal({
+                                                                setOpenReviewDetailsModal({
                                                                     open: true,
-                                                                    user: user,
+                                                                    review: review,
                                                                 })
                                                             }
                                                             className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
@@ -421,24 +425,9 @@ const UserPage = () => {
                                                             <FaRegEye className="text-[rgba(0,0,0,0.7)] text-[18px] " />
                                                         </Button>
                                                     </Tooltip>
-                                                    <Tooltip
-                                                        title="Cập nhật"
-                                                        placement="top"
-                                                        onClick={() =>
-                                                            context.setIsOpenFullScreenPanel({
-                                                                open: true,
-                                                                model: 'Cập nhật người dùng',
-                                                                id: user?._id,
-                                                            })
-                                                        }
-                                                    >
-                                                        <Button className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]">
-                                                            <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                        </Button>
-                                                    </Tooltip>
                                                     <Tooltip title="Xoá" placement="top">
                                                         <Button
-                                                            onClick={() => handleClickOpen(user._id)}
+                                                            onClick={() => handleClickOpen(review._id)}
                                                             className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
                                                         >
                                                             <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
@@ -462,19 +451,19 @@ const UserPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingUsers && currentUsers?.length > 0 && (
+                {!isLoadingReviews && currentReviews?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>
                 )}
             </div>
 
-            {/* User Details */}
+            {/* Review Details */}
             <Dialog
                 fullWidth={true}
                 maxWidth="lg"
-                open={openUserDetailsModal.open}
-                onClose={handleCloseUserDetailsModal}
+                open={openReviewDetailsModal.open}
+                onClose={handleCloseReviewDetailsModal}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
                 className="orderDetailsModal"
@@ -484,65 +473,94 @@ const UserPage = () => {
                         <div className="w-full userDetailsModalContainer relative">
                             <Button
                                 className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
-                                onClick={handleCloseUserDetailsModal}
+                                onClick={handleCloseReviewDetailsModal}
                             >
                                 <IoCloseSharp className="text-[20px]" />
                             </Button>
 
                             <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
                                 <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
-                                    Thông tin khách hàng
+                                    Thông tin đánh giá từ khách hàng
                                 </h2>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Avatar</span>
                                         <img
                                             className="w-[70px] h-[70px] object-cover rounded-md"
-                                            src={openUserDetailsModal?.user?.avatar}
+                                            src={openReviewDetailsModal?.review?.userId?.avatar}
                                             alt="Avatar"
                                         />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Họ và tên</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.name}</span>
+                                        <span className="text-blue-500">
+                                            {openReviewDetailsModal?.review?.userId?.name}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Email</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.email}</span>
+                                        <span className="text-gray-500">ID sản phẩm</span>
+                                        <span className="text-red">
+                                            {openReviewDetailsModal?.review?.productId?._id}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Số điện thoại</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.phoneNumber}</span>
+                                        <span className="text-gray-500">Hình ảnh sản phẩm</span>
+                                        <img
+                                            className="w-[70px] h-[70px] object-cover rounded-md"
+                                            src={openReviewDetailsModal?.review?.productId?.images[0]}
+                                            alt="Avatar"
+                                        />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Địa chỉ</span>
-                                        <span className="text-gray-700">
-                                            {`Đường ${openUserDetailsModal?.user?.address?.streetLine || ''}, Phường ${
-                                                openUserDetailsModal?.user?.address?.ward || ''
-                                            }, Quận ${openUserDetailsModal?.user?.address?.district || ''}, Thành phố ${
-                                                openUserDetailsModal?.user?.address?.city || ''
-                                            }`}
+                                        <span className="text-gray-500">Tên sản phẩm</span>
+                                        <span className="text-blue-500">
+                                            {openReviewDetailsModal?.review?.productId?.name}
                                         </span>
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Trạng thái tài khoản</span>
-                                        {openUserDetailsModal?.user?.isLocked ? (
-                                            <span className="text-red-500 text-[14px]">Bị khóa</span>
-                                        ) : (
-                                            <span className="text-green-500 text-[14px]">Hoạt động</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
-                                        <span className="text-gray-700">
-                                            {formatDate(openUserDetailsModal?.user?.lastLoginDate)}
+                                        <span className="text-gray-500">Câu đánh giá</span>
+                                        <span className="text-yellow-500">
+                                            {openReviewDetailsModal?.review?.comment}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Đánh giá sao</span>
+                                        <span className="text-gray-700">
+                                            <Rating
+                                                name="size-small"
+                                                value={Number(openReviewDetailsModal?.review?.rating) || 0}
+                                                readOnly
+                                                size="small"
+                                            />
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Câu phản hồi</span>
+                                        {openReviewDetailsModal?.review?.replies[0]?.replyText ? (
+                                            <span className="text-gray-700">
+                                                {openReviewDetailsModal?.review?.replies[0]?.replyText}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-700">Chưa có</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-500">Họ và tên phản hồi</span>
+                                        {openReviewDetailsModal?.review?.replies[0]?.userId?.name ? (
+                                            <span className="text-green-500">
+                                                {openReviewDetailsModal?.review?.replies[0]?.userId?.name}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-700">Chưa có</span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
                                         <span className="text-gray-500">Ngày tạo</span>
                                         <span className="text-gray-700">
-                                            {formatDate(openUserDetailsModal?.user?.createdAt)}
+                                            {formatDate(openReviewDetailsModal?.review?.createdAt)}
                                         </span>
                                     </div>
                                 </div>
@@ -558,15 +576,15 @@ const UserPage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá người dùng?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá đánh giá?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá người dùng này không?
+                        Bạn có chắc chắn xoá đánh giá này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteUser === true ? (
+                    {isLoadingDeleteReview === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
                         <Button className="btn-red" onClick={handleDeleteUser} autoFocus>
@@ -582,10 +600,10 @@ const UserPage = () => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả người dùng?'}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả đánh giá?'}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả người dùng này không?
+                        Bạn có chắc chắn xoá tất cả đánh giá này không?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
@@ -603,7 +621,7 @@ const UserPage = () => {
     );
 };
 
-export default UserPage;
+export default ReviewPage;
 
 function formatDate(dateString) {
     const date = new Date(dateString);

@@ -42,6 +42,8 @@ import UpdateVoucherComponent from './components/UpdateVoucherComponent/UpdateVo
 
 // SOCKET IO
 import { socket } from './config/socket';
+import ReplyInputComponent from './components/ReplyInputComponent/ReplyInputComponent';
+import { DialogContent } from '@mui/material';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -217,55 +219,77 @@ function App() {
 
                     <ToastContainer />
 
-                    <Dialog
-                        fullScreen
-                        open={isOpenFullScreenPanel.open}
-                        onClose={() =>
-                            setIsOpenFullScreenPanel({
-                                open: false,
-                            })
-                        }
-                        TransitionComponent={Transition}
-                    >
-                        <AppBar sx={{ position: 'relative' }}>
-                            <Toolbar>
-                                <IconButton
-                                    edge="start"
-                                    color="inherit"
-                                    onClick={() =>
-                                        setIsOpenFullScreenPanel({
-                                            open: false,
-                                        })
-                                    }
-                                    aria-label="close"
-                                >
-                                    <IoMdClose className="text-gray-800" />
-                                </IconButton>
-                                <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                                    <span className="text-gray-800">{isOpenFullScreenPanel?.model}</span>
-                                </Typography>
-                            </Toolbar>
-                        </AppBar>
+                    {isOpenFullScreenPanel?.model === 'Phản hồi' && (
+                        <Dialog
+                            fullWidth={true}
+                            maxWidth="lg"
+                            open={isOpenFullScreenPanel.open}
+                            onClose={() =>
+                                setIsOpenFullScreenPanel({
+                                    open: false,
+                                })
+                            }
+                            aria-labelledby="alert-dialog-title"
+                            aria-describedby="alert-dialog-description"
+                            className="replyModal"
+                        >
+                            <DialogContent>
+                                <ReplyInputComponent />
+                            </DialogContent>
+                        </Dialog>
+                    )}
 
-                        {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddBannerComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật banner' && <UpdateBannerComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật người dùng' && <UpdateUserComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật nhân viên' && <UpdateStaffComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
-                        {isOpenFullScreenPanel?.model === 'Thêm voucher' && <AddVoucherComponent />}
-                        {isOpenFullScreenPanel?.model === 'Cập nhật voucher' && <UpdateVoucherComponent />}
-                    </Dialog>
+                    {isOpenFullScreenPanel?.model !== 'Phản hồi' && (
+                        <Dialog
+                            fullScreen
+                            open={isOpenFullScreenPanel.open}
+                            onClose={() =>
+                                setIsOpenFullScreenPanel({
+                                    open: false,
+                                })
+                            }
+                            TransitionComponent={Transition}
+                        >
+                            <AppBar sx={{ position: 'relative' }}>
+                                <Toolbar>
+                                    <IconButton
+                                        edge="start"
+                                        color="inherit"
+                                        onClick={() =>
+                                            setIsOpenFullScreenPanel({
+                                                open: false,
+                                            })
+                                        }
+                                        aria-label="close"
+                                    >
+                                        <IoMdClose className="text-gray-800" />
+                                    </IconButton>
+                                    <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                                        <span className="text-gray-800">{isOpenFullScreenPanel?.model}</span>
+                                    </Typography>
+                                </Toolbar>
+                            </AppBar>
+
+                            {isOpenFullScreenPanel?.model === 'Thêm banner' && <AddBannerComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật banner' && <UpdateBannerComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm home slide' && <AddHomeSlideComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật home slide' && <UpdateHomeSlideComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm người dùng' && <AddUserComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật người dùng' && <UpdateUserComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm nhân viên' && <AddStaffComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật nhân viên' && <UpdateStaffComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm sản phẩm' && <AddProductComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật sản phẩm' && <UpdateProductComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm danh mục' && <AddCategoryComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật danh mục' && <UpdateCategoryComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm danh mục con' && <AddSubCategoryComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm bài viết' && <AddBlogComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật bài viết' && <UpdateBlogComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật địa chỉ' && <AddAddressComponent />}
+                            {isOpenFullScreenPanel?.model === 'Thêm voucher' && <AddVoucherComponent />}
+                            {isOpenFullScreenPanel?.model === 'Cập nhật voucher' && <UpdateVoucherComponent />}
+                        </Dialog>
+                    )}
                 </MyContext.Provider>
             </Provider>
         </>

@@ -29,6 +29,7 @@ import BlogPage from '../pages/BlogPage/BlogPage';
 import VoucherPage from '../pages/VoucherPage/VoucherPage';
 import MessagePageDetails from '../pages/MessagePageDetails/MessagePageDetails';
 import MessagePage from '../pages/MessagePage/MessagePage';
+import ReviewPage from '../pages/ReviewPage/ReviewPage';
 
 const router = createBrowserRouter([
     {
@@ -152,6 +153,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <BlogPage />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: 'reviews',
+                element: (
+                    <PrivateRoute>
+                        <ReviewPage />
                     </PrivateRoute>
                 ),
             },

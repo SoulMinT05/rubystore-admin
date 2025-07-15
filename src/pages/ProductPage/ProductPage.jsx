@@ -533,7 +533,7 @@ const ProductPage = () => {
                                             <td className="px-6 py-2">
                                                 <Rating
                                                     name="size-small"
-                                                    defaultValue={product?.rating}
+                                                    value={Number(product?.rating) || 0}
                                                     readOnly
                                                     size="small"
                                                 />

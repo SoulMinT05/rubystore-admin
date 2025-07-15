@@ -374,7 +374,17 @@ const StaffPage = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-2">
-                                                <p className="w-[120px]">{staff.name}</p>
+                                                <p
+                                                    onClick={() =>
+                                                        setOpenStaffDetailsModal({
+                                                            open: true,
+                                                            staff: staff,
+                                                        })
+                                                    }
+                                                    className="w-[120px] text-primary font-[500] cursor-pointer"
+                                                >
+                                                    {staff.name}
+                                                </p>
                                             </td>
                                             <td className="px-6 py-2">
                                                 <p className="w-[260px] max-w-[280px]">{staff.email}</p>

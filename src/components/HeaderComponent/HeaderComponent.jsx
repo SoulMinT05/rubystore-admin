@@ -115,10 +115,15 @@ const HeaderComponent = () => {
             console.log('Admin nhan notificationStaffCancelOrder: ', data);
             dispatch(addNotification(data));
         });
+        socket.on('notificationStaffNewReview', (data) => {
+            console.log('Admin nhan notificationStaffNewReview: ', data);
+            dispatch(addNotification(data));
+        });
 
         return () => {
             socket.off('notificationStaffNewOrder');
             socket.off('notificationStaffCancelOrder');
+            socket.off('notificationStaffNewReview');
         };
     }, []);
 

@@ -21,6 +21,9 @@ const reviewSlice = createSlice({
                 };
             }
         },
+        addReview: (state, action) => {
+            state.reviews.unshift(action.payload);
+        },
         addReply: (state, action) => {
             const { reviewId, newReply } = action.payload;
             const reviewIndex = state.reviews.findIndex((review) => review._id === reviewId);
@@ -41,6 +44,7 @@ const reviewSlice = createSlice({
     },
 });
 
-export const { fetchReviews, updateReview, addReply, deleteReview, deleteMultipleReviews } = reviewSlice.actions;
+export const { fetchReviews, updateReview, addReview, addReply, deleteReview, deleteMultipleReviews } =
+    reviewSlice.actions;
 
 export default reviewSlice.reducer;

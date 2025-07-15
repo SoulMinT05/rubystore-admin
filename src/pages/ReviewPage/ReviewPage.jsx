@@ -36,9 +36,9 @@ import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
 import * as XLSX from 'xlsx';
 import { deleteMultipleUsers, deleteUser } from '../../redux/userSlice';
-import { fetchReviews } from '../../redux/reviewSlice';
+import { addReview, fetchReviews } from '../../redux/reviewSlice';
 import { LuSend } from 'react-icons/lu';
-import ReplyInputComponent from '../../components/ReplyInputComponent/ReplyInputComponent';
+import { socket } from '../../config/socket';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -77,6 +77,16 @@ const ReviewPage = () => {
             });
         }, 300);
     };
+
+    useEffect(() => {
+        socket.on('staffNewReview', (data) => {
+            console.log('Admin nhan staffNewReview: ', data);
+            dispatch(addReview(data));
+        });
+        return () => {
+            socket.off('staffNewReview');
+        };
+    }, []);
 
     useEffect(() => {
         const getReviews = async () => {

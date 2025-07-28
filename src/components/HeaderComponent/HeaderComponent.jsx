@@ -37,6 +37,7 @@ import {
     addNotification,
     fetchNotifications,
     getUnreadCountNotifications,
+    markAllNotificationsAsRead,
     markNotificationRead,
 } from '../../redux/notificationSlice';
 import { socket } from '../../config/socket';
@@ -226,6 +227,20 @@ const HeaderComponent = () => {
         }
     };
 
+    const handleMarkAllNotificationsAsRead = async () => {
+        if (unreadCountNotifications === 0) return;
+        try {
+            const { data } = await axiosClient.post(`/api/notification/markAllNotificationsAsReadFromStaff`);
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                dispatch(markAllNotificationsAsRead());
+            }
+        } catch (error) {
+            console.log(error);
+            context.openAlertBox('error', error?.response?.data?.message || 'Đã xảy ra lỗi!');
+        }
+    };
+
     return (
         <header
             className={`w-full h-[auto] ${
@@ -297,6 +312,21 @@ const HeaderComponent = () => {
                                     }}
                                     tabIndex={-1} // ✅ Tránh lỗi focus gây aria-hidden
                                 >
+                                    <Box className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                                        <Typography className="!text-[16px]" variant="h6" fontWeight={500}>
+                                            Thông báo ({unreadCountNotifications || 0})
+                                        </Typography>
+                                        <Typography
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleMarkAllNotificationsAsRead();
+                                            }}
+                                            variant="caption"
+                                            className="!text-[14px] italic text-blue-500  hover:underline cursor-pointer"
+                                        >
+                                            Đánh dấu tất cả đã đọc
+                                        </Typography>
+                                    </Box>
                                     <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                                         {notifications?.length > 0 &&
                                             notifications?.map((notification) => {
@@ -330,7 +360,7 @@ const HeaderComponent = () => {
                                                                 color="text.secondary"
                                                                 className="mt-1"
                                                             >
-                                                                {notification?.description}
+                                                                {notification?.description?.slice(0, 30)}
                                                             </Typography>
 
                                                             <Box

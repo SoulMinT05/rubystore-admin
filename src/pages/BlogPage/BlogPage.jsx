@@ -50,7 +50,7 @@ const BlogPage = () => {
                 'Hình ảnh': blog.images?.length > 0 ? blog.images[0] : 'Không có hình ảnh',
                 'Tên bài viết': blog.name,
                 'Mô tả bài viết': blog.description,
-            })),
+            }))
         );
 
         const wb = XLSX.utils.book_new();

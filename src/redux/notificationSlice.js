@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     notifications: [],
+    allNotifications: [],
     unreadCountNotifications: 0,
 };
 
@@ -29,10 +30,26 @@ const notificationSlice = createSlice({
                 state.unreadCountNotifications -= 1;
             }
         },
+        markAllNotificationsAsRead: (state) => {
+            state.notifications = state.notifications.map((notification) => ({
+                ...notification,
+                isRead: true,
+            }));
+            state.allNotifications = state.allNotifications.map((notification) => ({
+                ...notification,
+                isRead: true,
+            }));
+            state.unreadCountNotifications = 0;
+        },
     },
 });
 
-export const { fetchNotifications, addNotification, getUnreadCountNotifications, markNotificationRead } =
-    notificationSlice.actions;
+export const {
+    fetchNotifications,
+    addNotification,
+    getUnreadCountNotifications,
+    markNotificationRead,
+    markAllNotificationsAsRead,
+} = notificationSlice.actions;
 
 export default notificationSlice.reducer;

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Divider, TextField } from '@mui/material';
 import { IoIosSearch } from 'react-icons/io';
@@ -7,10 +7,11 @@ import { FaMinus } from 'react-icons/fa6';
 import axiosClient from '../../../apis/axiosClient';
 import { fetchMessagesSidebar, updateOnlineStatusSidebar } from '../../../redux/messageSlice';
 import { Link, useParams } from 'react-router-dom';
-
+import { MyContext } from '../../../App';
 import { socket } from '../../../config/socket';
 
 const ChatListSidebar = () => {
+    const context = useContext(MyContext);
     const { id } = useParams();
     const dispatch = useDispatch();
     const { messagesSidebar } = useSelector((state) => state.message);
@@ -56,7 +57,13 @@ const ChatListSidebar = () => {
                 {messagesSidebar?.length > 0 &&
                     messagesSidebar?.map((message, index) => {
                         return (
-                            <Link key={message._id} to={`/message/${message._id}`}>
+                            <Link
+                                onClick={() => {
+                                    if (window.innerWidth < 1024) context?.setIsChatOpen(true);
+                                }}
+                                key={message._id}
+                                to={`/message/${message._id}`}
+                            >
                                 <div className="item flex items-center p-4 gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-200">
                                     <div className="relative">
                                         <img

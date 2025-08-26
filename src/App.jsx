@@ -60,6 +60,7 @@ function App() {
         model: '',
         id: '',
     });
+    const [isChatOpen, setIsChatOpen] = useState(false);
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
@@ -88,8 +89,6 @@ function App() {
     useEffect(() => {
         socket.emit('joinRoom', userInfo?._id);
     }, [isLogin, userInfo?._id]);
-
-    console.log('Da login');
 
     useEffect(() => {
         socket.on('notificationNewMessage', (data) => {
@@ -213,6 +212,8 @@ function App() {
         setIsOpenSidebar,
         isLogin,
         setIsLogin,
+        isChatOpen,
+        setIsChatOpen,
         isAuthChecking,
         setIsAuthChecking,
         isOpenFullScreenPanel,

@@ -1,18 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Divider, TextField } from '@mui/material';
 import { IoIosSearch } from 'react-icons/io';
 import { FaPlus } from 'react-icons/fa6';
 import { FaMinus } from 'react-icons/fa6';
 import axiosClient from '../../../apis/axiosClient';
-import { fetchMessagesSidebar } from '../../../redux/messageSlice';
+import { fetchMessagesSidebar, updateOnlineStatusSidebar } from '../../../redux/messageSlice';
 import { Link, useParams } from 'react-router-dom';
+
+import { socket } from '../../../config/socket';
 
 const ChatListSidebar = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
     const { messagesSidebar } = useSelector((state) => state.message);
-    const [isAddMessage, setIsAddMessage] = useState(false);
 
     useEffect(() => {
         const getMessagesForUsers = async () => {
@@ -24,30 +25,30 @@ const ChatListSidebar = () => {
         getMessagesForUsers();
     }, [id]);
 
+    useEffect(() => {
+        socket.on('userOnlineStatus', (data) => {
+            console.log('userOnlineStatus: ', data);
+            dispatch(updateOnlineStatusSidebar(data));
+        });
+        return () => {
+            socket.off('userOnlineStatus');
+        };
+    }, []);
+
     return (
         <>
             <div className="chatList ">
                 <div className="flex items-center gap-3 w-full">
-                    <div className="relative flex-1 h-[40px]">
+                    <div className="relative flex-1 px-2 text-[13px] lg:text-[14px] h-[40px]">
+                        <Button className="!absolute top-1/2 left-3 -translate-y-1/2 !w-[35px] !min-w-[35px] h-[35px] !rounded-full bg-gray-100 hover:bg-gray-200">
+                            <IoIosSearch className="text-[18px] text-gray-600" />
+                        </Button>
                         <input
                             type="text"
-                            placeholder="Tìm kiếm..."
-                            className="w-full h-full bg-gray-100 p-2 pr-10 rounded-[8px] focus:outline-none"
+                            placeholder="Tìm kiếm đoạn chat..."
+                            className="w-full h-full bg-gray-100 p-2 pl-10 pr-10 rounded-full focus:outline-none"
                         />
-                        <Button className="!absolute top-1/2 right-2 -translate-y-1/2 !w-[35px] !min-w-[35px] h-[35px] !rounded-full bg-gray-100 hover:bg-gray-200">
-                            <IoIosSearch className="text-[20px] text-gray-600" />
-                        </Button>
                     </div>
-                    <Button
-                        onClick={() => setIsAddMessage(!isAddMessage)}
-                        className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200"
-                    >
-                        {isAddMessage ? (
-                            <FaMinus className="text-[20px] text-gray-600" />
-                        ) : (
-                            <FaPlus className="text-[20px] text-gray-600" />
-                        )}
-                    </Button>
                 </div>
             </div>
 
@@ -57,11 +58,16 @@ const ChatListSidebar = () => {
                         return (
                             <Link key={message._id} to={`/message/${message._id}`}>
                                 <div className="item flex items-center p-4 gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                                    <img
-                                        className="w-[50px] h-[50px] object-cover rounded-full "
-                                        src={message?.avatar}
-                                        alt={message?.name}
-                                    />
+                                    <div className="relative">
+                                        <img
+                                            className="w-[50px] h-[50px] object-cover rounded-full "
+                                            src={message?.avatar}
+                                            alt={message?.name}
+                                        />
+                                        {message?.isOnline && (
+                                            <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                                        )}
+                                    </div>
                                     <div className="texts flex flex-col">
                                         <span className="text-[16px] font-[500] ">{message?.name}</span>
                                         <p

@@ -19,6 +19,7 @@ import { useParams } from 'react-router-dom';
 import { formatDisplayTime } from '../../utils/formatTimeChat';
 import { useDispatch } from 'react-redux';
 import { sendMessage } from '../../redux/messageSlice';
+import { socket } from '../../config/socket';
 
 const ChatComponent = ({ messagesDetails, receiverId }) => {
     const { id } = useParams();
@@ -37,12 +38,26 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
     useEffect(() => {
         const getUserDetails = async () => {
             const { data } = await axiosClient.get(`/api/message/getUserDetails/${id}`);
+            console.log('userDetails: ', data);
             if (data?.success) {
                 setUserInfo(data?.user);
             }
         };
         getUserDetails();
     }, [id]);
+
+    useEffect(() => {
+        socket.on('userOnlineStatus', (data) => {
+            console.log('userOnlineStatus: ', data);
+            setUserInfo((prev) => ({
+                ...prev,
+                ...data,
+            }));
+        });
+        return () => {
+            socket.off('userOnlineStatus');
+        };
+    }, []);
 
     const scrollToBottom = () => {
         if (!messagesEndRef.current || !messageContainerRef.current) return;
@@ -144,7 +159,15 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
                     <img className="w-[40px] h-[40px] object-cover rounded-full" src={userInfo?.avatar} alt="" />
                     <div className="texts gap-1">
                         <span className="text-[17px] font-[600]"> {userInfo?.name}</span>
-                        <p className="text-gray-500 text-[13px] font-[300] mt-0">Online 7 phút trước</p>
+                        <p className="text-gray-500 text-[13px] font-[300] mt-0">
+                            {userInfo?.isOnline === true ? (
+                                <span className="text-green-500 font-medium">● Đang hoạt động</span>
+                            ) : (
+                                <span className="text-gray-400">
+                                    ● Hoạt động {formatDisplayTime(userInfo?.lastOnline)}
+                                </span>
+                            )}
+                        </p>
                     </div>
                 </div>
                 <div className="icons flex items-center gap-0">
@@ -154,9 +177,6 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
                     <Button className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200">
                         <IoVideocamOutline className="text-[18px] text-gray-800" />
                     </Button>
-                    {/* <Button className="!w-[40px] !min-w-[40px] h-[40px] !rounded-full bg-gray-100 hover:bg-gray-200">
-                        <BiInfoCircle className="text-[18px] text-gray-800" />
-                    </Button> */}
                 </div>
             </div>
 

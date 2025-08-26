@@ -183,6 +183,8 @@ const HeaderComponent = () => {
             if (data.success) {
                 Cookies.remove('accessToken');
                 context.setIsLogin(false);
+                localStorage.removeItem('userId');
+                localStorage.removeItem('role');
                 context.openAlertBox('success', data.message);
                 navigate('/login');
             } else {

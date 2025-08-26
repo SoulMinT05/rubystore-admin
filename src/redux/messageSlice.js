@@ -12,6 +12,18 @@ const messageSlice = createSlice({
         fetchMessagesSidebar: (state, action) => {
             state.messagesSidebar = action.payload;
         },
+        updateOnlineStatusSidebar: (state, action) => {
+            const { userId, isOnline, lastOnline } = action.payload;
+            state.messagesSidebar = state.messagesSidebar.map((staff) =>
+                staff?._id === userId
+                    ? {
+                          ...staff,
+                          isOnline,
+                          lastOnline,
+                      }
+                    : staff
+            );
+        },
         fetchMessagesDetails: (state, action) => {
             state.messagesDetails = action.payload;
         },
@@ -21,6 +33,7 @@ const messageSlice = createSlice({
     },
 });
 
-export const { fetchMessagesSidebar, fetchMessagesDetails, sendMessage } = messageSlice.actions;
+export const { fetchMessagesSidebar, updateOnlineStatusSidebar, fetchMessagesDetails, sendMessage } =
+    messageSlice.actions;
 
 export default messageSlice.reducer;

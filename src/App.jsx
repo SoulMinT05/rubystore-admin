@@ -53,6 +53,7 @@ const MyContext = createContext();
 
 function App() {
     const [isOpenSidebar, setIsOpenSidebar] = useState(true);
+    const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [isLogin, setIsLogin] = useState(true);
     const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
         open: false,
@@ -81,11 +82,14 @@ function App() {
 
     useEffect(() => {
         socket.emit('joinMessageRoom', userInfo?._id);
+        console.log('Đã join message room');
     }, [isLogin, userInfo?._id]);
 
     useEffect(() => {
         socket.emit('joinRoom', userInfo?._id);
     }, [isLogin, userInfo?._id]);
+
+    console.log('Da login');
 
     useEffect(() => {
         socket.on('notificationNewMessage', (data) => {
@@ -98,16 +102,41 @@ function App() {
     }, []);
 
     useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const { data } = await axiosClient.get('/api/user/check-login', {
+                    withCredentials: true,
+                });
+                if (data.success) {
+                    setIsLogin(true);
+                }
+            } catch (error) {
+                setIsLogin(false);
+                console.log(error);
+            } finally {
+                setIsAuthChecking(false);
+            }
+        };
+
+        checkAuth();
+    }, []);
+
+    useEffect(() => {
+        if (!isLogin) return;
+
         const getUserDetails = async () => {
             try {
                 const { data } = await axiosClient.get('/api/staff/user-details');
+                console.log('dataStaff: ', data);
                 setUserInfo(data?.user);
+                localStorage.setItem('userId', data?.user?._id);
+                localStorage.setItem('role', data?.user?.role);
             } catch (error) {
                 console.log(error);
             }
         };
         getUserDetails();
-    }, []);
+    }, [isLogin]);
 
     useEffect(() => {
         const getCategories = async () => {
@@ -184,6 +213,8 @@ function App() {
         setIsOpenSidebar,
         isLogin,
         setIsLogin,
+        isAuthChecking,
+        setIsAuthChecking,
         isOpenFullScreenPanel,
         setIsOpenFullScreenPanel,
         openAlertBox,

@@ -59,6 +59,8 @@ const LoginPage = () => {
                 Cookies.set('accessToken', data?.data?.accessToken);
 
                 context.setIsLogin(true);
+                localStorage.setItem('userId', data?.user?._id);
+                localStorage.setItem('role', data?.user?.role);
 
                 navigate('/');
             } else {

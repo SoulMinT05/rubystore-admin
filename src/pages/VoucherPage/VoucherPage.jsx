@@ -466,6 +466,7 @@ const VoucherPage = () => {
 
             {/* Voucher Details */}
             <Dialog
+                disableScrollLock
                 fullWidth={true}
                 maxWidth="lg"
                 open={openVoucherDetailsModal.open}

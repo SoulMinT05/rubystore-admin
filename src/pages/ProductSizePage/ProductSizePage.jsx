@@ -95,7 +95,7 @@ const ProductSizePage = () => {
             }
 
             const allSelectedOnPage = productsSize.every((product) =>
-                updatedSelectedProductsSize.includes(product._id),
+                updatedSelectedProductsSize.includes(product._id)
             );
             setIsCheckedAll(allSelectedOnPage);
 
@@ -364,6 +364,7 @@ const ProductSizePage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={openUpdate}
                 onClose={handleCloseUpdate}
                 slotProps={{

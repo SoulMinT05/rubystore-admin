@@ -1,10 +1,11 @@
 import { Button, TextField, CircularProgress } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
+import { FaCloudUploadAlt } from 'react-icons/fa';
 
-import './MyAccountPage.scss';
 import { MyContext } from '../../App';
 import axiosClient from '../../apis/axiosClient';
-import { FaCloudUploadAlt } from 'react-icons/fa';
+import './MyAccountPage.scss';
+import defaultAvatar from '../../assets/default_avatar.png';
 const MyAccountPage = () => {
     const context = useContext(MyContext);
     const [name, setName] = useState(context?.userInfo?.name || '');
@@ -113,7 +114,11 @@ const MyAccountPage = () => {
                                 {isUploading === true ? (
                                     <CircularProgress color="inherit" />
                                 ) : (
-                                    <img src={preview} alt="Avatar" className="w-full h-full object-cover" />
+                                    <img
+                                        src={preview || defaultAvatar}
+                                        alt="Avatar"
+                                        className="w-full h-full object-cover"
+                                    />
                                 )}
 
                                 <div

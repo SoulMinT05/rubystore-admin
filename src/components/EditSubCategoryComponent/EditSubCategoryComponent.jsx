@@ -183,6 +183,7 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
             </form>
 
             <Dialog
+                disableScrollLock
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"

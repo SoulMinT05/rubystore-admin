@@ -46,7 +46,7 @@ const CategoryPage = () => {
             categories.map((category) => ({
                 'Hình ảnh': category.images.length > 0 ? category.images[0] : 'Không có hình ảnh',
                 'Tên danh mục': category.name,
-            })),
+            }))
         );
 
         const wb = XLSX.utils.book_new();
@@ -71,7 +71,7 @@ const CategoryPage = () => {
             const allSelected = updatedSelectedCategories.length === categories.length;
             setIsCheckedAll(allSelected);
             const allSelectedOnPage = currentCategories.every((category) =>
-                updatedSelectedCategories.includes(category._id),
+                updatedSelectedCategories.includes(category._id)
             );
             setIsCheckedAll(allSelectedOnPage);
 
@@ -296,6 +296,7 @@ const CategoryPage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"

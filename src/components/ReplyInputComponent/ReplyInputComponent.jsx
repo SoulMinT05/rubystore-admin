@@ -6,6 +6,7 @@ import axiosClient from '../../apis/axiosClient';
 import { IoCloseSharp } from 'react-icons/io5';
 import { useDispatch } from 'react-redux';
 import { addReply } from '../../redux/reviewSlice';
+import defaultAvatar from '../../assets/default_avatar.png';
 
 const ReplyInputComponent = () => {
     const context = useContext(MyContext);
@@ -87,7 +88,7 @@ const ReplyInputComponent = () => {
                             <span className="text-gray-500">Avatar</span>
                             <img
                                 className="w-[70px] h-[70px] object-cover rounded-md"
-                                src={review?.userId?.avatar}
+                                src={review?.userId?.avatar || defaultAvatar}
                                 alt="Avatar"
                             />
                         </div>
@@ -132,7 +133,7 @@ const ReplyInputComponent = () => {
                                             <img
                                                 alt="Image of an Apple iMac"
                                                 className="w-[70px] h-[70px] object-cover rounded-md mr-4 group-hover:scale-105 transition-all"
-                                                src={reply?.userId?.avatar}
+                                                src={reply?.userId?.avatar || defaultAvatar}
                                             />
                                         </div>
                                         <div className="mx-4 w-[20%]">

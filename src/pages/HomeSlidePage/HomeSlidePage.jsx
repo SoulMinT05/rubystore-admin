@@ -47,7 +47,7 @@ const HomeSlidePage = () => {
             homeSlides.map((homeSlide) => ({
                 'Hình ảnh': homeSlide.images?.length > 0 ? homeSlide.images[0] : 'Không có hình ảnh',
                 'Tên home slide': homeSlide.name,
-            })),
+            }))
         );
 
         const wb = XLSX.utils.book_new();
@@ -72,7 +72,7 @@ const HomeSlidePage = () => {
             const allSelected = updatedSelectedHomeSlides?.length === homeSlides?.length;
             setIsCheckedAll(allSelected);
             const allSelectedOnPage = currentHomeSlides.every((homeSlide) =>
-                updatedSelectedHomeSlides.includes(homeSlide._id),
+                updatedSelectedHomeSlides.includes(homeSlide._id)
             );
             setIsCheckedAll(allSelectedOnPage);
 
@@ -295,6 +295,7 @@ const HomeSlidePage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"

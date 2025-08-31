@@ -328,6 +328,7 @@ const BannerPage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"

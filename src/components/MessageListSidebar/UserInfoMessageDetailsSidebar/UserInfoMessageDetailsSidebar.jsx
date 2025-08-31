@@ -4,13 +4,18 @@ import { CiEdit } from 'react-icons/ci';
 import { Button } from '@mui/material';
 import { useContext } from 'react';
 import { MyContext } from '../../../App';
+import defaultAvatar from '../../../assets/default_avatar.png';
 
 const UserInfoMessageDetailsSidebar = () => {
     const { userInfo } = useContext(MyContext);
     return (
         <div className="userInfo  p-[20px] flex items-center justify-between ">
             <div className="user flex items-center gap-4 ">
-                <img className="w-[50px] h-[50px] object-cover rounded-full " src={userInfo?.avatar} alt="" />
+                <img
+                    className="w-[50px] h-[50px] object-cover rounded-full "
+                    src={userInfo?.avatar || defaultAvatar}
+                    alt=""
+                />
                 <h2 className="text-[16px] font-[500] ">{userInfo?.name}</h2>
             </div>
             {/* <div className="icons cursor-pointer flex items-center">

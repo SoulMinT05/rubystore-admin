@@ -19,12 +19,15 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import DOMPurify from 'dompurify';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteBlog, deleteMultipleBlogs, fetchBlogs } from '../../redux/blogSlice';
 
 const BlogPage = () => {
-    const { blogs, setBlogs } = useContext(MyContext);
     const context = useContext(MyContext);
-    const [blogId, setBlogId] = useState(null);
+    const { blogs } = useSelector((state) => state.blogs);
+    const dispatch = useDispatch();
 
+    const [blogId, setBlogId] = useState(null);
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [openMultiple, setOpenMultiple] = useState(false);
@@ -118,7 +121,8 @@ const BlogPage = () => {
             try {
                 const { data } = await axiosClient.get('/api/blog/all-blogs');
                 if (data.success) {
-                    setBlogs(data?.blogs);
+                    // setBlogs(data?.blogs);
+                    dispatch(fetchBlogs(data?.blogs));
                 } else {
                     console.error('Lỗi lấy bài viết:', data.message);
                 }
@@ -136,9 +140,15 @@ const BlogPage = () => {
         setIsLoading(true);
         try {
             const { data } = await axiosClient.delete(`/api/blog/${blogId}`);
+            console.log('delteblog: ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                setBlogs((prev) => prev.filter((blog) => blog._id !== blogId));
+                // setBlogs((prev) => prev.filter((blog) => blog._id !== blogId));
+                dispatch(
+                    deleteBlog({
+                        blogId,
+                    })
+                );
                 handleClose();
             }
         } catch (error) {
@@ -158,7 +168,12 @@ const BlogPage = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getBlogs();
+                // context.getBlogs();
+                dispatch(
+                    deleteMultipleBlogs({
+                        blogIds: selectedBlogs,
+                    })
+                );
                 handleCloseMultiple();
             }
         } catch (error) {
@@ -341,6 +356,7 @@ const BlogPage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="alert-dialog-title"

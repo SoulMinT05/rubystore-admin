@@ -41,6 +41,7 @@ import {
     markNotificationRead,
 } from '../../redux/notificationSlice';
 import { socket } from '../../config/socket';
+import defaultAvatar from '../../assets/default_avatar.png';
 
 function formatDateUTCPlus7(dateString) {
     const date = new Date(dateString);
@@ -350,7 +351,9 @@ const HeaderComponent = () => {
                                                                     notification?.bgColor
                                                                 )
                                                             ) : (
-                                                                <Avatar src={notification?.avatarSender} />
+                                                                <Avatar
+                                                                    src={notification?.avatarSender || defaultAvatar}
+                                                                />
                                                             )}
                                                         </ListItemAvatar>
                                                         <Box className="flex flex-col justify-center w-full">
@@ -362,7 +365,7 @@ const HeaderComponent = () => {
                                                                 color="text.secondary"
                                                                 className="mt-1"
                                                             >
-                                                                {notification?.description?.slice(0, 30)}
+                                                                {notification?.description?.slice(0, 50)}
                                                             </Typography>
 
                                                             <Box
@@ -420,7 +423,10 @@ const HeaderComponent = () => {
                                 className="rounded-full w-[35px] h-[35px] overflow-hidden cursor-pointer"
                                 onClick={handleClickMyAccount}
                             >
-                                <img src={context?.userInfo?.avatar} className="w-full h-full object-cover"></img>
+                                <img
+                                    src={context?.userInfo?.avatar || defaultAvatar}
+                                    className="w-full h-full object-cover"
+                                ></img>
                             </div>
 
                             <Menu
@@ -467,7 +473,7 @@ const HeaderComponent = () => {
                                             onClick={handleClickMyAccount}
                                         >
                                             <img
-                                                src={context?.userInfo?.avatar}
+                                                src={context?.userInfo?.avatar || defaultAvatar}
                                                 className="w-full h-full object-cover"
                                             ></img>
                                         </div>

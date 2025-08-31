@@ -69,8 +69,6 @@ function App() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
-    const [orders, setOrders] = useState([]);
-    const [blogs, setBlogs] = useState([]);
 
     useEffect(() => {
         socket.on('sendMessage', (message) => {
@@ -165,14 +163,6 @@ function App() {
             console.log(error);
         }
     };
-    const getOrders = async () => {
-        try {
-            const { data } = await axiosClient.get('/api/order/ordersFromAdmin');
-            setOrders(data?.orders);
-        } catch (error) {
-            console.log(error);
-        }
-    };
     const getHomeSlides = async () => {
         try {
             const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
@@ -185,14 +175,6 @@ function App() {
         try {
             const { data } = await axiosClient.get('/api/banner/all-banners');
             setBanners(data?.banners);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-    const getBlogs = async () => {
-        try {
-            const { data } = await axiosClient.get('/api/blog/all-blogs');
-            setBlogs(data?.blogs);
         } catch (error) {
             console.log(error);
         }
@@ -239,12 +221,6 @@ function App() {
         banners,
         setBanners,
         getBanners,
-        blogs,
-        setBlogs,
-        getBlogs,
-        orders,
-        setOrders,
-        getOrders,
     };
 
     return (
@@ -257,6 +233,7 @@ function App() {
 
                     {isOpenFullScreenPanel?.model === 'Phản hồi' && (
                         <Dialog
+                            disableScrollLock
                             fullWidth={true}
                             maxWidth="lg"
                             open={isOpenFullScreenPanel.open}

@@ -11,8 +11,12 @@ import { Button, CircularProgress } from '@mui/material';
 import axiosClient from '../../apis/axiosClient';
 import { MyContext } from '../../App';
 import Editor from 'react-simple-wysiwyg';
+import { useDispatch } from 'react-redux';
+import { addBlog } from '../../redux/blogSlice';
 
 const AddBlogComponent = () => {
+    const dispatch = useDispatch();
+
     const [html, setHtml] = useState('');
     const [formFields, setFormFields] = useState({
         name: '',
@@ -78,7 +82,8 @@ const AddBlogComponent = () => {
             console.log('dataAdd : ', data);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getBlogs();
+                dispatch(addBlog(data?.newBlog));
+
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });

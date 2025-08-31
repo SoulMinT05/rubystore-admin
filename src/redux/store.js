@@ -6,6 +6,7 @@ import voucherReducer from './voucherSlice';
 import messageReducer from './messageSlice';
 import notificationReducer from './notificationSlice';
 import reviewReducer from './reviewSlice';
+import blogReducer from './blogSlice';
 
 const store = configureStore({
     reducer: {
@@ -13,6 +14,7 @@ const store = configureStore({
         staffs: staffReducer,
         orders: orderReducer,
         vouchers: voucherReducer,
+        blogs: blogReducer,
         reviews: reviewReducer,
         message: messageReducer,
         notification: notificationReducer,

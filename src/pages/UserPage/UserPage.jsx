@@ -1,7 +1,5 @@
 import React, { forwardRef, useContext, useEffect, useState } from 'react';
 import { IoMdAdd } from 'react-icons/io';
-
-import './UserPage.scss';
 import {
     Button,
     MenuItem,
@@ -24,18 +22,21 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { IoCloseSharp } from 'react-icons/io5';
 import { BiExport } from 'react-icons/bi';
-import { MyContext } from '../../App';
+import * as XLSX from 'xlsx';
+import { Toolbar } from 'react-simple-wysiwyg';
+import { IoMdClose } from 'react-icons/io';
 import { Link } from 'react-router-dom';
 import { AiOutlineEdit } from 'react-icons/ai';
 import { FaRegEye } from 'react-icons/fa6';
 import { GoTrash } from 'react-icons/go';
+
+import './UserPage.scss';
+import { MyContext } from '../../App';
 import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
 import axiosClient from '../../apis/axiosClient';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteMultipleUsers, deleteUser, fetchUsers, toggleLockedUser } from '../../redux/userSlice';
-import * as XLSX from 'xlsx';
-import { Toolbar } from 'react-simple-wysiwyg';
-import { IoMdClose } from 'react-icons/io';
+import defaultAvatar from '../../assets/default_avatar.png';
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -355,7 +356,7 @@ const UserPage = () => {
                                                     <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
                                                         <Link to="/product/2">
                                                             <img
-                                                                src={user?.avatar}
+                                                                src={user?.avatar || defaultAvatar}
                                                                 className="w-full group-hover:scale-105 transition-all"
                                                                 alt="Avatar"
                                                             />
@@ -471,6 +472,7 @@ const UserPage = () => {
 
             {/* User Details */}
             <Dialog
+                disableScrollLock
                 fullWidth={true}
                 maxWidth="lg"
                 open={openUserDetailsModal.open}
@@ -498,7 +500,7 @@ const UserPage = () => {
                                         <span className="text-gray-500">Avatar</span>
                                         <img
                                             className="w-[70px] h-[70px] object-cover rounded-md"
-                                            src={openUserDetailsModal?.user?.avatar}
+                                            src={openUserDetailsModal?.user?.avatar || defaultAvatar}
                                             alt="Avatar"
                                         />
                                     </div>

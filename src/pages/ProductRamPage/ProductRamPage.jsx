@@ -356,6 +356,7 @@ const ProductRamPage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={openUpdate}
                 onClose={handleCloseUpdate}
                 slotProps={{

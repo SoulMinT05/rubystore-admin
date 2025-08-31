@@ -4,11 +4,13 @@ import { Button, Divider, TextField } from '@mui/material';
 import { IoIosSearch } from 'react-icons/io';
 import { FaPlus } from 'react-icons/fa6';
 import { FaMinus } from 'react-icons/fa6';
+
 import axiosClient from '../../../apis/axiosClient';
 import { fetchMessagesSidebar, updateOnlineStatusSidebar } from '../../../redux/messageSlice';
 import { Link, useParams } from 'react-router-dom';
 import { MyContext } from '../../../App';
 import { socket } from '../../../config/socket';
+import defaultAvatar from '../../../assets/default_avatar.png';
 
 const ChatListSidebar = () => {
     const context = useContext(MyContext);
@@ -68,7 +70,7 @@ const ChatListSidebar = () => {
                                     <div className="relative">
                                         <img
                                             className="w-[50px] h-[50px] object-cover rounded-full "
-                                            src={message?.avatar}
+                                            src={message?.avatar || defaultAvatar}
                                             alt={message?.name}
                                         />
                                         {message?.isOnline && (

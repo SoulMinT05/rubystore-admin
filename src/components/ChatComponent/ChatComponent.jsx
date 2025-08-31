@@ -20,6 +20,7 @@ import { formatOnlineTime, formatDisplayTime } from '../../utils/formatTimeChat'
 import { useDispatch } from 'react-redux';
 import { sendMessage } from '../../redux/messageSlice';
 import { socket } from '../../config/socket';
+import defaultAvatar from '../../assets/default_avatar.png';
 
 const ChatComponent = ({ messagesDetails, receiverId }) => {
     const { id } = useParams();
@@ -164,16 +165,22 @@ const ChatComponent = ({ messagesDetails, receiverId }) => {
                         </div>
                     )}
                     <div className="relative">
-                        <img className="w-[40px] h-[40px] object-cover rounded-full" src={userInfo?.avatar} alt="" />
-                        <span className="absolute bottom-1 right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></span>
+                        <img
+                            className="w-[40px] h-[40px] object-cover rounded-full"
+                            src={userInfo?.avatar || defaultAvatar}
+                            alt=""
+                        />
+                        {userInfo?.isOnline === true && (
+                            <span className="absolute bottom-1 right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></span>
+                        )}
                     </div>
                     <div className="texts gap-1">
-                        <span className="text-[17px] font-[600]"> {userInfo?.name}</span>
-                        <p className="text-gray-500 text-[13px] font-[300] mt-0">
+                        <span className="text-[13px] sm:text-[14px] lg:text-[16px] font-[600]"> {userInfo?.name}</span>
+                        <p className="text-[12px] lg:text-[13px] font-[300] mt-0">
                             {userInfo?.isOnline === true ? (
                                 <span className="text-green-500 font-medium">Đang hoạt động</span>
                             ) : (
-                                <span className="text-gray-400">
+                                <span className="text-gray-500">
                                     Hoạt động {formatOnlineTime(userInfo?.lastOnline)}
                                 </span>
                             )}

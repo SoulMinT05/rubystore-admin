@@ -95,7 +95,7 @@ const ProductWeightPage = () => {
             }
 
             const allSelectedOnPage = productsWeight.every((product) =>
-                updatedSelectedProductsWeight.includes(product._id),
+                updatedSelectedProductsWeight.includes(product._id)
             );
             setIsCheckedAll(allSelectedOnPage);
 
@@ -363,6 +363,7 @@ const ProductWeightPage = () => {
             </div>
 
             <Dialog
+                disableScrollLock
                 open={openUpdate}
                 onClose={handleCloseUpdate}
                 slotProps={{

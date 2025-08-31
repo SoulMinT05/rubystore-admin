@@ -17,9 +17,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteHomeSlide, deleteMultipleHomeSlides, fetchHomeSlides } from '../../redux/homeSlidesSlice';
 
 const HomeSlidePage = () => {
-    const { homeSlides, setHomeSlides } = useContext(MyContext);
+    // const { homeSlides, setHomeSlides } = useContext(MyContext);
+    const dispatch = useDispatch();
+    const { homeSlides } = useSelector((state) => state.homeSlides);
+
     const context = useContext(MyContext);
     const [homeSlideId, setHomeSlideId] = useState(null);
 
@@ -116,7 +121,7 @@ const HomeSlidePage = () => {
             try {
                 const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
                 if (data.success) {
-                    setHomeSlides(data?.homeSlides);
+                    dispatch(fetchHomeSlides(data?.homeSlides));
                 } else {
                     console.error('Lỗi lấy danh mục:', data.message);
                 }
@@ -136,7 +141,7 @@ const HomeSlidePage = () => {
             const { data } = await axiosClient.delete(`/api/homeSlide/${homeSlideId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                setHomeSlides((prev) => prev.filter((homeSlide) => homeSlide._id !== homeSlideId));
+                dispatch(deleteHomeSlide({ homeSlideId }));
                 handleClose();
             }
         } catch (error) {
@@ -156,7 +161,11 @@ const HomeSlidePage = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getHomeSlides();
+                dispatch(
+                    deleteMultipleHomeSlides({
+                        homeSlidesIds: selectedHomeSlides,
+                    })
+                );
                 handleCloseMultiple();
             }
         } catch (error) {

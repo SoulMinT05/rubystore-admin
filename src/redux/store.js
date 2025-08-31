@@ -1,4 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
+import homeSlideReducer from './homeSlidesSlice';
+import productReducer from './productSlice';
 import userReducer from './userSlice';
 import staffReducer from './staffSlice';
 import orderReducer from './orderSlice';
@@ -10,8 +12,10 @@ import blogReducer from './blogSlice';
 
 const store = configureStore({
     reducer: {
+        homeSlides: homeSlideReducer,
         users: userReducer,
         staffs: staffReducer,
+        products: productReducer,
         orders: orderReducer,
         vouchers: voucherReducer,
         blogs: blogReducer,

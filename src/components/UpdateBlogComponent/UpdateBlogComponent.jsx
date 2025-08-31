@@ -11,7 +11,11 @@ import { Button, CircularProgress } from '@mui/material';
 import axiosClient from '../../apis/axiosClient';
 import { MyContext } from '../../App';
 import Editor from 'react-simple-wysiwyg';
+import { useDispatch } from 'react-redux';
+import { updateBlog } from '../../redux/blogSlice';
 const UpdateBlogComponent = () => {
+    const dispatch = useDispatch();
+
     const [html, setHtml] = useState('');
     const [formFields, setFormFields] = useState({
         name: '',
@@ -22,12 +26,12 @@ const UpdateBlogComponent = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
 
-    const { setBlogs } = useContext(MyContext);
     const context = useContext(MyContext);
     const { id } = context.isOpenFullScreenPanel || {};
 
     useEffect(() => {
         const fetchBlog = async () => {
+            console.log('render');
             try {
                 const { data } = await axiosClient.get(`/api/blog/${id}`);
                 if (data.success) {
@@ -124,18 +128,12 @@ const UpdateBlogComponent = () => {
 
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                setBlogs((prev) => {
-                    return prev.map((blog) =>
-                        blog._id === data?.updatedBlog._id
-                            ? {
-                                  ...blog,
-                                  name: data?.updatedBlog.name,
-                                  description: data?.updatedBlog.description,
-                                  images: data?.updatedBlog.images,
-                              }
-                            : blog,
-                    );
-                });
+                dispatch(
+                    updateBlog({
+                        blogId: id,
+                        blog: data?.updatedBlog,
+                    })
+                );
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });

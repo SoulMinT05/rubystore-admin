@@ -64,7 +64,6 @@ function App() {
     const [emailVerify, setEmailVerify] = useState('');
     const [emailVerifyForgotPassword, setEmailVerifyForgotPassword] = useState('');
     const [userInfo, setUserInfo] = useState(null);
-    const [homeSlides, setHomeSlides] = useState([]);
     const [banners, setBanners] = useState([]);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -80,13 +79,13 @@ function App() {
     }, []);
 
     useEffect(() => {
-        socket.emit('joinMessageRoom', userInfo?._id);
+        socket.emit('joinMessageRoom', userInfo?._id, userInfo?.role);
         console.log('Đã join message room');
-    }, [isLogin, userInfo?._id]);
+    }, [isLogin, userInfo?._id, userInfo?.role]);
 
     useEffect(() => {
-        socket.emit('joinRoom', userInfo?._id);
-    }, [isLogin, userInfo?._id]);
+        socket.emit('joinRoom', userInfo?._id, userInfo?.role);
+    }, [isLogin, userInfo?._id, userInfo?.role]);
 
     useEffect(() => {
         socket.on('notificationNewMessage', (data) => {
@@ -163,14 +162,6 @@ function App() {
             console.log(error);
         }
     };
-    const getHomeSlides = async () => {
-        try {
-            const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
-            setHomeSlides(data?.homeSlides);
-        } catch (error) {
-            console.log(error);
-        }
-    };
     const getBanners = async () => {
         try {
             const { data } = await axiosClient.get('/api/banner/all-banners');
@@ -215,9 +206,6 @@ function App() {
         setSubCategories,
         getCategories,
         getProducts,
-        homeSlides,
-        setHomeSlides,
-        getHomeSlides,
         banners,
         setBanners,
         getBanners,

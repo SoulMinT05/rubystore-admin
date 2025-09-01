@@ -104,6 +104,7 @@ const UpdateVoucherComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Loại voucher</h3>
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 labelId="demo-simple-select-label"
                                 id="discountTypeVoucher"
                                 size="small"
@@ -148,6 +149,7 @@ const UpdateVoucherComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Trạng thái voucher</h3>
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 labelId="demo-simple-select-label"
                                 id="isActiveVoucher"
                                 size="small"

@@ -20,6 +20,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
 
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -31,8 +33,8 @@ const formatCurrency = (amount) => {
 const ProductPage = () => {
     const { products, setProducts } = useContext(MyContext);
     const context = useContext(MyContext);
-    const [productId, setProductId] = useState(null);
 
+    const [productId, setProductId] = useState(null);
     const [productCategory, setProductCategory] = useState('');
     const [productSubCategory, setProductSubCategory] = useState('');
     const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
@@ -139,26 +141,6 @@ const ProductPage = () => {
         setSelectedProducts(selectedProducts);
     }, [selectedProducts]);
 
-    const handleDeleteMultipleProduct = async () => {
-        setIsLoadingMultiple(true);
-
-        try {
-            const { data } = await axiosClient.delete(`/api/product/deleteMultipleProduct`, {
-                data: { ids: selectedProducts },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                context.getProducts();
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
-    };
-
     const handleClickOpen = (id) => {
         setOpen(true);
         setProductId(id);
@@ -230,6 +212,26 @@ const ProductPage = () => {
             ...prev,
             thirdSubCategoryName: name,
         }));
+    };
+
+    const handleDeleteMultipleProduct = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/product/deleteMultipleProduct`, {
+                data: { ids: selectedProducts },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getProducts();
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
     };
 
     useEffect(() => {
@@ -328,6 +330,7 @@ const ProductPage = () => {
 
                         {context?.categories?.length !== 0 && (
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 style={{ zoom: '80%' }}
                                 labelId="demo-simple-select-label"
                                 id="productCategoryDrop"
@@ -353,6 +356,7 @@ const ProductPage = () => {
 
                         {context?.categories?.length !== 0 && (
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 style={{ zoom: '80%' }}
                                 labelId="demo-simple-select-label"
                                 id="productSubCategoryDrop"
@@ -385,6 +389,7 @@ const ProductPage = () => {
 
                         {context?.categories?.length !== 0 && (
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 style={{ zoom: '80%' }}
                                 labelId="demo-simple-select-label"
                                 id="productThirdCategoryDrop"

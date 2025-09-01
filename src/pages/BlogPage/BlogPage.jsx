@@ -223,30 +223,6 @@ const BlogPage = () => {
             </div>
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
-                {/* <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[20%]">
-                        <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
-
-                        <Select
-                            className="w-full"
-                            size="small"
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={blogFilterVal}
-                            label="bài viết"
-                            onChange={handleChangeBlogFilterVal}
-                        >
-                            <MenuItem value={10}>Nam</MenuItem>
-                            <MenuItem value={20}>Nữ</MenuItem>
-                            <MenuItem value={30}>Trẻ em</MenuItem>
-                        </Select>
-                    </div>
-
-                    <div className="col w-[20%] ml-auto">
-                        <SearchBoxComponent />
-                    </div>
-                </div> */}
-
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">

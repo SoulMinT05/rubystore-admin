@@ -214,6 +214,7 @@ const BannerPage = () => {
                         <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
 
                         <Select
+                            MenuProps={{ disableScrollLock: true }}
                             className="w-full"
                             size="small"
                             labelId="demo-simple-select-label"

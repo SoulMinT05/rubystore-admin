@@ -531,6 +531,7 @@ const OrderPage = () => {
                                                             rowSpan={order.selectedCartItems.length}
                                                         >
                                                             <Select
+                                                                MenuProps={{ disableScrollLock: true }}
                                                                 labelId="demo-simple-select-label"
                                                                 id="orderStatusOrder"
                                                                 size="medium"

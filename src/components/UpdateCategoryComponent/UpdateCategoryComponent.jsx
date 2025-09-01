@@ -118,7 +118,7 @@ const UpdateCategoryComponent = () => {
                     return prev.map((category) =>
                         category._id === data?.updatedCategory._id
                             ? { ...category, name: data?.updatedCategory.name, images: data?.updatedCategory.images }
-                            : category,
+                            : category
                     );
                 });
                 context.setIsOpenFullScreenPanel({

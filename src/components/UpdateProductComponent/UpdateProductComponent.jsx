@@ -57,8 +57,6 @@ const UpdateProductComponent = () => {
     const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
     const [productIsFeatured, setProductIsFeatured] = useState('');
     const [productIsPublished, setProductIsPublished] = useState('');
-    const [productRam, setProductRam] = useState([]);
-    const [productRamData, setProductRamData] = useState([]);
     const [productWeight, setProductWeight] = useState([]);
     const [productWeightData, setProductWeightData] = useState([]);
     const [productSize, setProductSize] = useState([]);
@@ -97,7 +95,6 @@ const UpdateProductComponent = () => {
                     setProductThirdSubCategory(data.product.thirdSubCategoryId);
                     setProductIsFeatured(data.product.isFeatured);
                     setProductIsPublished(data.product.isPublished);
-                    setProductRam(data.product.productRam);
                     setProductWeight(data.product.productWeight);
                     setProductSize(data.product.productSize);
                     setHtml(data?.product?.description);
@@ -109,18 +106,6 @@ const UpdateProductComponent = () => {
 
         fetchProduct();
     }, [id]);
-
-    useEffect(() => {
-        const getProductsRam = async () => {
-            try {
-                const { data } = await axiosClient.get('/api/product/all-products-ram');
-                setProductRamData(data?.productsRam);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getProductsRam();
-    }, []);
 
     useEffect(() => {
         const getProductsWeight = async () => {
@@ -199,11 +184,6 @@ const UpdateProductComponent = () => {
         formFields.isPublished = event.target.value;
     };
 
-    const handleChangeProductRam = (event) => {
-        const { value } = event.target;
-        setProductRam(typeof value === 'string' ? value.split('') : value);
-        formFields.productRam = value;
-    };
     const handleChangeProductWeight = (event) => {
         const { value } = event.target;
         setProductWeight(typeof value === 'string' ? value.split('') : value);
@@ -357,6 +337,7 @@ const UpdateProductComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục sản phẩm</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productCategoryDrop"
                                     size="small"
@@ -383,6 +364,7 @@ const UpdateProductComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 2</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productSubCategoryDrop"
                                     size="small"
@@ -414,6 +396,7 @@ const UpdateProductComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 3</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productThirdCategoryDrop"
                                     size="small"
@@ -462,6 +445,7 @@ const UpdateProductComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Trạng thái đặc trưng</h3>
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 labelId="demo-simple-select-label"
                                 id="productIsFeaturedDrop"
                                 size="small"
@@ -477,6 +461,7 @@ const UpdateProductComponent = () => {
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Trạng thái công khai</h3>
                             <Select
+                                MenuProps={{ disableScrollLock: true }}
                                 labelId="demo-simple-select-label"
                                 id="productIsPublishedDrop"
                                 size="small"
@@ -522,10 +507,11 @@ const UpdateProductComponent = () => {
                                 className="w-full h-[40px] border border-[rgba(0,0,0,0.2)] focus:outline-none focus:border-[rgba(0,0,0,0.4)] rounded-sm p-3 text-sm"
                             />
                         </div>
-                        <div className="col">
+                        {/* <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">RAMS</h3>
                             {productRamData?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     multiple
                                     labelId="demo-simple-select-label"
                                     id="productRamDrop"
@@ -533,7 +519,6 @@ const UpdateProductComponent = () => {
                                     className="w-full"
                                     value={productRam}
                                     label="Trạng thái"
-                                    MenuProps={MenuProps}
                                     onChange={handleChangeProductRam}
                                 >
                                     {productRamData?.map((item) => (
@@ -543,11 +528,12 @@ const UpdateProductComponent = () => {
                                     ))}
                                 </Select>
                             )}
-                        </div>
+                        </div> */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Cân nặng</h3>
                             {productWeightData?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     multiple
                                     labelId="demo-simple-select-label"
                                     id="productWeightDrop"
@@ -569,6 +555,7 @@ const UpdateProductComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Kích cỡ</h3>
                             {productSizeData?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     multiple
                                     labelId="demo-simple-select-label"
                                     id="productSizeDrop"

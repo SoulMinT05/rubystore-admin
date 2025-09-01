@@ -20,7 +20,7 @@ import {
 import DialogActions from '@mui/material/DialogActions';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { IoCloseSharp } from 'react-icons/io5';
+import { IoCloseSharp, IoSearch } from 'react-icons/io5';
 import { BiExport } from 'react-icons/bi';
 import * as XLSX from 'xlsx';
 import { Toolbar } from 'react-simple-wysiwyg';
@@ -58,16 +58,20 @@ const UserPage = () => {
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedUsers, setSelectedUsers] = useState([]);
 
+    const [searchField, setSearchField] = useState('name');
+    const [searchValue, setSearchValue] = useState('');
+
+    const handleChangeSearchField = (event) => {
+        console.log('event.target.value: ', event.target.value);
+        setSearchField(event.target.value);
+    };
+
     const [openUserDetailsModal, setOpenUserDetailsModal] = useState({
         open: false,
         user: null,
     });
 
     const handleCloseUserDetailsModal = () => {
-        // setOpenUserDetailsModal({
-        //     open: false,
-        //     user: null,
-        // });
         setOpenUserDetailsModal((prev) => ({
             ...prev,
             open: false,
@@ -81,21 +85,33 @@ const UserPage = () => {
     };
 
     useEffect(() => {
-        const getUsers = async () => {
-            setIsLoadingUsers(true);
-            try {
-                const { data } = await axiosClient.get('/api/user/usersFromAdmin');
-                if (data.success) {
-                    dispatch(fetchUsers(data?.users));
+        const handleDebounced = setTimeout(() => {
+            const getUsers = async () => {
+                setIsLoadingUsers(true);
+
+                let url = `/api/user/usersFromAdmin`;
+                try {
+                    if (searchValue && searchField) {
+                        url += `?field=${searchField}&value=${searchValue}`;
+                    }
+                    const { data } = await axiosClient.get(url);
+                    console.log('users: ', data);
+                    if (data.success) {
+                        dispatch(fetchUsers(data?.users));
+                    }
+                } catch (error) {
+                    console.error('error: ', error);
+                } finally {
+                    setIsLoadingUsers(false);
                 }
-            } catch (error) {
-                console.error('error: ', error);
-            } finally {
-                setIsLoadingUsers(false);
-            }
+            };
+            getUsers();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
         };
-        getUsers();
-    }, []);
+    }, [searchValue]);
 
     const itemsPerPage = 10;
     // State lưu trang hiện tại
@@ -285,8 +301,51 @@ const UserPage = () => {
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
                 <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[100%]">
-                        <SearchBoxComponent />
+                    <div className="col w-[30%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Tìm kiếm theo</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px' }}
+                                // style={{ zoom: '80%' }}
+                                labelId="demo-simple-select-label"
+                                id="userSearchDrop"
+                                size="small"
+                                className="w-full !h-[42px] "
+                                value={searchField}
+                                onChange={handleChangeSearchField}
+                                label="Tìm kiếm"
+                            >
+                                <MenuItem disabled value="">
+                                    Chọn tiêu chí
+                                </MenuItem>
+                                <MenuItem value="name">Tên</MenuItem>
+                                <MenuItem value="email">Email</MenuItem>
+                                <MenuItem value="phoneNumber">Số điện thoại</MenuItem>
+                                {/* <MenuItem value="address.street">Địa chỉ (Đường)</MenuItem>
+                                <MenuItem value="address.ward">Địa chỉ (Phường)</MenuItem>
+                                <MenuItem value="address.district">Địa chỉ (Quận)</MenuItem>
+                                <MenuItem value="address.city">Địa chỉ (Thành phố)</MenuItem> */}
+                                {/* <MenuItem value="createdAt">Ngày tạo tài khoản</MenuItem> */}
+                            </Select>
+                        )}
+                    </div>
+                    <div className="col w-[68%] mt-[28px] ">
+                        <div className="">
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                    focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                    block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                    dark:placeholder-gray-400 dark:text-white 
+                                    dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="John"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -471,136 +530,145 @@ const UserPage = () => {
             </div>
 
             {/* User Details */}
-            <Dialog
-                disableScrollLock
-                fullWidth={true}
-                maxWidth="lg"
-                open={openUserDetailsModal.open}
-                onClose={handleCloseUserDetailsModal}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                className="orderDetailsModal"
-            >
-                <DialogContent>
-                    <div className="bg-[#fff] p-4 container">
-                        <div className="w-full userDetailsModalContainer relative">
-                            <Button
-                                className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
-                                onClick={handleCloseUserDetailsModal}
-                            >
-                                <IoCloseSharp className="text-[20px]" />
-                            </Button>
 
-                            <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
-                                <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
-                                    Thông tin khách hàng
-                                </h2>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Avatar</span>
-                                        <img
-                                            className="w-[70px] h-[70px] object-cover rounded-md"
-                                            src={openUserDetailsModal?.user?.avatar || defaultAvatar}
-                                            alt="Avatar"
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Họ và tên</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.name}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Email</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.email}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Số điện thoại</span>
-                                        <span className="text-gray-700">{openUserDetailsModal?.user?.phoneNumber}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Địa chỉ</span>
-                                        <span className="text-gray-700">
-                                            {`Đường ${openUserDetailsModal?.user?.address?.streetLine || ''}, Phường ${
-                                                openUserDetailsModal?.user?.address?.ward || ''
-                                            }, Quận ${openUserDetailsModal?.user?.address?.district || ''}, Thành phố ${
-                                                openUserDetailsModal?.user?.address?.city || ''
-                                            }`}
-                                        </span>
-                                    </div>
+            {users?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    fullWidth={true}
+                    maxWidth="lg"
+                    open={openUserDetailsModal.open}
+                    onClose={handleCloseUserDetailsModal}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                    className="orderDetailsModal"
+                >
+                    <DialogContent>
+                        <div className="bg-[#fff] p-4 container">
+                            <div className="w-full userDetailsModalContainer relative">
+                                <Button
+                                    className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
+                                    onClick={handleCloseUserDetailsModal}
+                                >
+                                    <IoCloseSharp className="text-[20px]" />
+                                </Button>
 
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Trạng thái tài khoản</span>
-                                        {openUserDetailsModal?.user?.isLocked ? (
-                                            <span className="text-red-500 text-[14px]">Bị khóa</span>
-                                        ) : (
-                                            <span className="text-green-500 text-[14px]">Hoạt động</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
-                                        <span className="text-gray-700">
-                                            {formatDate(openUserDetailsModal?.user?.lastLoginDate)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày tạo</span>
-                                        <span className="text-gray-700">
-                                            {formatDate(openUserDetailsModal?.user?.createdAt)}
-                                        </span>
+                                <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
+                                    <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
+                                        Thông tin khách hàng
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Avatar</span>
+                                            <img
+                                                className="w-[70px] h-[70px] object-cover rounded-md"
+                                                src={openUserDetailsModal?.user?.avatar || defaultAvatar}
+                                                alt="Avatar"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Họ và tên</span>
+                                            <span className="text-gray-700">{openUserDetailsModal?.user?.name}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Email</span>
+                                            <span className="text-gray-700">{openUserDetailsModal?.user?.email}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Số điện thoại</span>
+                                            <span className="text-gray-700">
+                                                {openUserDetailsModal?.user?.phoneNumber}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Địa chỉ</span>
+                                            <span className="text-gray-700">
+                                                {`Đường ${
+                                                    openUserDetailsModal?.user?.address?.streetLine || ''
+                                                }, Phường ${openUserDetailsModal?.user?.address?.ward || ''}, Quận ${
+                                                    openUserDetailsModal?.user?.address?.district || ''
+                                                }, Thành phố ${openUserDetailsModal?.user?.address?.city || ''}`}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Trạng thái tài khoản</span>
+                                            {openUserDetailsModal?.user?.isLocked ? (
+                                                <span className="text-red-500 text-[14px]">Bị khóa</span>
+                                            ) : (
+                                                <span className="text-green-500 text-[14px]">Hoạt động</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
+                                            <span className="text-gray-700">
+                                                {formatDate(openUserDetailsModal?.user?.lastLoginDate)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Ngày tạo</span>
+                                            <span className="text-gray-700">
+                                                {formatDate(openUserDetailsModal?.user?.createdAt)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                    </DialogContent>
+                </Dialog>
+            )}
 
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá người dùng?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá người dùng này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteUser === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteUser} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {users?.length > 0 && (
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá người dùng?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá người dùng này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoadingDeleteUser === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteUser} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
 
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả người dùng?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả người dùng này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleUsers} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {users?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả người dùng?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả người dùng này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleUsers} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

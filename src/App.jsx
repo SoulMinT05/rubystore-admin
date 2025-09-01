@@ -67,7 +67,6 @@ function App() {
     const [banners, setBanners] = useState([]);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [subCategories, setSubCategories] = useState([]);
 
     useEffect(() => {
         socket.on('sendMessage', (message) => {
@@ -137,7 +136,7 @@ function App() {
     useEffect(() => {
         const getCategories = async () => {
             try {
-                const { data } = await axiosClient.get('/api/category/all-categories');
+                const { data } = await axiosClient.get('/api/category/all-categories-admin');
                 setCategories(data?.categories);
             } catch (error) {
                 console.log(error);
@@ -148,7 +147,7 @@ function App() {
 
     const getCategories = async () => {
         try {
-            const { data } = await axiosClient.get('/api/category/all-categories');
+            const { data } = await axiosClient.get('/api/category/all-categories-admin');
             setCategories(data?.categories);
         } catch (error) {
             console.log(error);
@@ -202,8 +201,6 @@ function App() {
         setProducts,
         categories,
         setCategories,
-        subCategories,
-        setSubCategories,
         getCategories,
         getProducts,
         banners,
@@ -242,6 +239,7 @@ function App() {
 
                     {isOpenFullScreenPanel?.model !== 'Phản hồi' && (
                         <Dialog
+                            disableScrollLock
                             fullScreen
                             open={isOpenFullScreenPanel.open}
                             onClose={() =>

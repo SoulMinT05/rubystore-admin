@@ -60,6 +60,14 @@ const StaffPage = () => {
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedStaffs, setSelectedStaffs] = useState([]);
 
+    const [searchField, setSearchField] = useState('name');
+    const [searchValue, setSearchValue] = useState('');
+
+    const handleChangeSearchField = (event) => {
+        console.log('event.target.value: ', event.target.value);
+        setSearchField(event.target.value);
+    };
+
     const [openStaffDetailsModal, setOpenStaffDetailsModal] = useState({
         open: false,
         staff: null,
@@ -78,22 +86,51 @@ const StaffPage = () => {
         }, 300);
     };
 
+    // useEffect(() => {
+    //     const getStaffs = async () => {
+    //         setIsLoadingStaffs(true);
+    //         try {
+    //             const { data } = await axiosClient.get('/api/staff/getStaffsAndAdmin');
+    //             if (data.success) {
+    //                 dispatch(fetchStaffs(data?.staffs));
+    //             }
+    //         } catch (error) {
+    //             console.error('error: ', error);
+    //         } finally {
+    //             setIsLoadingStaffs(false);
+    //         }
+    //     };
+    //     getStaffs();
+    // }, []);
+
     useEffect(() => {
-        const getStaffs = async () => {
-            setIsLoadingStaffs(true);
-            try {
-                const { data } = await axiosClient.get('/api/staff/getStaffsAndAdmin');
-                if (data.success) {
-                    dispatch(fetchStaffs(data?.staffs));
+        const handleDebounced = setTimeout(() => {
+            const getStaffs = async () => {
+                setIsLoadingStaffs(true);
+
+                let url = `/api/staff/getStaffsAndAdmin`;
+                try {
+                    if (searchValue && searchField) {
+                        url += `?field=${searchField}&value=${searchValue}`;
+                    }
+                    const { data } = await axiosClient.get(url);
+                    console.log('staffs: ', data);
+                    if (data.success) {
+                        dispatch(fetchStaffs(data?.staffs));
+                    }
+                } catch (error) {
+                    console.error('error: ', error);
+                } finally {
+                    setIsLoadingStaffs(false);
                 }
-            } catch (error) {
-                console.error('error: ', error);
-            } finally {
-                setIsLoadingStaffs(false);
-            }
+            };
+            getStaffs();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
         };
-        getStaffs();
-    }, []);
+    }, [searchValue]);
 
     const itemsPerPage = 10;
     // State lưu trang hiện tại
@@ -286,8 +323,50 @@ const StaffPage = () => {
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
                 <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[100%]">
-                        <SearchBoxComponent />
+                    <div className="col w-[30%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Tìm kiếm theo</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px' }}
+                                labelId="demo-simple-select-label"
+                                id="userSearchDrop"
+                                size="small"
+                                className="w-full !h-[42px] "
+                                value={searchField}
+                                onChange={handleChangeSearchField}
+                                label="Tìm kiếm"
+                            >
+                                <MenuItem disabled value="">
+                                    Chọn tiêu chí
+                                </MenuItem>
+                                <MenuItem value="name">Tên</MenuItem>
+                                <MenuItem value="email">Email</MenuItem>
+                                <MenuItem value="phoneNumber">Số điện thoại</MenuItem>
+                                {/* <MenuItem value="address.street">Địa chỉ (Đường)</MenuItem>
+                                <MenuItem value="address.ward">Địa chỉ (Phường)</MenuItem>
+                                <MenuItem value="address.district">Địa chỉ (Quận)</MenuItem>
+                                <MenuItem value="address.city">Địa chỉ (Thành phố)</MenuItem> */}
+                                {/* <MenuItem value="createdAt">Ngày tạo tài khoản</MenuItem> */}
+                            </Select>
+                        )}
+                    </div>
+                    <div className="col w-[68%] mt-[28px] ">
+                        <div className="">
+                            <input
+                                type="text"
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                dark:placeholder-gray-400 dark:text-white 
+                                dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="John"
+                                required
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -484,138 +563,144 @@ const StaffPage = () => {
             </div>
 
             {/* staff Details */}
-            <Dialog
-                disableScrollLock
-                fullWidth={true}
-                maxWidth="lg"
-                open={openStaffDetailsModal.open}
-                onClose={handleCloseStaffDetailsModal}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-                className="orderDetailsModal"
-            >
-                <DialogContent>
-                    <div className="bg-[#fff] p-4 container">
-                        <div className="w-full staffDetailsModalContainer relative">
-                            <Button
-                                className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
-                                onClick={handleCloseStaffDetailsModal}
-                            >
-                                <IoCloseSharp className="text-[20px]" />
-                            </Button>
+            {staffs?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    fullWidth={true}
+                    maxWidth="lg"
+                    open={openStaffDetailsModal.open}
+                    onClose={handleCloseStaffDetailsModal}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                    className="orderDetailsModal"
+                >
+                    <DialogContent>
+                        <div className="bg-[#fff] p-4 container">
+                            <div className="w-full staffDetailsModalContainer relative">
+                                <Button
+                                    className="!w-[40px] !h-[40px] !min-w-[40px] !rounded-full !text-[#000] !absolute top-[6px] right-[15px] !bg-[#f1f1f1]"
+                                    onClick={handleCloseStaffDetailsModal}
+                                >
+                                    <IoCloseSharp className="text-[20px]" />
+                                </Button>
 
-                            <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
-                                <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
-                                    Thông tin khách hàng
-                                </h2>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Avatar</span>
-                                        <img
-                                            className="w-[70px] h-[70px] object-cover rounded-md"
-                                            src={openStaffDetailsModal?.staff?.avatar || defaultAvatar}
-                                            alt="Avatar"
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Họ và tên</span>
-                                        <span className="text-gray-700">{openStaffDetailsModal?.staff?.name}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Email</span>
-                                        <span className="text-gray-700">{openStaffDetailsModal?.staff?.email}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Số điện thoại</span>
-                                        <span className="text-gray-700">
-                                            {openStaffDetailsModal?.staff?.phoneNumber}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Địa chỉ</span>
-                                        <span className="text-gray-700">
-                                            {`Đường ${
-                                                openStaffDetailsModal?.staff?.address?.streetLine || ''
-                                            }, Phường ${openStaffDetailsModal?.staff?.address?.ward || ''}, Quận ${
-                                                openStaffDetailsModal?.staff?.address?.district || ''
-                                            }, Thành phố ${openStaffDetailsModal?.staff?.address?.city || ''}`}
-                                        </span>
-                                    </div>
+                                <div className="container bg-white p-6 rounded-lg shadow-md" id="order-details">
+                                    <h2 className="text-gray-700 text-xl border-b pb-4 mb-4 font-[600]">
+                                        Thông tin khách hàng
+                                    </h2>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Avatar</span>
+                                            <img
+                                                className="w-[70px] h-[70px] object-cover rounded-md"
+                                                src={openStaffDetailsModal?.staff?.avatar || defaultAvatar}
+                                                alt="Avatar"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Họ và tên</span>
+                                            <span className="text-gray-700">{openStaffDetailsModal?.staff?.name}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Email</span>
+                                            <span className="text-gray-700">{openStaffDetailsModal?.staff?.email}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Số điện thoại</span>
+                                            <span className="text-gray-700">
+                                                {openStaffDetailsModal?.staff?.phoneNumber}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Địa chỉ</span>
+                                            <span className="text-gray-700">
+                                                {`Đường ${
+                                                    openStaffDetailsModal?.staff?.address?.streetLine || ''
+                                                }, Phường ${openStaffDetailsModal?.staff?.address?.ward || ''}, Quận ${
+                                                    openStaffDetailsModal?.staff?.address?.district || ''
+                                                }, Thành phố ${openStaffDetailsModal?.staff?.address?.city || ''}`}
+                                            </span>
+                                        </div>
 
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Trạng thái tài khoản</span>
-                                        {openStaffDetailsModal?.staff?.isLocked ? (
-                                            <span className="text-red-500 text-[14px]">Bị khóa</span>
-                                        ) : (
-                                            <span className="text-green-500 text-[14px]">Hoạt động</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
-                                        <span className="text-gray-700">
-                                            {formatDate(openStaffDetailsModal?.staff?.lastLoginDate)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-500">Ngày tạo</span>
-                                        <span className="text-gray-700">
-                                            {formatDate(openStaffDetailsModal?.staff?.createdAt)}
-                                        </span>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Trạng thái tài khoản</span>
+                                            {openStaffDetailsModal?.staff?.isLocked ? (
+                                                <span className="text-red-500 text-[14px]">Bị khóa</span>
+                                            ) : (
+                                                <span className="text-green-500 text-[14px]">Hoạt động</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Ngày đăng nhập gần nhất</span>
+                                            <span className="text-gray-700">
+                                                {formatDate(openStaffDetailsModal?.staff?.lastLoginDate)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Ngày tạo</span>
+                                            <span className="text-gray-700">
+                                                {formatDate(openStaffDetailsModal?.staff?.createdAt)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                    </DialogContent>
+                </Dialog>
+            )}
 
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá nhân viên?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá nhân viên này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteStaff === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteStaff} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {staffs?.length > 0 && (
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá nhân viên?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá nhân viên này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoadingDeleteStaff === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteStaff} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
 
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả nhân viên?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả nhân viên này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleStaffs} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {staffs?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả nhân viên?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả nhân viên này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleStaffs} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

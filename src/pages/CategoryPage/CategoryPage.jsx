@@ -27,6 +27,8 @@ const CategoryPage = () => {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
+    const [openMultiple, setOpenMultiple] = useState(false);
+    const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
 
     const itemsPerPage = 10;
@@ -107,10 +109,14 @@ const CategoryPage = () => {
         setOpen(false);
     };
 
+    const handleCloseMultiple = () => {
+        setOpenMultiple(false);
+    };
+
     useEffect(() => {
         const getCategories = async () => {
             try {
-                const { data } = await axiosClient.get('/api/category/all-categories');
+                const { data } = await axiosClient.get('/api/category/all-categories-admin');
                 if (data.success) {
                     setCategories(data?.categories);
                 } else {
@@ -147,6 +153,26 @@ const CategoryPage = () => {
         }
     };
 
+    const handleDeleteMultipleCategories = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/category/deleteMultipleCategories`, {
+                data: { ids: selectedCategories },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getCategories();
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
+    };
+
     return (
         <>
             <div className="flex items-center justify-between px-2 py-0">
@@ -157,6 +183,15 @@ const CategoryPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
+                    {(isCheckedAll || selectedCategories.length > 1) && (
+                        <Button
+                            onClick={() => setOpenMultiple(true)}
+                            className="btn !bg-red-500 !text-white !normal-case gap-1"
+                        >
+                            <BiExport />
+                            Xoá tất cả
+                        </Button>
+                    )}
                     <Button className="btn !bg-green-500 !text-white !normal-case gap-1" onClick={handleExportExcel}>
                         <BiExport />
                         Xuất file
@@ -182,6 +217,7 @@ const CategoryPage = () => {
                         <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
 
                         <Select
+                            MenuProps={{ disableScrollLock: true }}
                             className="w-full"
                             size="small"
                             labelId="demo-simple-select-label"
@@ -245,11 +281,13 @@ const CategoryPage = () => {
                                         <div className="flex items-center gap-4 w-[80px]">
                                             <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
                                                 <Link to={`/category/${category?._id}`}>
-                                                    <img
-                                                        src={category?.images.length > 0 && category?.images[0]}
-                                                        className="w-full group-hover:scale-105 transition-all"
-                                                        alt=""
-                                                    />
+                                                    {category?.images.length > 0 && category?.images[0] && (
+                                                        <img
+                                                            src={category?.images.length > 0 && category?.images[0]}
+                                                            className="w-full group-hover:scale-105 transition-all"
+                                                            alt=""
+                                                        />
+                                                    )}
                                                 </Link>
                                             </div>
                                         </div>
@@ -314,6 +352,29 @@ const CategoryPage = () => {
                         <CircularProgress color="inherit" />
                     ) : (
                         <Button className="btn-red" onClick={handleDeleteCategory} autoFocus>
+                            Xác nhận
+                        </Button>
+                    )}
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={openMultiple}
+                onClose={handleCloseMultiple}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Bạn có chắc chắn xoá tất cả sản phẩm này không?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                    {isLoadingMultiple === true ? (
+                        <CircularProgress color="inherit" />
+                    ) : (
+                        <Button className="btn-red" onClick={handleDeleteMultipleCategories} autoFocus>
                             Xác nhận
                         </Button>
                     )}

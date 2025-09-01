@@ -156,6 +156,7 @@ const AddBannerComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục sản phẩm</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productCategoryDrop"
                                     size="small"
@@ -178,6 +179,7 @@ const AddBannerComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 2</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productSubCategoryDrop"
                                     size="small"
@@ -208,6 +210,7 @@ const AddBannerComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 3</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productThirdCategoryDrop"
                                     size="small"
@@ -245,6 +248,7 @@ const AddBannerComponent = () => {
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Vị trí đặt chữ</h3>
                             {context?.categories?.length !== 0 && (
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     labelId="demo-simple-select-label"
                                     id="productThirdCategoryDrop"
                                     size="small"

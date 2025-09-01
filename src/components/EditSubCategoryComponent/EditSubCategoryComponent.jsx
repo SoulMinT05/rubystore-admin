@@ -109,6 +109,7 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
                         <div className="flex items-center justify-between py-2 gap-4">
                             <div className="w-[150px]">
                                 <Select
+                                    MenuProps={{ disableScrollLock: true }}
                                     style={{ zoom: '75%' }}
                                     className="w-full"
                                     size="small"

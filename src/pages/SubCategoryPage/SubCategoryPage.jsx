@@ -34,7 +34,7 @@ const SubCategoryPage = () => {
                         category.children,
                         level + 1,
                         category.name,
-                        level === 1 ? category.images?.[0] || '' : parentImage,
+                        level === 1 ? category.images?.[0] || '' : parentImage
                     );
                 }
             });
@@ -51,7 +51,8 @@ const SubCategoryPage = () => {
     useEffect(() => {
         const getCategories = async () => {
             try {
-                const { data } = await axiosClient.get('/api/category/all-categories');
+                const { data } = await axiosClient.get('/api/category/all-categories-admin');
+                console.log('categories: ', data);
                 if (data.success) {
                     setCategories(data?.categories);
                 } else {
@@ -162,7 +163,7 @@ const SubCategoryPage = () => {
                                                                                         />
                                                                                     </li>
                                                                                 );
-                                                                            },
+                                                                            }
                                                                         )}
                                                                     </ul>
                                                                 )}

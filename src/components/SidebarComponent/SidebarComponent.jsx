@@ -473,7 +473,7 @@ const SidebarComponent = () => {
                 </li>
 
                 {/* Message */}
-                <li>
+                {/* <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
                         onClick={() => isOpenSubMenu(10)}
@@ -511,7 +511,7 @@ const SidebarComponent = () => {
                             </li>
                         </ul>
                     </Collapse>
-                </li>
+                </li> */}
 
                 <Divider />
 

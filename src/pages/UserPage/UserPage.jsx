@@ -60,9 +60,9 @@ const UserPage = () => {
 
     const [searchField, setSearchField] = useState('name');
     const [searchValue, setSearchValue] = useState('');
+    const [isLockedValue, setIsLockedValue] = useState(false);
 
     const handleChangeSearchField = (event) => {
-        console.log('event.target.value: ', event.target.value);
         setSearchField(event.target.value);
     };
 
@@ -84,20 +84,32 @@ const UserPage = () => {
         }, 300);
     };
 
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+    };
+
     useEffect(() => {
+        setIsLoadingUsers(true);
+
         const handleDebounced = setTimeout(() => {
             const getUsers = async () => {
-                setIsLoadingUsers(true);
-
-                let url = `/api/user/usersFromAdmin`;
+                let url = `/api/user/usersFromAdmin?page=${currentPage}&perPage=${itemsPerPage}`;
                 try {
-                    if (searchValue && searchField) {
-                        url += `?field=${searchField}&value=${searchValue}`;
+                    let finalValue = searchValue;
+
+                    if (searchField === 'isLocked') finalValue = isLockedValue;
+
+                    if (finalValue && searchField) {
+                        url += `&field=${searchField}&value=${finalValue}`;
                     }
                     const { data } = await axiosClient.get(url);
                     console.log('users: ', data);
                     if (data.success) {
                         dispatch(fetchUsers(data?.users));
+                        setTotalPages(data?.totalPages);
                     }
                 } catch (error) {
                     console.error('error: ', error);
@@ -111,19 +123,7 @@ const UserPage = () => {
         return () => {
             clearTimeout(handleDebounced);
         };
-    }, [searchValue]);
-
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(users?.length / itemsPerPage);
-    // Xử lý khi đổi trang
-    const handleChangePage = (event, value) => {
-        setCurrentPage(value);
-    };
-    // Cắt dữ liệu theo trang
-    const currentUsers = users?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }, [currentPage, searchValue, isLockedValue]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -163,7 +163,7 @@ const UserPage = () => {
                 updatedSelectedUsers = [...prevSelectedUsers, userId];
             }
 
-            const allSelectedOnPage = currentUsers?.every((user) => updatedSelectedUsers?.includes(user._id));
+            const allSelectedOnPage = users?.every((user) => updatedSelectedUsers?.includes(user._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedUsers;
@@ -171,7 +171,7 @@ const UserPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentUsers?.map((product) => product._id);
+        const currentPageIds = users?.map((product) => product._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedUsers, ...currentPageIds]));
@@ -185,9 +185,9 @@ const UserPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentUsers?.every((user) => selectedUsers?.includes(user._id));
+        const allSelectedOnPage = users?.every((user) => selectedUsers?.includes(user._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentUsers, selectedUsers]);
+    }, [users, selectedUsers]);
 
     useEffect(() => {
         setSelectedUsers(selectedUsers);
@@ -271,7 +271,7 @@ const UserPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedUsers?.length > 1) && (
+                    {users?.length > 1 && (isCheckedAll || selectedUsers?.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -308,7 +308,6 @@ const UserPage = () => {
                             <Select
                                 MenuProps={{ disableScrollLock: true }}
                                 sx={{ height: '42px' }}
-                                // style={{ zoom: '80%' }}
                                 labelId="demo-simple-select-label"
                                 id="userSearchDrop"
                                 size="small"
@@ -323,37 +322,56 @@ const UserPage = () => {
                                 <MenuItem value="name">Tên</MenuItem>
                                 <MenuItem value="email">Email</MenuItem>
                                 <MenuItem value="phoneNumber">Số điện thoại</MenuItem>
-                                {/* <MenuItem value="address.street">Địa chỉ (Đường)</MenuItem>
-                                <MenuItem value="address.ward">Địa chỉ (Phường)</MenuItem>
-                                <MenuItem value="address.district">Địa chỉ (Quận)</MenuItem>
-                                <MenuItem value="address.city">Địa chỉ (Thành phố)</MenuItem> */}
-                                {/* <MenuItem value="createdAt">Ngày tạo tài khoản</MenuItem> */}
+                                <MenuItem value="isLocked">Trạng thái tài khoản</MenuItem>
                             </Select>
                         )}
                     </div>
-                    <div className="col w-[68%] mt-[28px] ">
-                        <div className="">
-                            <input
-                                type="text"
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                    {/* Name, email, phoneNumber */}
+                    {['name', 'email', 'phoneNumber'].includes(searchField) && (
+                        <div className="col w-[68%] mt-[28px] ">
+                            <div className="">
+                                <input
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                                     focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                     block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
                                     dark:placeholder-gray-400 dark:text-white 
                                     dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="John"
-                                required
-                            />
+                                    placeholder="Tìm thông tin...."
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
+                    {/* Status isLocked */}
+                    {searchField === 'isLocked' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={isLockedValue}
+                                onChange={(e) => setIsLockedValue(e.target.value)}
+                            >
+                                <MenuItem sx={{ fontWeight: 400, color: '#22c55e' }} value={false}>
+                                    Hoạt động
+                                </MenuItem>
+                                <MenuItem sx={{ fontWeight: 400, color: '#ef4444' }} value={true}>
+                                    Bị khóa
+                                </MenuItem>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingUsers && currentUsers?.length > 0 && (
+                        {!isLoadingUsers && users?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -395,8 +413,15 @@ const UserPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingUsers === false ? (
-                                users?.length > 0 &&
+                            {isLoadingUsers ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : users?.length > 0 ? (
                                 users?.map((user) => {
                                     return (
                                         <tr key={user._id} className="odd:bg-white even:bg-gray-50 border-b">
@@ -513,7 +538,7 @@ const UserPage = () => {
                                 <tr>
                                     <td colSpan={999}>
                                         <div className="flex items-center justify-center w-full min-h-[400px]">
-                                            <CircularProgress color="inherit" />
+                                            <span className="text-gray-500">Chưa có người dùng</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -522,7 +547,7 @@ const UserPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingUsers && currentUsers?.length > 0 && (
+                {!isLoadingUsers && users?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>

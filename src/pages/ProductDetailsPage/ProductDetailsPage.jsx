@@ -126,24 +126,6 @@ const ProductDetailsPage = () => {
                             </span>
                             <span className="text-[14px]">{product?.categoryName}</span>
                         </div>
-                        {product?.productRam?.length > 0 && (
-                            <div className="flex items-center py-1">
-                                <span className="w-[25%] font-[500] flex items-center gap-2 text-[14px]">
-                                    <MdFilterVintage className="opacity-65" />
-                                    RAM :
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    {product?.productRam?.map((ram, index) => (
-                                        <span
-                                            key={index}
-                                            className="text-[12px] inline-block p-1 shadow-sm bg-[#fff] font-[500]"
-                                        >
-                                            {ram}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {product?.productSize?.length > 0 && (
                             <div className="flex items-center py-1">

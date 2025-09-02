@@ -62,9 +62,10 @@ const StaffPage = () => {
 
     const [searchField, setSearchField] = useState('name');
     const [searchValue, setSearchValue] = useState('');
+    const [isLockedValue, setIsLockedValue] = useState(false);
+    const [roleValue, setIsRoleValue] = useState('');
 
     const handleChangeSearchField = (event) => {
-        console.log('event.target.value: ', event.target.value);
         setSearchField(event.target.value);
     };
 
@@ -86,37 +87,33 @@ const StaffPage = () => {
         }, 300);
     };
 
-    // useEffect(() => {
-    //     const getStaffs = async () => {
-    //         setIsLoadingStaffs(true);
-    //         try {
-    //             const { data } = await axiosClient.get('/api/staff/getStaffsAndAdmin');
-    //             if (data.success) {
-    //                 dispatch(fetchStaffs(data?.staffs));
-    //             }
-    //         } catch (error) {
-    //             console.error('error: ', error);
-    //         } finally {
-    //             setIsLoadingStaffs(false);
-    //         }
-    //     };
-    //     getStaffs();
-    // }, []);
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
+    const handleChangePage = (event, value) => {
+        setCurrentPage(value);
+    };
 
     useEffect(() => {
+        setIsLoadingStaffs(true);
+
         const handleDebounced = setTimeout(() => {
             const getStaffs = async () => {
-                setIsLoadingStaffs(true);
-
-                let url = `/api/staff/getStaffsAndAdmin`;
+                let url = `/api/staff/getStaffsFromAdmin?page=${currentPage}&perPage=${itemsPerPage}`;
                 try {
-                    if (searchValue && searchField) {
-                        url += `?field=${searchField}&value=${searchValue}`;
+                    let finalValue = searchValue;
+
+                    if (searchField === 'isLocked') finalValue = isLockedValue;
+                    if (searchField === 'role') finalValue = roleValue;
+
+                    if (finalValue && searchField) {
+                        url += `&field=${searchField}&value=${finalValue}`;
                     }
                     const { data } = await axiosClient.get(url);
                     console.log('staffs: ', data);
                     if (data.success) {
                         dispatch(fetchStaffs(data?.staffs));
+                        setTotalPages(data?.totalPages);
                     }
                 } catch (error) {
                     console.error('error: ', error);
@@ -130,19 +127,7 @@ const StaffPage = () => {
         return () => {
             clearTimeout(handleDebounced);
         };
-    }, [searchValue]);
-
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(staffs?.length / itemsPerPage);
-    // Xử lý khi đổi trang
-    const handleChangePage = (event, value) => {
-        setCurrentPage(value);
-    };
-    // Cắt dữ liệu theo trang
-    const currentStaffs = staffs?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    }, [currentPage, searchValue, isLockedValue, roleValue]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -185,7 +170,7 @@ const StaffPage = () => {
                 updatedSelectedStaffs = [...prevSelectedStaffs, staffId];
             }
 
-            const allSelectedOnPage = currentStaffs?.every((staff) => updatedSelectedStaffs?.includes(staff._id));
+            const allSelectedOnPage = staffs?.every((staff) => updatedSelectedStaffs?.includes(staff._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedStaffs;
@@ -193,7 +178,7 @@ const StaffPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentStaffs?.map((staff) => staff._id);
+        const currentPageIds = staffs?.map((staff) => staff._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedStaffs, ...currentPageIds]));
@@ -207,9 +192,9 @@ const StaffPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentStaffs?.every((staff) => selectedStaffs?.includes(staff._id));
+        const allSelectedOnPage = staffs?.every((staff) => selectedStaffs?.includes(staff._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentStaffs, selectedStaffs]);
+    }, [staffs, selectedStaffs]);
 
     useEffect(() => {
         setSelectedStaffs(selectedStaffs);
@@ -293,7 +278,7 @@ const StaffPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedStaffs?.length > 1) && (
+                    {staffs?.length > 1 && (isCheckedAll || selectedStaffs?.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -344,37 +329,77 @@ const StaffPage = () => {
                                 <MenuItem value="name">Tên</MenuItem>
                                 <MenuItem value="email">Email</MenuItem>
                                 <MenuItem value="phoneNumber">Số điện thoại</MenuItem>
-                                {/* <MenuItem value="address.street">Địa chỉ (Đường)</MenuItem>
-                                <MenuItem value="address.ward">Địa chỉ (Phường)</MenuItem>
-                                <MenuItem value="address.district">Địa chỉ (Quận)</MenuItem>
-                                <MenuItem value="address.city">Địa chỉ (Thành phố)</MenuItem> */}
-                                {/* <MenuItem value="createdAt">Ngày tạo tài khoản</MenuItem> */}
+                                <MenuItem value="isLocked">Trạng thái tài khoản</MenuItem>
+                                <MenuItem value="role">Chức vụ</MenuItem>
                             </Select>
                         )}
                     </div>
-                    <div className="col w-[68%] mt-[28px] ">
-                        <div className="">
-                            <input
-                                type="text"
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                                focus:outline-none focus:ring-blue-500 focus:border-blue-500 
-                                block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
-                                dark:placeholder-gray-400 dark:text-white 
-                                dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="John"
-                                required
-                            />
+                    {/* Name, email, phoneNumber */}
+                    {['name', 'email', 'phoneNumber'].includes(searchField) && (
+                        <div className="col w-[68%] mt-[28px] ">
+                            <div className="">
+                                <input
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                                        focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                                        block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                                        dark:placeholder-gray-400 dark:text-white 
+                                                        dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="Tìm thông tin...."
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
+                    {/* Status isLocked */}
+                    {searchField === 'isLocked' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={isLockedValue}
+                                onChange={(e) => setIsLockedValue(e.target.value)}
+                            >
+                                <MenuItem sx={{ fontWeight: 400, color: '#22c55e' }} value={false}>
+                                    Hoạt động
+                                </MenuItem>
+                                <MenuItem sx={{ fontWeight: 400, color: '#ef4444' }} value={true}>
+                                    Bị khóa
+                                </MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Role */}
+                    {searchField === 'role' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={roleValue}
+                                onChange={(e) => setIsRoleValue(e.target.value)}
+                            >
+                                <MenuItem sx={{ fontWeight: 400, color: '#22c55e' }} value="admin">
+                                    Quản lý
+                                </MenuItem>
+                                <MenuItem sx={{ fontWeight: 400, color: '#3b82f6' }} value="staff">
+                                    Nhân viên
+                                </MenuItem>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingStaffs && currentStaffs?.length > 0 && (
+                        {!isLoadingStaffs && staffs?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -419,8 +444,15 @@ const StaffPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingStaffs === false ? (
-                                staffs?.length > 0 &&
+                            {isLoadingStaffs ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : staffs?.length > 0 ? (
                                 staffs?.map((staff) => {
                                     return (
                                         <tr key={staff._id} className="odd:bg-white even:bg-gray-50 border-b">
@@ -546,7 +578,7 @@ const StaffPage = () => {
                                 <tr>
                                     <td colSpan={999}>
                                         <div className="flex items-center justify-center w-full min-h-[400px]">
-                                            <CircularProgress color="inherit" />
+                                            <span className="text-gray-500">Chưa có nhân viên / quản lý nào</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -555,7 +587,7 @@ const StaffPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingStaffs && currentStaffs?.length > 0 && (
+                {!isLoadingStaffs && staffs?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>
@@ -620,6 +652,10 @@ const StaffPage = () => {
                                                     openStaffDetailsModal?.staff?.address?.district || ''
                                                 }, Thành phố ${openStaffDetailsModal?.staff?.address?.city || ''}`}
                                             </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-gray-500">Trạng thái tài khoản</span>
+                                            <BadgeRoleStatusComponent status={openStaffDetailsModal?.staff?.role} />
                                         </div>
 
                                         <div className="flex items-center justify-between">

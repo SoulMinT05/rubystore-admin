@@ -57,6 +57,16 @@ const VoucherPage = () => {
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedVouchers, setSelectedVouchers] = useState([]);
 
+    const [searchField, setSearchField] = useState('code');
+    const [searchValue, setSearchValue] = useState('');
+    const [discountTypeValue, setDiscountTypeValue] = useState('');
+    const [minOrderValuePrice, setMinOrderValuePrice] = useState('');
+    const [quantityVoucherValue, setQuantityVoucherValue] = useState('');
+
+    const handleChangeSearchField = (event) => {
+        setSearchField(event.target.value);
+    };
+
     const [openVoucherDetailsModal, setOpenVoucherDetailsModal] = useState({
         open: false,
         voucher: null,
@@ -78,35 +88,56 @@ const VoucherPage = () => {
         }, 300);
     };
 
-    useEffect(() => {
-        const getVouchers = async () => {
-            setIsLoadingVouchers(true);
-            try {
-                const { data } = await axiosClient.get('/api/voucher/getAllVouchers');
-                console.log('dataVouchers: ', data);
-                if (data.success) {
-                    dispatch(fetchVouchers(data?.vouchers));
-                }
-            } catch (error) {
-                console.error('error: ', error);
-            } finally {
-                setIsLoadingVouchers(false);
-            }
-        };
-        getVouchers();
-    }, []);
-
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(vouchers?.length / itemsPerPage);
-    // Xử lý khi đổi trang
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
-    // Cắt dữ liệu theo trang
-    const currentVouchers = vouchers?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setIsLoadingVouchers(true);
+
+        const handleDebounced = setTimeout(() => {
+            const getVouchers = async () => {
+                let url = `/api/voucher/getAllVouchers?page=${currentPage}&perPage=${itemsPerPage}`;
+
+                try {
+                    let finalValue = searchValue;
+                    if (searchField === 'discountType') {
+                        finalValue = discountTypeValue;
+                    }
+
+                    if (searchField === 'minOrderValue') {
+                        finalValue = minOrderValuePrice;
+                    }
+
+                    if (searchField === 'quantityVoucher') {
+                        finalValue = quantityVoucherValue;
+                    }
+
+                    if (searchField && finalValue) {
+                        url += `&field=${searchField}&value=${finalValue}`;
+                    }
+                    const { data } = await axiosClient.get(url);
+                    console.log('dataVouchers: ', data);
+                    if (data.success) {
+                        dispatch(fetchVouchers(data?.vouchers));
+                        setTotalPages(data?.totalPages);
+                    }
+                } catch (error) {
+                    console.error('error: ', error);
+                } finally {
+                    setIsLoadingVouchers(false);
+                }
+            };
+            getVouchers();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
+        };
+    }, [currentPage, searchValue, discountTypeValue, minOrderValuePrice, quantityVoucherValue]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -140,9 +171,7 @@ const VoucherPage = () => {
                 updatedSelectedVouchers = [...prevSelectedVouchers, voucherId];
             }
 
-            const allSelectedOnPage = currentVouchers?.every((voucher) =>
-                updatedSelectedVouchers?.includes(voucher._id)
-            );
+            const allSelectedOnPage = vouchers?.every((voucher) => updatedSelectedVouchers?.includes(voucher._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedVouchers;
@@ -150,7 +179,7 @@ const VoucherPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentVouchers?.map((product) => product._id);
+        const currentPageIds = vouchers?.map((product) => product._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedVouchers, ...currentPageIds]));
@@ -164,9 +193,9 @@ const VoucherPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentVouchers?.every((voucher) => selectedVouchers?.includes(voucher._id));
+        const allSelectedOnPage = vouchers?.every((voucher) => selectedVouchers?.includes(voucher._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentVouchers, selectedVouchers]);
+    }, [vouchers, selectedVouchers]);
 
     useEffect(() => {
         setSelectedVouchers(selectedVouchers);
@@ -250,7 +279,7 @@ const VoucherPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedVouchers?.length > 1) && (
+                    {(isCheckedAll || selectedVouchers?.length > 1) && vouchers?.length > 1 && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -280,16 +309,108 @@ const VoucherPage = () => {
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
                 <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[100%]">
-                        <SearchBoxComponent />
+                    <div className="col w-[30%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Tìm kiếm theo</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px' }}
+                                labelId="demo-simple-select-label"
+                                id="userSearchDrop"
+                                size="small"
+                                className="w-full !h-[42px] "
+                                value={searchField}
+                                onChange={handleChangeSearchField}
+                                label="Tìm kiếm"
+                            >
+                                <MenuItem disabled value="">
+                                    Chọn tiêu chí
+                                </MenuItem>
+                                <MenuItem value="code">Code</MenuItem>
+                                <MenuItem value="discountType">Loại voucher</MenuItem>
+                                {/* <MenuItem value="discountValue">Giá trị voucher</MenuItem> */}
+                                <MenuItem value="minOrderValue">Giá trị đơn hàng tối thiểu</MenuItem>
+                                <MenuItem value="quantityVoucher">Số lượng voucher</MenuItem>
+                            </Select>
+                        )}
                     </div>
+                    {/* CODE */}
+                    {searchField === 'code' && (
+                        <div className="col w-[68%] mt-[28px] ">
+                            <div className="">
+                                <input
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                                    focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                                    block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                                    dark:placeholder-gray-400 dark:text-white 
+                                                    dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="VOUCHER1"
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {/* Discount type */}
+                    {searchField === 'discountType' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={discountTypeValue}
+                                onChange={(e) => setDiscountTypeValue(e.target.value)}
+                            >
+                                <MenuItem value="percent">Phần trăm (%)</MenuItem>
+                                <MenuItem value="fixed">Số tiền cố định (VND)</MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Min Order Value */}
+                    {searchField === 'minOrderValue' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={minOrderValuePrice}
+                                onChange={(e) => setMinOrderValuePrice(e.target.value)}
+                            >
+                                <MenuItem value="<100">Dưới 100.000đ</MenuItem>
+                                <MenuItem value="100-400">Từ 100.000đ - 400.000đ</MenuItem>
+                                <MenuItem value=">400">Trên 400.000đ</MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Quantity voucher */}
+                    {searchField === 'quantityVoucher' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={quantityVoucherValue}
+                                onChange={(e) => setQuantityVoucherValue(e.target.value)}
+                            >
+                                <MenuItem value="<100">Dưới 100</MenuItem>
+                                <MenuItem value="100-400">Từ 100 - 400</MenuItem>
+                                <MenuItem value=">400">Trên 400</MenuItem>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingVouchers && currentVouchers?.length > 0 && (
+                        {!isLoadingVouchers && vouchers?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -334,8 +455,15 @@ const VoucherPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingVouchers === false ? (
-                                vouchers?.length > 0 &&
+                            {isLoadingVouchers ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : vouchers?.length > 0 ? (
                                 vouchers?.map((voucher) => {
                                     return (
                                         <tr key={voucher._id} className="odd:bg-white even:bg-gray-50 border-b">
@@ -448,7 +576,7 @@ const VoucherPage = () => {
                                 <tr>
                                     <td colSpan={999}>
                                         <div className="flex items-center justify-center w-full min-h-[400px]">
-                                            <CircularProgress color="inherit" />
+                                            <span className="text-gray-500">Chưa có đơn hàng</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -457,7 +585,7 @@ const VoucherPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingVouchers && currentVouchers?.length > 0 && (
+                {!isLoadingVouchers && vouchers?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>

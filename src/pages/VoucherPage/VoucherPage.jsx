@@ -116,6 +116,8 @@ const VoucherPage = () => {
                         finalValue = quantityVoucherValue;
                     }
 
+                    setCurrentPage(1);
+
                     if (searchField && finalValue) {
                         url += `&field=${searchField}&value=${finalValue}`;
                     }

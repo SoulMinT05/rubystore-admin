@@ -21,7 +21,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { deleteHomeSlide, deleteMultipleHomeSlides, fetchHomeSlides } from '../../redux/homeSlidesSlice';
 
 const HomeSlidePage = () => {
-    // const { homeSlides, setHomeSlides } = useContext(MyContext);
     const dispatch = useDispatch();
     const { homeSlides } = useSelector((state) => state.homeSlides);
 
@@ -34,18 +33,55 @@ const HomeSlidePage = () => {
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedHomeSlides, setSelectedHomeSlides] = useState([]);
+    const [isLoadingHomeSlides, setIsLoadingHomeSlides] = useState(false);
 
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(homeSlides?.length / itemsPerPage);
-    // Xử lý khi đổi trang
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
-    // Cắt dữ liệu theo trang
-    const currentHomeSlides = homeSlides.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setIsLoadingHomeSlides(true);
+
+        const handleDebounced = setTimeout(() => {
+            const getHomeSlides = async () => {
+                let url = `/api/homeSlide/all-home-slides-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+
+                try {
+                    // let finalValue = searchValue;
+
+                    // if (searchField === 'rating') finalValue = ratingValue;
+
+                    // // if (!currentPage) {
+                    // //     setCurrentPage(1);
+                    // // }
+
+                    // if (finalValue && searchField) {
+                    //     url += `&field=${searchField}&value=${finalValue}`;
+                    // }
+
+                    const { data } = await axiosClient.get(url);
+                    console.log('slides: ', data);
+                    if (data.success) {
+                        dispatch(fetchHomeSlides(data?.homeSlides));
+                        setTotalPages(data?.totalPages);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API:', error.response.data.message);
+                    return [];
+                } finally {
+                    setIsLoadingHomeSlides(false);
+                }
+            };
+            getHomeSlides();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
+        };
+    }, [context?.isOpenFullScreenPanel, currentPage]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -76,7 +112,7 @@ const HomeSlidePage = () => {
 
             const allSelected = updatedSelectedHomeSlides?.length === homeSlides?.length;
             setIsCheckedAll(allSelected);
-            const allSelectedOnPage = currentHomeSlides.every((homeSlide) =>
+            const allSelectedOnPage = homeSlides.every((homeSlide) =>
                 updatedSelectedHomeSlides.includes(homeSlide._id)
             );
             setIsCheckedAll(allSelectedOnPage);
@@ -86,7 +122,7 @@ const HomeSlidePage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentHomeSlides.map((homeSlide) => homeSlide._id);
+        const currentPageIds = homeSlides.map((homeSlide) => homeSlide._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedHomeSlides, ...currentPageIds]));
@@ -100,9 +136,9 @@ const HomeSlidePage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentHomeSlides.every((homeSlide) => selectedHomeSlides.includes(homeSlide._id));
+        const allSelectedOnPage = homeSlides.every((homeSlide) => selectedHomeSlides.includes(homeSlide._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentHomeSlides, selectedHomeSlides]);
+    }, [homeSlides, selectedHomeSlides]);
 
     const handleClickOpen = (id) => {
         setOpen(true);
@@ -115,23 +151,6 @@ const HomeSlidePage = () => {
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
     };
-
-    useEffect(() => {
-        const getHomeSlides = async () => {
-            try {
-                const { data } = await axiosClient.get('/api/homeSlide/all-home-slides');
-                if (data.success) {
-                    dispatch(fetchHomeSlides(data?.homeSlides));
-                } else {
-                    console.error('Lỗi lấy danh mục:', data.message);
-                }
-            } catch (error) {
-                console.error('Lỗi API:', error);
-                return [];
-            }
-        };
-        getHomeSlides();
-    }, [context?.isOpenFullScreenPanel]);
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
@@ -186,7 +205,7 @@ const HomeSlidePage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedHomeSlides.length > 1) && (
+                    {homeSlides?.length > 1 && (isCheckedAll || selectedHomeSlides.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -240,60 +259,78 @@ const HomeSlidePage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentHomeSlides?.map((homeSlide) => (
-                                <tr key={homeSlide._id} className="odd:bg-white  even:bg-gray-50 border-b">
-                                    <td className="px-6 pr-0 py-2">
-                                        <div className="w-[60px]">
-                                            <Checkbox
-                                                {...label}
-                                                checked={selectedHomeSlides.includes(homeSlide._id)}
-                                                onChange={() => handleSelectHomeSlide(homeSlide._id)}
-                                                size="small"
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-0 py-2">
-                                        <div className="flex items-center gap-4 w-[330px]">
-                                            <div className="img w-full rounded-md overflow-hidden group">
-                                                <Link to={`/home-slide/${homeSlide?._id}`}>
-                                                    <img
-                                                        src={homeSlide?.image}
-                                                        className="w-full max-h-[100px] object-cover group-hover:scale-105 transition-all"
-                                                        alt=""
-                                                    />
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td className="px-6 py-2">
-                                        <div className="flex items-center gap-1">
-                                            <Tooltip title="Chỉnh sửa" placement="top">
-                                                <Button
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                    onClick={() =>
-                                                        context.setIsOpenFullScreenPanel({
-                                                            open: true,
-                                                            model: 'Cập nhật home slide',
-                                                            id: homeSlide._id,
-                                                        })
-                                                    }
-                                                >
-                                                    <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                                </Button>
-                                            </Tooltip>
-                                            <Tooltip title="Xoá" placement="top">
-                                                <Button
-                                                    onClick={() => handleClickOpen(homeSlide._id)}
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                >
-                                                    <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                </Button>
-                                            </Tooltip>
+                            {isLoadingHomeSlides ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : homeSlides?.length > 0 ? (
+                                homeSlides?.map((homeSlide) => (
+                                    <tr key={homeSlide._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                        <td className="px-6 pr-0 py-2">
+                                            <div className="w-[60px]">
+                                                <Checkbox
+                                                    {...label}
+                                                    checked={selectedHomeSlides.includes(homeSlide._id)}
+                                                    onChange={() => handleSelectHomeSlide(homeSlide._id)}
+                                                    size="small"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="px-0 py-2">
+                                            <div className="flex items-center gap-4 w-[330px]">
+                                                <div className="img w-full rounded-md overflow-hidden group">
+                                                    <Link to={`/home-slide/${homeSlide?._id}`}>
+                                                        <img
+                                                            src={homeSlide?.image}
+                                                            className="w-full max-h-[100px] object-cover group-hover:scale-105 transition-all"
+                                                            alt=""
+                                                        />
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-2">
+                                            <div className="flex items-center gap-1">
+                                                <Tooltip title="Chỉnh sửa" placement="top">
+                                                    <Button
+                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Cập nhật home slide',
+                                                                id: homeSlide._id,
+                                                            })
+                                                        }
+                                                    >
+                                                        <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip title="Xoá" placement="top">
+                                                    <Button
+                                                        onClick={() => handleClickOpen(homeSlide._id)}
+                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                    >
+                                                        <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <span className="text-gray-500">Chưa có slide</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -303,53 +340,57 @@ const HomeSlidePage = () => {
                 </div>
             </div>
 
-            <Dialog
-                disableScrollLock
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá home slide?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá home slide này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoading === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteHomeSlide} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả slide?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả slide này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleHomeSlide} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {homeSlides?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá home slide?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá home slide này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoading === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteHomeSlide} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
+            {homeSlides?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả slide?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả slide này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleHomeSlide} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

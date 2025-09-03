@@ -35,9 +35,9 @@ const ProductPage = () => {
     const context = useContext(MyContext);
 
     const [productId, setProductId] = useState(null);
-    const [productCategory, setProductCategory] = useState('');
-    const [productSubCategory, setProductSubCategory] = useState('');
-    const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
+    // const [productCategory, setProductCategory] = useState('');
+    // const [productSubCategory, setProductSubCategory] = useState('');
+    // const [productThirdSubCategory, setProductThirdSubCategory] = useState('');
 
     const [open, setOpen] = useState(false);
     const [isLoadingDeleteProduct, setIsLoadingDeleteProduct] = useState(false);
@@ -57,17 +57,85 @@ const ProductPage = () => {
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(products.length / itemsPerPage);
-    // Xử lý khi đổi trang
+    const [searchField, setSearchField] = useState('name');
+    const [searchValue, setSearchValue] = useState('');
+    const [priceValue, setPriceValue] = useState('');
+    const [categoryValue, setCategoryValue] = useState('');
+    const [subCategoryValue, setSubCategoryValue] = useState('');
+    const [thirdSubCategoryValue, setThirdSubCategoryValue] = useState('');
+    const [countInStockValue, setCountInStockValue] = useState('');
+    const [discountValue, setDiscountValue] = useState('');
+    const [ratingValue, setRatingValue] = useState(5);
+    const [isFeaturedValue, setIsFeaturedValue] = useState('');
+
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
-    // Cắt dữ liệu theo trang
-    const currentProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleChangeSearchField = (event) => {
+        setSearchField(event.target.value);
+    };
+
+    useEffect(() => {
+        setIsLoadingProducts(true);
+
+        const handleDebounced = setTimeout(() => {
+            const getProducts = async () => {
+                let url = `/api/product/all-products-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+
+                try {
+                    let finalValue = searchValue;
+
+                    if (searchField === 'price') finalValue = priceValue;
+                    if (searchField === 'categoryId') finalValue = categoryValue;
+                    if (searchField === 'subCategoryId') finalValue = subCategoryValue;
+                    if (searchField === 'thirdSubCategoryId') finalValue = thirdSubCategoryValue;
+                    if (searchField === 'countInStock') finalValue = countInStockValue;
+                    if (searchField === 'rating') finalValue = ratingValue;
+                    if (searchField === 'discount') finalValue = discountValue;
+                    if (searchField === 'isFeatured') finalValue = isFeaturedValue;
+
+                    setCurrentPage(1);
+
+                    if (finalValue && searchField) {
+                        url += `&field=${searchField}&value=${finalValue}`;
+                    }
+
+                    const { data } = await axiosClient.get(url);
+                    console.log('products: ', data);
+                    if (data.success) {
+                        setProducts(data?.products);
+                        setTotalPages(data?.totalPages);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API:', error);
+                    return [];
+                } finally {
+                    setIsLoadingProducts(false);
+                }
+            };
+            getProducts();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
+        };
+    }, [
+        context?.isOpenFullScreenPanel,
+        currentPage,
+        searchValue,
+        priceValue,
+        categoryValue,
+        subCategoryValue,
+        thirdSubCategoryValue,
+        countInStockValue,
+        ratingValue,
+        discountValue,
+        isFeaturedValue,
+    ]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -111,7 +179,7 @@ const ProductPage = () => {
                 updatedSelectedProducts = [...prevSelectedProducts, productId];
             }
 
-            const allSelectedOnPage = currentProducts.every((product) => updatedSelectedProducts.includes(product._id));
+            const allSelectedOnPage = products.every((product) => updatedSelectedProducts.includes(product._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedProducts;
@@ -119,7 +187,7 @@ const ProductPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentProducts.map((product) => product._id);
+        const currentPageIds = products.map((product) => product._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedProducts, ...currentPageIds]));
@@ -133,9 +201,9 @@ const ProductPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentProducts.every((product) => selectedProducts.includes(product._id));
+        const allSelectedOnPage = products.every((product) => selectedProducts.includes(product._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentProducts, selectedProducts]);
+    }, [products, selectedProducts]);
 
     useEffect(() => {
         setSelectedProducts(selectedProducts);
@@ -160,33 +228,33 @@ const ProductPage = () => {
             categoryName: name,
         }));
     };
-    const handleChangeProductCategory = async (event) => {
-        setProductCategory(event.target.value);
-        setProductSubCategory('');
-        setProductThirdSubCategory('');
-        setIsLoadingProducts(true);
-        const { data } = await axiosClient.get(`/api/product/all-products-category-id/${event.target.value}`);
-        if (data?.success) {
-            setProducts(data?.products);
-            setTimeout(() => {
-                setIsLoadingProducts(false);
-            }, 300);
-        }
-    };
+    // const handleChangeProductCategory = async (event) => {
+    //     setProductCategory(event.target.value);
+    //     setProductSubCategory('');
+    //     setProductThirdSubCategory('');
+    //     setIsLoadingProducts(true);
+    //     const { data } = await axiosClient.get(`/api/product/all-products-category-id/${event.target.value}`);
+    //     if (data?.success) {
+    //         setProducts(data?.products);
+    //         setTimeout(() => {
+    //             setIsLoadingProducts(false);
+    //         }, 300);
+    //     }
+    // };
 
-    const handleChangeProductSubCategory = async (event) => {
-        setProductSubCategory(event.target.value);
-        setProductCategory('');
-        setProductThirdSubCategory('');
-        setIsLoadingProducts(true);
-        const { data } = await axiosClient.get(`/api/product/all-products-sub-category-id/${event.target.value}`);
-        if (data?.success) {
-            setProducts(data?.products);
-            setTimeout(() => {
-                setIsLoadingProducts(false);
-            }, 300);
-        }
-    };
+    // const handleChangeProductSubCategory = async (event) => {
+    //     setProductSubCategory(event.target.value);
+    //     setProductCategory('');
+    //     setProductThirdSubCategory('');
+    //     setIsLoadingProducts(true);
+    //     const { data } = await axiosClient.get(`/api/product/all-products-sub-category-id/${event.target.value}`);
+    //     if (data?.success) {
+    //         setProducts(data?.products);
+    //         setTimeout(() => {
+    //             setIsLoadingProducts(false);
+    //         }, 300);
+    //     }
+    // };
     const selectSubCategoryByName = (name) => {
         setFormFields((prev) => ({
             ...prev,
@@ -194,19 +262,19 @@ const ProductPage = () => {
         }));
     };
 
-    const handleChangeProductThirdSubCategory = async (event) => {
-        setProductThirdSubCategory(event.target.value);
-        setProductCategory('');
-        setProductSubCategory('');
-        setIsLoadingProducts(true);
-        const { data } = await axiosClient.get(`/api/product/all-products-third-sub-category-id/${event.target.value}`);
-        if (data?.success) {
-            setProducts(data?.products);
-            setTimeout(() => {
-                setIsLoadingProducts(false);
-            }, 300);
-        }
-    };
+    // const handleChangeProductThirdSubCategory = async (event) => {
+    //     setProductThirdSubCategory(event.target.value);
+    //     setProductCategory('');
+    //     setProductSubCategory('');
+    //     setIsLoadingProducts(true);
+    //     const { data } = await axiosClient.get(`/api/product/all-products-third-sub-category-id/${event.target.value}`);
+    //     if (data?.success) {
+    //         setProducts(data?.products);
+    //         setTimeout(() => {
+    //             setIsLoadingProducts(false);
+    //         }, 300);
+    //     }
+    // };
     const selectThirdSubCategoryByName = (name) => {
         setFormFields((prev) => ({
             ...prev,
@@ -233,27 +301,6 @@ const ProductPage = () => {
             setIsLoadingMultiple(false);
         }
     };
-
-    useEffect(() => {
-        const getProducts = async () => {
-            try {
-                setIsLoadingProducts(true);
-                const { data } = await axiosClient.get('/api/product/all-products-admin');
-                if (data.success) {
-                    setTimeout(() => {
-                        setProducts(data?.products);
-                    }, 100);
-                    setIsLoadingProducts(false);
-                } else {
-                    console.error('Lỗi lấy danh mục:', data.message);
-                }
-            } catch (error) {
-                console.error('Lỗi API:', error);
-                return [];
-            }
-        };
-        getProducts();
-    }, [context?.isOpenFullScreenPanel]);
 
     const handleDeleteProduct = async () => {
         setIsLoadingDeleteProduct(true);
@@ -295,7 +342,7 @@ const ProductPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedProducts.length > 1) && (
+                    {products?.length > 1 && (isCheckedAll || selectedProducts.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -324,7 +371,7 @@ const ProductPage = () => {
             </div>
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
-                <div className="flex items-center w-full justify-between px-5 gap-4">
+                {/* <div className="flex items-center w-full justify-between px-5 gap-4">
                     <div className="col w-[15%]">
                         <h4 className="font-[600] text-[13px] mb-2">Danh mục cha</h4>
 
@@ -422,17 +469,263 @@ const ProductPage = () => {
                             </Select>
                         )}
                     </div>
+                </div> */}
 
-                    <div className="col w-[20%] ml-auto">
-                        <SearchBoxComponent />
+                <div className="flex items-center w-full justify-between px-5 gap-4">
+                    <div className="col w-[30%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Tìm kiếm theo</h4>
+
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px' }}
+                                labelId="demo-simple-select-label"
+                                id="userSearchDrop"
+                                size="small"
+                                className="w-full !h-[42px] "
+                                value={searchField}
+                                onChange={handleChangeSearchField}
+                                label="Tìm kiếm"
+                            >
+                                <MenuItem disabled value="">
+                                    Chọn tiêu chí
+                                </MenuItem>
+                                <MenuItem value="name">Tên sản phẩm</MenuItem>
+                                <MenuItem value="categoryId">Danh mục</MenuItem>
+                                <MenuItem value="subCategoryId">Danh mục con cấp 2</MenuItem>
+                                <MenuItem value="thirdSubCategoryId">Danh mục con cấp 3</MenuItem>
+                                <MenuItem value="price">Giá</MenuItem>
+                                <MenuItem value="countInStock">Số lượng tồn kho</MenuItem>
+                                <MenuItem value="rating">Đánh giá</MenuItem>
+                                <MenuItem value="discount">Giảm giá</MenuItem>
+                                <MenuItem value="isFeatured">Sản phẩm đặc trưng</MenuItem>
+                            </Select>
+                        )}
                     </div>
+
+                    {/* Name */}
+                    {['name'].includes(searchField) && (
+                        <div className="col w-[68%] mt-[28px] ">
+                            <div className="">
+                                <input
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                    focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                    block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                    dark:placeholder-gray-400 dark:text-white 
+                                    dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="Tìm thông tin...."
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {/* CategoryId */}
+                    {searchField === 'categoryId' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                label="Danh mục"
+                                value={categoryValue}
+                                onChange={(e) => setCategoryValue(e.target.value)}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        <MenuItem value={cat?._id} onClick={() => selectCategoryByName(cat?.name)}>
+                                            {cat?.name}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Select>
+                        </div>
+                    )}
+                    {/* SubCategoryId */}
+                    {searchField === 'subCategoryId' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                label="Danh mục con cấp 2"
+                                value={subCategoryValue}
+                                onChange={(e) => setSubCategoryValue(e.target.value)}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        cat?.children?.length !== 0 &&
+                                        cat?.children.map((subCat) => {
+                                            return (
+                                                <MenuItem
+                                                    value={subCat?._id}
+                                                    onClick={() => selectSubCategoryByName(subCat?.name)}
+                                                >
+                                                    {subCat?.name}
+                                                </MenuItem>
+                                            );
+                                        })
+                                    );
+                                })}
+                            </Select>
+                        </div>
+                    )}
+                    {/* Third Sub Category ID */}
+                    {searchField === 'thirdSubCategoryId' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                label="Danh mục con cấp 2"
+                                value={thirdSubCategoryValue}
+                                onChange={(e) => setThirdSubCategoryValue(e.target.value)}
+                            >
+                                {context?.categories?.map((cat) => {
+                                    return (
+                                        cat?.children?.length !== 0 &&
+                                        cat?.children.map((subCat) => {
+                                            return (
+                                                subCat?.children?.length !== 0 &&
+                                                subCat?.children?.map((thirdCat) => {
+                                                    return (
+                                                        <MenuItem
+                                                            value={thirdCat?._id}
+                                                            onClick={() => selectThirdSubCategoryByName(thirdCat?.name)}
+                                                        >
+                                                            {thirdCat?.name}
+                                                        </MenuItem>
+                                                    );
+                                                })
+                                            );
+                                        })
+                                    );
+                                })}
+                            </Select>
+                        </div>
+                    )}
+
+                    {/* Price */}
+                    {searchField === 'price' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={priceValue}
+                                onChange={(e) => setPriceValue(e.target.value)}
+                            >
+                                <MenuItem value="<200">Dưới 200.000đ</MenuItem>
+                                <MenuItem value="200-500">Từ 200.000đ - 500.000đ</MenuItem>
+                                <MenuItem value="500-1000">Từ 500.000đ - 1.000.000đ</MenuItem>
+                                <MenuItem value="1000-5000">Từ 1.000.000đ - 5.000.000đ</MenuItem>
+                                <MenuItem value=">5000">Trên 5.000.000đ</MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Count in stock */}
+                    {searchField === 'countInStock' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={countInStockValue}
+                                onChange={(e) => setCountInStockValue(e.target.value)}
+                            >
+                                <MenuItem sx={{ fontWeight: 400, color: '#ef4444' }} value="0">
+                                    Hết hàng (0)
+                                </MenuItem>
+                                <MenuItem value="1-100">Từ 1 - 100</MenuItem>
+                                <MenuItem value="100-500">Từ 100 - 500</MenuItem>
+                                <MenuItem value="500-1000">Từ 500 - 1000</MenuItem>
+                                <MenuItem value=">1000">Trên 1000</MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Rating */}
+                    {searchField === 'rating' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={ratingValue}
+                                onChange={(e) => setRatingValue(e.target.value)}
+                            >
+                                <MenuItem value={5}>
+                                    <Rating name="size-small" value={5} readOnly size="small" />
+                                </MenuItem>
+                                <MenuItem value={4}>
+                                    <Rating name="size-small" value={4} readOnly size="small" />
+                                </MenuItem>
+                                <MenuItem value={3}>
+                                    <Rating name="size-small" value={3} readOnly size="small" />
+                                </MenuItem>
+                                <MenuItem value={2}>
+                                    <Rating name="size-small" value={2} readOnly size="small" />
+                                </MenuItem>
+                                <MenuItem value={1}>
+                                    <Rating name="size-small" value={1} readOnly size="small" />
+                                </MenuItem>
+                            </Select>
+                        </div>
+                    )}
+                    {/* Discount */}
+                    {searchField === 'discount' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={discountValue}
+                                onChange={(e) => setDiscountValue(e.target.value)}
+                            >
+                                <MenuItem value="<2%">Dưới 2%</MenuItem>
+                                <MenuItem value="2%-5%">Từ 2% - 5%</MenuItem>
+                                <MenuItem value="5%-10%">Từ 5% - 10%</MenuItem>
+                                <MenuItem value="10%-20%">Từ 10% - 20%</MenuItem>
+                                <MenuItem value=">20%">Trên 20%</MenuItem>
+                            </Select>
+                        </div>
+                    )}
+
+                    {/* isFeatured */}
+                    {searchField === 'isFeatured' && (
+                        <div className="col w-[68%] mt-[18px]">
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px', marginTop: '10px' }}
+                                size="small"
+                                className="w-full !h-[42px]"
+                                value={isFeaturedValue}
+                                onChange={(e) => setIsFeaturedValue(e.target.value)}
+                            >
+                                <MenuItem sx={{ fontWeight: 400, color: '#22c55e' }} value="true">
+                                    Đặc trưng
+                                </MenuItem>
+                                <MenuItem sx={{ fontWeight: 400, color: '#ef4444' }} value="false">
+                                    Không đặc trưng
+                                </MenuItem>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 <br />
 
                 <div className="relative overflow-x-auto mt-1 pb-5">
                     <table className="w-full text-sm text-left rtl:text-right text-gray-700">
-                        {!isLoadingProducts && currentProducts?.length > 0 && (
+                        {!isLoadingProducts && products?.length > 0 && (
                             <thead className="text-xs text-gray-700 uppercase bg-white">
                                 <tr>
                                     <th scope="col" className="px-6 pr-0 py-2 ">
@@ -471,9 +764,16 @@ const ProductPage = () => {
                         )}
 
                         <tbody>
-                            {isLoadingProducts === false ? (
-                                currentProducts?.length > 0 &&
-                                currentProducts?.map((product) => {
+                            {isLoadingProducts ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : products?.length > 0 ? (
+                                products?.map((product) => {
                                     return (
                                         <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
                                             <td className="px-6 pr-0 py-2">
@@ -585,7 +885,7 @@ const ProductPage = () => {
                                 <tr>
                                     <td colSpan={999}>
                                         <div className="flex items-center justify-center w-full min-h-[400px]">
-                                            <CircularProgress color="inherit" />
+                                            <span className="text-gray-500">Chưa có sản phẩm</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -594,61 +894,65 @@ const ProductPage = () => {
                     </table>
                 </div>
 
-                {!isLoadingProducts && currentProducts?.length > 0 && (
+                {!isLoadingProducts && products?.length > 0 && (
                     <div className="flex items-center justify-center pt-5 pb-5 px-4">
                         <Pagination count={totalPages} page={currentPage} onChange={handleChangePage} color="primary" />
                     </div>
                 )}
             </div>
 
-            <Dialog
-                disableScrollLock
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá sản phẩm?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá sản phẩm này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteProduct === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteProduct} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {products?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá sản phẩm?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá sản phẩm này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoadingDeleteProduct === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteProduct} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
 
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả sản phẩm này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleProduct} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {products?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả sản phẩm này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleProduct} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

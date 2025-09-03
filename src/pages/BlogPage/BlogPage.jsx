@@ -34,18 +34,55 @@ const BlogPage = () => {
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [isCheckedAll, setIsCheckedAll] = useState(false);
     const [selectedBlogs, setSelectedBlogs] = useState([]);
+    const [isLoadingBlogs, setIsLoadingBlogs] = useState(false);
 
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(blogs?.length / itemsPerPage);
-    // Xử lý khi đổi trang
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
-    // Cắt dữ liệu theo trang
-    const currentBlogs = blogs?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    useEffect(() => {
+        setIsLoadingBlogs(true);
+        const handleDebounced = setTimeout(() => {
+            const getBlogs = async () => {
+                let url = `/api/blog/all-blogs-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+
+                try {
+                    // let finalValue = searchValue;
+
+                    // if (searchField === 'rating') finalValue = ratingValue;
+
+                    // // if (!currentPage) {
+                    // //     setCurrentPage(1);
+                    // // }
+
+                    // if (finalValue && searchField) {
+                    //     url += `&field=${searchField}&value=${finalValue}`;
+                    // }
+
+                    const { data } = await axiosClient.get(url);
+                    console.log('blogs: ', data);
+                    if (data.success) {
+                        dispatch(fetchBlogs(data?.blogs));
+                        setTotalPages(data?.totalPages);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API:', error);
+                    console.log('error: ', error.response.data.message);
+                    return [];
+                } finally {
+                    setIsLoadingBlogs(false);
+                }
+            };
+            getBlogs();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
+        };
+    }, [context?.isOpenFullScreenPanel, currentPage]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -77,7 +114,7 @@ const BlogPage = () => {
 
             const allSelected = updatedSelectedBlogs?.length === blogs?.length;
             setIsCheckedAll(allSelected);
-            const allSelectedOnPage = currentBlogs?.every((blog) => updatedSelectedBlogs.includes(blog._id));
+            const allSelectedOnPage = blogs?.every((blog) => updatedSelectedBlogs.includes(blog._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedBlogs;
@@ -85,7 +122,7 @@ const BlogPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentBlogs?.map((blog) => blog._id);
+        const currentPageIds = blogs?.map((blog) => blog._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedBlogs, ...currentPageIds]));
@@ -99,9 +136,9 @@ const BlogPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentBlogs?.every((blog) => selectedBlogs.includes(blog._id));
+        const allSelectedOnPage = blogs?.every((blog) => selectedBlogs.includes(blog._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentBlogs, selectedBlogs]);
+    }, [blogs, selectedBlogs]);
 
     const handleClickOpen = (id) => {
         setOpen(true);
@@ -115,24 +152,6 @@ const BlogPage = () => {
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
     };
-
-    useEffect(() => {
-        const getBlogs = async () => {
-            try {
-                const { data } = await axiosClient.get('/api/blog/all-blogs');
-                if (data.success) {
-                    // setBlogs(data?.blogs);
-                    dispatch(fetchBlogs(data?.blogs));
-                } else {
-                    console.error('Lỗi lấy bài viết:', data.message);
-                }
-            } catch (error) {
-                console.error('Lỗi API:', error);
-                return [];
-            }
-        };
-        getBlogs();
-    }, [context?.isOpenFullScreenPanel]);
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
@@ -168,7 +187,6 @@ const BlogPage = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                // context.getBlogs();
                 dispatch(
                     deleteMultipleBlogs({
                         blogIds: selectedBlogs,
@@ -194,7 +212,7 @@ const BlogPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedBlogs.length > 1) && (
+                    {blogs?.length > 1 && (isCheckedAll || selectedBlogs.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -254,74 +272,92 @@ const BlogPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentBlogs?.map((blog) => {
-                                const sanitizedDescription = DOMPurify.sanitize(blog.description, {
-                                    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li', 'span'],
-                                });
-                                return (
-                                    <tr key={blog._id} className="odd:bg-white  even:bg-gray-50 border-b">
-                                        <td className="px-6 pr-0 py-2">
-                                            <div className="w-[60px]">
-                                                <Checkbox
-                                                    {...label}
-                                                    checked={selectedBlogs.includes(blog._id)}
-                                                    onChange={() => handleSelectBlog(blog._id)}
-                                                    size="small"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-0 py-2">
-                                            <div className="flex items-center gap-4 w-[80px]">
-                                                <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                    <Link to={`/blog/${blog?._id}`}>
-                                                        <img
-                                                            src={blog?.images?.length > 0 && blog?.images[0]}
-                                                            className="w-full group-hover:scale-105 transition-all"
-                                                            alt=""
-                                                        />
-                                                    </Link>
+                            {isLoadingBlogs ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : blogs?.length > 0 ? (
+                                blogs?.map((blog) => {
+                                    const sanitizedDescription = DOMPurify.sanitize(blog.description, {
+                                        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li', 'span'],
+                                    });
+                                    return (
+                                        <tr key={blog._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                            <td className="px-6 pr-0 py-2">
+                                                <div className="w-[60px]">
+                                                    <Checkbox
+                                                        {...label}
+                                                        checked={selectedBlogs.includes(blog._id)}
+                                                        onChange={() => handleSelectBlog(blog._id)}
+                                                        size="small"
+                                                    />
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-2">
-                                            <p className="w-[180px]">{blog?.name}</p>
-                                        </td>
-                                        <td className="px-6 py-2 line-clamp-2">
-                                            <div
-                                                className="w-[300px] line-clamp-2"
-                                                dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-                                            />
-                                        </td>
+                                            </td>
+                                            <td className="px-0 py-2">
+                                                <div className="flex items-center gap-4 w-[80px]">
+                                                    <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                        <Link to={`/blog/${blog?._id}`}>
+                                                            <img
+                                                                src={blog?.images?.length > 0 && blog?.images[0]}
+                                                                className="w-full group-hover:scale-105 transition-all"
+                                                                alt=""
+                                                            />
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-2">
+                                                <p className="w-[180px]">{blog?.name}</p>
+                                            </td>
+                                            <td className="px-6 py-2 line-clamp-2">
+                                                <div
+                                                    className="w-[300px] line-clamp-2"
+                                                    dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+                                                />
+                                            </td>
 
-                                        <td className="px-6 py-2">
-                                            <div className="flex items-center gap-1">
-                                                <Tooltip title="Chỉnh sửa" placement="top">
-                                                    <Button
-                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                        onClick={() =>
-                                                            context.setIsOpenFullScreenPanel({
-                                                                open: true,
-                                                                model: 'Cập nhật bài viết',
-                                                                id: blog._id,
-                                                            })
-                                                        }
-                                                    >
-                                                        <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                                    </Button>
-                                                </Tooltip>
-                                                <Tooltip title="Xoá" placement="top">
-                                                    <Button
-                                                        onClick={() => handleClickOpen(blog._id)}
-                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                    >
-                                                        <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                    </Button>
-                                                </Tooltip>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                            <td className="px-6 py-2">
+                                                <div className="flex items-center gap-1">
+                                                    <Tooltip title="Chỉnh sửa" placement="top">
+                                                        <Button
+                                                            className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                            onClick={() =>
+                                                                context.setIsOpenFullScreenPanel({
+                                                                    open: true,
+                                                                    model: 'Cập nhật bài viết',
+                                                                    id: blog._id,
+                                                                })
+                                                            }
+                                                        >
+                                                            <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip title="Xoá" placement="top">
+                                                        <Button
+                                                            onClick={() => handleClickOpen(blog._id)}
+                                                            className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        >
+                                                            <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                        </Button>
+                                                    </Tooltip>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <span className="text-gray-500">Chưa có bài viết</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

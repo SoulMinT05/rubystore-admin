@@ -21,7 +21,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 const CategoryPage = () => {
     const { categories, setCategories } = useContext(MyContext);
     const context = useContext(MyContext);
-    const [categoryFilterVal, setCategoryFilterVal] = useState('');
     const [categoryId, setCategoryId] = useState(null);
 
     const [open, setOpen] = useState(false);
@@ -31,17 +30,61 @@ const CategoryPage = () => {
     const [isLoadingMultiple, setIsLoadingMultiple] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
 
-    const itemsPerPage = 10;
-    // State lưu trang hiện tại
-    const [currentPage, setCurrentPage] = useState(1);
-    // Tính tổng số trang
-    const totalPages = Math.ceil(categories.length / itemsPerPage);
-    // Xử lý khi đổi trang
+    const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+    const [searchField, setSearchField] = useState('name');
+    const [searchValue, setSearchValue] = useState('');
+
+    const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
+    const [currentPage, setCurrentPage] = useState(1); // State lưu trang hiện tại
+    const [totalPages, setTotalPages] = useState(1);
     const handleChangePage = (event, value) => {
         setCurrentPage(value);
     };
-    // Cắt dữ liệu theo trang
-    const currentCategories = categories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleChangeSearchField = (event) => {
+        setSearchField(event.target.value);
+    };
+
+    useEffect(() => {
+        setIsLoadingCategories(true);
+
+        const handleDebounced = setTimeout(() => {
+            const getCategories = async () => {
+                let url = `/api/category/all-categories-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+
+                try {
+                    let finalValue = searchValue;
+
+                    // if (searchField === 'rating') finalValue = ratingValue;
+
+                    // if (!currentPage) {
+                    //     setCurrentPage(1);
+                    // }
+
+                    if (finalValue && searchField) {
+                        url += `&field=${searchField}&value=${finalValue}`;
+                    }
+
+                    const { data } = await axiosClient.get(url);
+                    console.log('categories: ', data);
+                    if (data.success) {
+                        setCategories(data?.categories);
+                        setTotalPages(data?.totalPages);
+                    }
+                } catch (error) {
+                    console.error('Lỗi API:', error);
+                    return [];
+                } finally {
+                    setIsLoadingCategories(false);
+                }
+            };
+            getCategories();
+        }, 500);
+
+        return () => {
+            clearTimeout(handleDebounced);
+        };
+    }, [context?.isOpenFullScreenPanel, currentPage, searchValue]);
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -72,9 +115,7 @@ const CategoryPage = () => {
 
             const allSelected = updatedSelectedCategories.length === categories.length;
             setIsCheckedAll(allSelected);
-            const allSelectedOnPage = currentCategories.every((category) =>
-                updatedSelectedCategories.includes(category._id)
-            );
+            const allSelectedOnPage = categories.every((category) => updatedSelectedCategories.includes(category._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedCategories;
@@ -82,7 +123,7 @@ const CategoryPage = () => {
     };
 
     const handleSelectAll = () => {
-        const currentPageIds = currentCategories.map((category) => category._id);
+        const currentPageIds = categories.map((category) => category._id);
         if (!isCheckedAll) {
             // Thêm các sản phẩm ở trang hiện tại
             const newSelected = Array.from(new Set([...selectedCategories, ...currentPageIds]));
@@ -96,9 +137,9 @@ const CategoryPage = () => {
         }
     };
     useEffect(() => {
-        const allSelectedOnPage = currentCategories.every((category) => selectedCategories.includes(category._id));
+        const allSelectedOnPage = categories.every((category) => selectedCategories.includes(category._id));
         setIsCheckedAll(allSelectedOnPage);
-    }, [currentCategories, selectedCategories]);
+    }, [categories, selectedCategories]);
 
     const handleClickOpen = (id) => {
         setOpen(true);
@@ -113,28 +154,7 @@ const CategoryPage = () => {
         setOpenMultiple(false);
     };
 
-    useEffect(() => {
-        const getCategories = async () => {
-            try {
-                const { data } = await axiosClient.get('/api/category/all-categories-admin');
-                if (data.success) {
-                    setCategories(data?.categories);
-                } else {
-                    console.error('Lỗi lấy danh mục:', data.message);
-                }
-            } catch (error) {
-                console.error('Lỗi API:', error);
-                return [];
-            }
-        };
-        getCategories();
-    }, [context?.isOpenFullScreenPanel]);
-
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
-
-    const handleChangeCategoryFilterVal = (event) => {
-        setCategoryFilterVal(event.target.value);
-    };
 
     const handleDeleteCategory = async () => {
         setIsLoading(true);
@@ -183,7 +203,7 @@ const CategoryPage = () => {
                         context.isisOpenSidebar === true ? 'w-[25%]' : 'w-[22%]'
                     }] ml-auto flex items-center gap-3`}
                 >
-                    {(isCheckedAll || selectedCategories.length > 1) && (
+                    {categories?.length > 1 && (isCheckedAll || selectedCategories.length > 1) && (
                         <Button
                             onClick={() => setOpenMultiple(true)}
                             className="btn !bg-red-500 !text-white !normal-case gap-1"
@@ -213,28 +233,48 @@ const CategoryPage = () => {
 
             <div className="card my-4 pt-5 shadow-md sm:rounded-lg bg-white">
                 <div className="flex items-center w-full justify-between px-5">
-                    <div className="col w-[20%]">
-                        <h4 className="font-[600] text-[13px] mb-2">Phân loại theo</h4>
+                    <div className="col w-[30%]">
+                        <h4 className="font-[600] text-[13px] mb-2">Tìm kiếm theo</h4>
 
-                        <Select
-                            MenuProps={{ disableScrollLock: true }}
-                            className="w-full"
-                            size="small"
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={categoryFilterVal}
-                            label="Danh mục"
-                            onChange={handleChangeCategoryFilterVal}
-                        >
-                            <MenuItem value={10}>Nam</MenuItem>
-                            <MenuItem value={20}>Nữ</MenuItem>
-                            <MenuItem value={30}>Trẻ em</MenuItem>
-                        </Select>
+                        {context?.categories?.length !== 0 && (
+                            <Select
+                                MenuProps={{ disableScrollLock: true }}
+                                sx={{ height: '42px' }}
+                                labelId="demo-simple-select-label"
+                                id="userSearchDrop"
+                                size="small"
+                                className="w-full !h-[42px] "
+                                value={searchField}
+                                onChange={handleChangeSearchField}
+                                label="Tìm kiếm"
+                            >
+                                <MenuItem disabled value="">
+                                    Chọn tiêu chí
+                                </MenuItem>
+                                <MenuItem value="name">Tên danh mục</MenuItem>
+                            </Select>
+                        )}
                     </div>
 
-                    <div className="col w-[20%] ml-auto">
-                        <SearchBoxComponent />
-                    </div>
+                    {/* Name */}
+                    {['name'].includes(searchField) && (
+                        <div className="col w-[68%] mt-[28px] ">
+                            <div className="">
+                                <input
+                                    type="text"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    className="h-[44px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                                                        focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                                        block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 
+                                                        dark:placeholder-gray-400 dark:text-white 
+                                                        dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                    placeholder="Tìm thông tin...."
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <br />
@@ -265,65 +305,83 @@ const CategoryPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentCategories?.map((category) => (
-                                <tr key={category._id} className="odd:bg-white  even:bg-gray-50 border-b">
-                                    <td className="px-6 pr-0 py-2">
-                                        <div className="w-[60px]">
-                                            <Checkbox
-                                                {...label}
-                                                checked={selectedCategories.includes(category._id)}
-                                                onChange={() => handleSelectCategory(category._id)}
-                                                size="small"
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-0 py-2">
-                                        <div className="flex items-center gap-4 w-[80px]">
-                                            <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
-                                                <Link to={`/category/${category?._id}`}>
-                                                    {category?.images.length > 0 && category?.images[0] && (
-                                                        <img
-                                                            src={category?.images.length > 0 && category?.images[0]}
-                                                            className="w-full group-hover:scale-105 transition-all"
-                                                            alt=""
-                                                        />
-                                                    )}
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-2">
-                                        <p className="w-[180px]">{category?.name}</p>
-                                    </td>
-
-                                    <td className="px-6 py-2">
-                                        <div className="flex items-center gap-1">
-                                            <Tooltip title="Chỉnh sửa" placement="top">
-                                                <Button
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                    onClick={() =>
-                                                        context.setIsOpenFullScreenPanel({
-                                                            open: true,
-                                                            model: 'Cập nhật danh mục',
-                                                            id: category._id,
-                                                        })
-                                                    }
-                                                >
-                                                    <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
-                                                </Button>
-                                            </Tooltip>
-                                            <Tooltip title="Xoá" placement="top">
-                                                <Button
-                                                    onClick={() => handleClickOpen(category._id)}
-                                                    className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
-                                                >
-                                                    <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
-                                                </Button>
-                                            </Tooltip>
+                            {isLoadingCategories ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : categories?.length > 0 ? (
+                                categories?.map((category) => (
+                                    <tr key={category._id} className="odd:bg-white  even:bg-gray-50 border-b">
+                                        <td className="px-6 pr-0 py-2">
+                                            <div className="w-[60px]">
+                                                <Checkbox
+                                                    {...label}
+                                                    checked={selectedCategories.includes(category._id)}
+                                                    onChange={() => handleSelectCategory(category._id)}
+                                                    size="small"
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="px-0 py-2">
+                                            <div className="flex items-center gap-4 w-[80px]">
+                                                <div className="img w-[65px] h-[65px] rounded-md overflow-hidden group">
+                                                    <Link to={`/category/${category?._id}`}>
+                                                        {category?.images.length > 0 && category?.images[0] && (
+                                                            <img
+                                                                src={category?.images.length > 0 && category?.images[0]}
+                                                                className="w-full group-hover:scale-105 transition-all"
+                                                                alt=""
+                                                            />
+                                                        )}
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-2">
+                                            <p className="w-[180px]">{category?.name}</p>
+                                        </td>
+
+                                        <td className="px-6 py-2">
+                                            <div className="flex items-center gap-1">
+                                                <Tooltip title="Chỉnh sửa" placement="top">
+                                                    <Button
+                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                        onClick={() =>
+                                                            context.setIsOpenFullScreenPanel({
+                                                                open: true,
+                                                                model: 'Cập nhật danh mục',
+                                                                id: category._id,
+                                                            })
+                                                        }
+                                                    >
+                                                        <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip title="Xoá" placement="top">
+                                                    <Button
+                                                        onClick={() => handleClickOpen(category._id)}
+                                                        className="!w-[35px] !h-[35px] !min-w-[35px] bg-[#f1f1f1] !border !border-[rgba(0,0,0,0.4)] !rounded-full hover:!bg-[#f1f1f1]"
+                                                    >
+                                                        <GoTrash className="text-[rgba(0,0,0,0.7)] text-[18px] " />
+                                                    </Button>
+                                                </Tooltip>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <span className="text-gray-500">Chưa có danh mục</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -333,53 +391,57 @@ const CategoryPage = () => {
                 </div>
             </div>
 
-            <Dialog
-                disableScrollLock
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá danh mục?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá danh mục này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoading === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteCategory} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả sản phẩm này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleCategories} autoFocus>
-                            Xác nhận
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+            {categories?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá danh mục?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá danh mục này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoading === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteCategory} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
+            {categories?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả sản phẩm này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleCategories} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

@@ -102,6 +102,8 @@ const UserPage = () => {
 
                     if (searchField === 'isLocked') finalValue = isLockedValue;
 
+                    setCurrentPage(1);
+
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;
                     }

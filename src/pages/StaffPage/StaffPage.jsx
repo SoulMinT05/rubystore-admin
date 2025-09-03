@@ -106,6 +106,8 @@ const StaffPage = () => {
                     if (searchField === 'isLocked') finalValue = isLockedValue;
                     if (searchField === 'role') finalValue = roleValue;
 
+                    setCurrentPage(1);
+
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;
                     }

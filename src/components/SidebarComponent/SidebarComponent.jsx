@@ -248,14 +248,14 @@ const SidebarComponent = () => {
                                     Thêm sản phẩm
                                 </Button>
                             </li>
-                            <li className="w-full">
+                            {/* <li className="w-full">
                                 <Link to="/product/ram">
                                     <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
                                         <span className="block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.2)]"></span>
                                         Danh sách RAM
                                     </Button>
                                 </Link>
-                            </li>
+                            </li> */}
                             <li className="w-full">
                                 <Link to="/product/weight">
                                     <Button className="!text-[rgba(0,0,0,0.7)] !normal-case !justify-start !w-full text-[13px] !font-[500] !pl-9 flex gap-3">
@@ -433,6 +433,14 @@ const SidebarComponent = () => {
 
                 {/* Comment / Review */}
                 <li>
+                    <Link to="/reviews">
+                        <Button className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]">
+                            <FaRegComments className="text-[18px]" />
+                            Quản lý đánh giá
+                        </Button>
+                    </Link>
+                </li>
+                {/* <li>
                     <Button
                         className="w-full !normal-case !justify-start gap-3 text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#f1f1f1]"
                         onClick={() => isOpenSubMenu(9)}
@@ -470,7 +478,7 @@ const SidebarComponent = () => {
                             </li>
                         </ul>
                     </Collapse>
-                </li>
+                </li> */}
 
                 {/* Message */}
                 {/* <li>

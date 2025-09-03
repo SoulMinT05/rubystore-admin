@@ -92,6 +92,8 @@ const OrderPage = () => {
                     if (searchField === 'totalPrice') finalValue = totalPriceValue;
                     if (searchField === 'orderStatus') finalValue = orderStatusValue;
 
+                    setCurrentPage(1);
+
                     if (searchField && finalValue) {
                         url += `&field=${searchField}&value=${finalValue}`;
                     }

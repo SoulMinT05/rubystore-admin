@@ -190,6 +190,7 @@ const HomeSlidePage = () => {
                         homeSlidesIds: selectedHomeSlides,
                     })
                 );
+                setSelectedHomeSlides([]);
                 handleCloseMultiple();
             }
         } catch (error) {

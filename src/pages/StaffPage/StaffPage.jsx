@@ -204,27 +204,6 @@ const StaffPage = () => {
         setSelectedStaffs(selectedStaffs);
     }, [selectedStaffs]);
 
-    const handleDeleteMultipleStaffs = async () => {
-        setIsLoadingMultiple(true);
-
-        try {
-            const { data } = await axiosClient.delete(`/api/staff/deleteMultipleStaffsFromAdmin`, {
-                data: { staffIds: selectedStaffs },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleStaffs({ staffIds: selectedStaffs }));
-
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
-    };
-
     const handleClickOpen = (id) => {
         setOpen(true);
         setStaffId(id);
@@ -237,6 +216,24 @@ const StaffPage = () => {
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
     };
+    const handleToggleIsLocked = async (staffId) => {
+        try {
+            const { data } = await axiosClient.patch(`/api/staff/toggleStaffLockStatusFromAdmin/${staffId}`);
+            if (data.success) {
+                dispatch(
+                    toggleLockedStaff({
+                        staffId,
+                        isLocked: data.isLocked,
+                    })
+                );
+                context.openAlertBox('success', data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật isLocked:', error);
+            context.openAlertBox('error', error.response.data.message);
+        }
+    };
+
     const handleDeleteStaff = async () => {
         setIsLoadingDeleteStaff(true);
         try {
@@ -254,21 +251,24 @@ const StaffPage = () => {
         }
     };
 
-    const handleToggleIsLocked = async (staffId) => {
+    const handleDeleteMultipleStaffs = async () => {
+        setIsLoadingMultiple(true);
+
         try {
-            const { data } = await axiosClient.patch(`/api/staff/toggleStaffLockStatusFromAdmin/${staffId}`);
+            const { data } = await axiosClient.delete(`/api/staff/deleteMultipleStaffsFromAdmin`, {
+                data: { staffIds: selectedStaffs },
+            });
             if (data.success) {
-                dispatch(
-                    toggleLockedStaff({
-                        staffId,
-                        isLocked: data.isLocked,
-                    })
-                );
                 context.openAlertBox('success', data.message);
+                dispatch(deleteMultipleStaffs({ staffIds: selectedStaffs }));
+                setSelectedStaffs([]);
+                handleCloseMultiple();
             }
         } catch (error) {
-            console.error('Lỗi khi cập nhật isLocked:', error);
-            context.openAlertBox('error', error.response.data.message);
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
         }
     };
 

@@ -312,27 +312,6 @@ const OrderPage = () => {
         setSelectedOrders(selectedOrders);
     }, [selectedOrders]);
 
-    const handleDeleteMultipleOrder = async () => {
-        setIsLoadingMultiple(true);
-
-        try {
-            const { data } = await axiosClient.delete(`/api/order/deleteMultipleOrdersFromAdmin`, {
-                data: { orderIds: selectedOrders },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleOrders({ orderIds: selectedOrders }));
-
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
-    };
-
     const handleClickOpen = (id) => {
         setOpen(true);
         setOrderId(id);
@@ -359,6 +338,27 @@ const OrderPage = () => {
             context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
             setIsLoadingDeleteOrder(false);
+        }
+    };
+
+    const handleDeleteMultipleOrders = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/order/deleteMultipleOrdersFromAdmin`, {
+                data: { orderIds: selectedOrders },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                dispatch(deleteMultipleOrders({ orderIds: selectedOrders }));
+                setSelectedOrders([]);
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
         }
     };
 
@@ -1159,7 +1159,7 @@ const OrderPage = () => {
                         {isLoadingMultiple === true ? (
                             <CircularProgress color="inherit" />
                         ) : (
-                            <Button className="btn-red" onClick={handleDeleteMultipleOrder} autoFocus>
+                            <Button className="btn-red" onClick={handleDeleteMultipleOrders} autoFocus>
                                 Xác nhận
                             </Button>
                         )}

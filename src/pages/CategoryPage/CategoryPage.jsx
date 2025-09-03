@@ -54,31 +54,6 @@ const CategoryPage = () => {
         setIsLoadingCategories(true);
 
         const handleDebounced = setTimeout(() => {
-            const getCategories = async () => {
-                let url = `/api/category/all-categories-admin?page=${currentPage}&perPage=${itemsPerPage}`;
-
-                try {
-                    let finalValue = searchValue;
-
-                    // if (searchField === 'rating') finalValue = ratingValue;
-
-                    if (finalValue && searchField) {
-                        url += `&field=${searchField}&value=${finalValue}`;
-                    }
-
-                    const { data } = await axiosClient.get(url);
-                    console.log('categories: ', data);
-                    if (data.success) {
-                        setCategories(data?.categories);
-                        setTotalPages(data?.totalPages);
-                    }
-                } catch (error) {
-                    console.error('Lỗi API:', error);
-                    return [];
-                } finally {
-                    setIsLoadingCategories(false);
-                }
-            };
             getCategories();
         }, 500);
 
@@ -86,6 +61,34 @@ const CategoryPage = () => {
             clearTimeout(handleDebounced);
         };
     }, [context?.isOpenFullScreenPanel, currentPage, searchValue]);
+
+    const getCategories = async () => {
+        // let url = `/api/category/all-categories-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+        let url = `/api/category/just-all-categories-admin?page=${currentPage}&perPage=${itemsPerPage}`;
+
+        try {
+            let finalValue = searchValue;
+
+            // if (searchField === 'rating') finalValue = ratingValue;
+
+            if (finalValue && searchField) {
+                url += `&field=${searchField}&value=${finalValue}`;
+            }
+
+            const { data } = await axiosClient.get(url);
+            console.log('categories: ', data);
+            if (data.success) {
+                setCategories(data?.categories);
+
+                setTotalPages(data?.totalPages);
+            }
+        } catch (error) {
+            console.error('Lỗi API:', error);
+            return [];
+        } finally {
+            setIsLoadingCategories(false);
+        }
+    };
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(
@@ -183,7 +186,8 @@ const CategoryPage = () => {
             });
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                context.getCategories();
+                getCategories();
+                setSelectedCategories([]);
                 handleCloseMultiple();
             }
         } catch (error) {
@@ -193,6 +197,15 @@ const CategoryPage = () => {
             setIsLoadingMultiple(false);
         }
     };
+
+    useEffect(() => {
+        console.log(
+            'isCheckedAll, selectedCategories?.length, categories?.length: ',
+            isCheckedAll,
+            selectedCategories?.length,
+            categories?.length
+        );
+    }, [isCheckedAll, selectedCategories?.length, categories?.length]);
 
     return (
         <>

@@ -295,24 +295,17 @@ const ProductPage = () => {
         }));
     };
 
-    const handleDeleteMultipleProduct = async () => {
-        setIsLoadingMultiple(true);
+    const getStockLabelByQuantity = (countInStock) => {
+        if (countInStock < 1) return 'Hết hàng';
+        if (countInStock >= 1) return 'Còn hàng';
+        return 'Sắp có hàng'; // nếu countInStock là null, undefined, hoặc lỗi
+    };
 
-        try {
-            const { data } = await axiosClient.delete(`/api/product/deleteMultipleProduct`, {
-                data: { ids: selectedProducts },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                context.getProducts();
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
+    const getProductStatusBackgroundByStock = (countInStock) => {
+        if (countInStock < 1) return 'outOfStock';
+        if (countInStock >= 1) return 'active';
+
+        return 'commingSoon'; // hoặc trạng thái mặc định
     };
 
     const handleDeleteProduct = async () => {
@@ -332,17 +325,25 @@ const ProductPage = () => {
         }
     };
 
-    const getStockLabelByQuantity = (countInStock) => {
-        if (countInStock < 1) return 'Hết hàng';
-        if (countInStock >= 1) return 'Còn hàng';
-        return 'Sắp có hàng'; // nếu countInStock là null, undefined, hoặc lỗi
-    };
+    const handleDeleteMultipleProduct = async () => {
+        setIsLoadingMultiple(true);
 
-    const getProductStatusBackgroundByStock = (countInStock) => {
-        if (countInStock < 1) return 'outOfStock';
-        if (countInStock >= 1) return 'active';
-
-        return 'commingSoon'; // hoặc trạng thái mặc định
+        try {
+            const { data } = await axiosClient.delete(`/api/product/deleteMultipleProduct`, {
+                data: { ids: selectedProducts },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                context.getProducts();
+                setSelectedProducts([]);
+                handleCloseMultiple();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
+        }
     };
 
     return (

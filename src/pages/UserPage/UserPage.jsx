@@ -198,27 +198,6 @@ const UserPage = () => {
         setSelectedUsers(selectedUsers);
     }, [selectedUsers]);
 
-    const handleDeleteMultipleUsers = async () => {
-        setIsLoadingMultiple(true);
-
-        try {
-            const { data } = await axiosClient.delete(`/api/user/deleteMultipleUsersFromAdmin`, {
-                data: { userIds: selectedUsers },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleUsers({ userIds: selectedUsers }));
-
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
-    };
-
     const handleClickOpen = (id) => {
         setOpen(true);
         setUserId(id);
@@ -230,6 +209,23 @@ const UserPage = () => {
 
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
+    };
+    const handleToggleIsLocked = async (userId) => {
+        try {
+            const { data } = await axiosClient.patch(`/api/user/toggleUserLockStatus/${userId}`);
+            if (data.success) {
+                dispatch(
+                    toggleLockedUser({
+                        userId,
+                        isLocked: data.isLocked,
+                    })
+                );
+                context.openAlertBox('success', data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật isLocked:', error);
+            context.openAlertBox('error', 'Cập nhật trạng thái thất bại');
+        }
     };
     const handleDeleteUser = async () => {
         setIsLoadingDeleteUser(true);
@@ -248,21 +244,24 @@ const UserPage = () => {
         }
     };
 
-    const handleToggleIsLocked = async (userId) => {
+    const handleDeleteMultipleUsers = async () => {
+        setIsLoadingMultiple(true);
+
         try {
-            const { data } = await axiosClient.patch(`/api/user/toggleUserLockStatus/${userId}`);
+            const { data } = await axiosClient.delete(`/api/user/deleteMultipleUsersFromAdmin`, {
+                data: { userIds: selectedUsers },
+            });
             if (data.success) {
-                dispatch(
-                    toggleLockedUser({
-                        userId,
-                        isLocked: data.isLocked,
-                    })
-                );
                 context.openAlertBox('success', data.message);
+                dispatch(deleteMultipleUsers({ userIds: selectedUsers }));
+                setSelectedUsers([]);
+                handleCloseMultiple();
             }
         } catch (error) {
-            console.error('Lỗi khi cập nhật isLocked:', error);
-            context.openAlertBox('error', 'Cập nhật trạng thái thất bại');
+            console.error('Lỗi khi cập nhật:', error);
+            context.openAlertBox('error', 'Cập nhật thất bại');
+        } finally {
+            setIsLoadingMultiple(false);
         }
     };
 

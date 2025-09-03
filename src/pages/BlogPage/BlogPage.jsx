@@ -178,7 +178,7 @@ const BlogPage = () => {
         }
     };
 
-    const handleDeleteMultipleBlog = async () => {
+    const handleDeleteMultipleBlogs = async () => {
         setIsLoadingMultiple(true);
 
         try {
@@ -192,6 +192,7 @@ const BlogPage = () => {
                         blogIds: selectedBlogs,
                     })
                 );
+                setSelectedBlogs([]);
                 handleCloseMultiple();
             }
         } catch (error) {
@@ -408,7 +409,7 @@ const BlogPage = () => {
                     {isLoadingMultiple === true ? (
                         <CircularProgress color="inherit" />
                     ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleBlog} autoFocus>
+                        <Button className="btn-red" onClick={handleDeleteMultipleBlogs} autoFocus>
                             Xác nhận
                         </Button>
                     )}

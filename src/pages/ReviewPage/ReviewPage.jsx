@@ -1,5 +1,4 @@
 import React, { forwardRef, useContext, useEffect, useState } from 'react';
-import { IoMdAdd } from 'react-icons/io';
 
 import './ReviewPage.scss';
 import {
@@ -34,10 +33,8 @@ import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { MyContext } from '../../App';
-import SearchBoxComponent from '../../components/SearchBoxComponent/SearchBoxComponent';
 import axiosClient from '../../apis/axiosClient';
-import { deleteMultipleUsers, deleteUser } from '../../redux/userSlice';
-import { addReview, fetchReviews } from '../../redux/reviewSlice';
+import { addReview, deleteMultipleReviews, deleteReview, fetchReviews } from '../../redux/reviewSlice';
 import { socket } from '../../config/socket';
 import defaultAvatar from '../../assets/default_avatar.png';
 
@@ -183,7 +180,7 @@ const ReviewPage = () => {
                 updatedSelectedReviews = [...prevSelectedReviews, reviewId];
             }
 
-            const allSelectedOnPage = reviews?.every((user) => updatedSelectedReviews?.includes(user._id));
+            const allSelectedOnPage = reviews?.every((review) => updatedSelectedReviews?.includes(review._id));
             setIsCheckedAll(allSelectedOnPage);
 
             return updatedSelectedReviews;
@@ -213,27 +210,6 @@ const ReviewPage = () => {
         setSelectedReviews(selectedReviews);
     }, [selectedReviews]);
 
-    const handleDeleteMultipleUsers = async () => {
-        setIsLoadingMultiple(true);
-
-        try {
-            const { data } = await axiosClient.delete(`/api/user/deleteMultipleUsersFromAdmin`, {
-                data: { reviewIds: selectedReviews },
-            });
-            if (data.success) {
-                context.openAlertBox('success', data.message);
-                dispatch(deleteMultipleUsers({ reviewIds: selectedReviews }));
-
-                handleCloseMultiple();
-            }
-        } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
-        } finally {
-            setIsLoadingMultiple(false);
-        }
-    };
-
     const handleClickOpen = (id) => {
         setOpen(true);
         setReviewId(id);
@@ -246,20 +222,42 @@ const ReviewPage = () => {
     const handleCloseMultiple = () => {
         setOpenMultiple(false);
     };
-    const handleDeleteUser = async () => {
+
+    const handleDeleteReview = async () => {
         setIsLoadingDeleteReview(true);
         try {
-            const { data } = await axiosClient.delete(`/api/user/deleteUserFromAdmin/${reviewId}`);
+            const { data } = await axiosClient.delete(`/api/user/deleteReviewFromAdmin/${reviewId}`);
             if (data.success) {
                 context.openAlertBox('success', data.message);
-                dispatch(deleteUser({ _id: reviewId }));
+                dispatch(deleteReview({ _id: reviewId }));
                 handleClose();
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật:', error.response.data.message);
+            context.openAlertBox('error', error.response.data.message);
+        } finally {
+            setIsLoadingDeleteReview(false);
+        }
+    };
+
+    const handleDeleteMultipleReviews = async () => {
+        setIsLoadingMultiple(true);
+
+        try {
+            const { data } = await axiosClient.delete(`/api/user/deleteMultipleReviewsFromAdmin`, {
+                data: { reviewIds: selectedReviews },
+            });
+            if (data.success) {
+                context.openAlertBox('success', data.message);
+                dispatch(deleteMultipleReviews({ reviewIds: selectedReviews }));
+                setSelectedReviews([]);
+                handleCloseMultiple();
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật:', error);
             context.openAlertBox('error', 'Cập nhật thất bại');
         } finally {
-            setIsLoadingDeleteReview(false);
+            setIsLoadingMultiple(false);
         }
     };
 
@@ -708,7 +706,7 @@ const ReviewPage = () => {
                         {isLoadingDeleteReview === true ? (
                             <CircularProgress color="inherit" />
                         ) : (
-                            <Button className="btn-red" onClick={handleDeleteUser} autoFocus>
+                            <Button className="btn-red" onClick={handleDeleteReview} autoFocus>
                                 Xác nhận
                             </Button>
                         )}
@@ -734,7 +732,7 @@ const ReviewPage = () => {
                         {isLoadingMultiple === true ? (
                             <CircularProgress color="inherit" />
                         ) : (
-                            <Button className="btn-red" onClick={handleDeleteMultipleUsers} autoFocus>
+                            <Button className="btn-red" onClick={handleDeleteMultipleReviews} autoFocus>
                                 Xác nhận
                             </Button>
                         )}

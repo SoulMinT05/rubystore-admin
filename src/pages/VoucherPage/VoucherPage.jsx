@@ -216,7 +216,7 @@ const VoucherPage = () => {
             if (data.success) {
                 context.openAlertBox('success', data.message);
                 dispatch(deleteMultipleVouchers({ voucherIds: selectedVouchers }));
-
+                setSelectedVouchers([]);
                 handleCloseMultiple();
             }
         } catch (error) {

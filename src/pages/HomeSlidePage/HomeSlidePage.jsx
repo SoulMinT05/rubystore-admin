@@ -42,6 +42,11 @@ const HomeSlidePage = () => {
         setCurrentPage(value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue hoặc searchField thay đổi
+    // useEffect(() => {
+    //     setCurrentPage(1);
+    // }, []);
+
     useEffect(() => {
         setIsLoadingHomeSlides(true);
 

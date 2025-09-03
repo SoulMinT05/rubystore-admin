@@ -52,20 +52,18 @@ const ProductSizePage = () => {
     };
 
     const getProductsSize = async () => {
+        setIsLoadingProductsSize(true);
+
         try {
-            setIsLoadingProductsSize(true);
             const { data } = await axiosClient.get('/api/product/all-products-size');
             if (data.success) {
-                setTimeout(() => {
-                    setProductsSize(data?.productsSize);
-                }, 100);
-                setIsLoadingProductsSize(false);
-            } else {
-                console.error('Lỗi lấy Size sản phẩm:', data.message);
+                setProductsSize(data?.productsSize);
             }
         } catch (error) {
-            console.error('Lỗi API:', error);
+            console.error('Lỗi lấy Size sản phẩm:', error.response.data.message);
             return [];
+        } finally {
+            setIsLoadingProductsSize(false);
         }
     };
     useEffect(() => {
@@ -298,8 +296,15 @@ const ProductSizePage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {isLoadingProductsSize === false ? (
-                                productsSize?.length > 0 &&
+                            {isLoadingProductsSize ? (
+                                <tr>
+                                    <td colSpan={999}>
+                                        <div className="flex items-center justify-center w-full min-h-[400px]">
+                                            <CircularProgress color="inherit" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : productsSize?.length > 0 ? (
                                 productsSize?.map((product) => (
                                     <tr key={product._id} className="odd:bg-white  even:bg-gray-50 border-b">
                                         <td className="px-6 pr-0 py-2">
@@ -343,7 +348,7 @@ const ProductSizePage = () => {
                                 <tr>
                                     <td colSpan={999}>
                                         <div className="flex items-center justify-center w-full min-h-[400px]">
-                                            <CircularProgress color="inherit" />
+                                            <span className="text-gray-500">Chưa có size sản phẩm</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -351,7 +356,7 @@ const ProductSizePage = () => {
                         </tbody>
                     </table>
                 </div>
-                {(isCheckedAll || selectedProductsSize.length > 1) && (
+                {productsSize?.length > 1 && (isCheckedAll || selectedProductsSize.length > 1) && (
                     <div className="flex justify-center mt-8">
                         <Button
                             onClick={() => setOpenMultiple(true)}
@@ -363,120 +368,126 @@ const ProductSizePage = () => {
                 )}
             </div>
 
-            <Dialog
-                disableScrollLock
-                open={openUpdate}
-                onClose={handleCloseUpdate}
-                slotProps={{
-                    paper: {
-                        component: 'form',
-                        onSubmit: async (event) => {
-                            event.preventDefault();
-                            const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries(formData.entries());
-                            const name = formJson.name;
+            {productsSize?.length > 0 && (
+                <Dialog
+                    disableScrollLock
+                    open={openUpdate}
+                    onClose={handleCloseUpdate}
+                    slotProps={{
+                        paper: {
+                            component: 'form',
+                            onSubmit: async (event) => {
+                                event.preventDefault();
+                                const formData = new FormData(event.currentTarget);
+                                const formJson = Object.fromEntries(formData.entries());
+                                const name = formJson.name;
 
-                            if (!name) {
-                                context.openAlertBox('error', 'Tên Size không được để trống!');
-                                return;
-                            }
-
-                            try {
-                                const { data } = await axiosClient.put(`/api/product/size/${productSizeId}`, {
-                                    name,
-                                });
-
-                                if (data.success) {
-                                    context.openAlertBox('success', 'Cập nhật Size thành công!');
-                                    getProductsSize();
-                                    setProductSizeId(null);
-                                    setFormFields({ name: '' });
-                                    handleCloseUpdate();
-                                } else {
-                                    context.openAlertBox('error', data.message);
+                                if (!name) {
+                                    context.openAlertBox('error', 'Tên Size không được để trống!');
+                                    return;
                                 }
-                            } catch (error) {
-                                console.error(error);
-                                context.openAlertBox('error', 'Lỗi khi cập nhật Size!');
-                            }
-                            handleCloseUpdate();
+
+                                try {
+                                    const { data } = await axiosClient.put(`/api/product/size/${productSizeId}`, {
+                                        name,
+                                    });
+
+                                    if (data.success) {
+                                        context.openAlertBox('success', 'Cập nhật Size thành công!');
+                                        getProductsSize();
+                                        setProductSizeId(null);
+                                        setFormFields({ name: '' });
+                                        handleCloseUpdate();
+                                    } else {
+                                        context.openAlertBox('error', data.message);
+                                    }
+                                } catch (error) {
+                                    console.error(error);
+                                    context.openAlertBox('error', 'Lỗi khi cập nhật Size!');
+                                }
+                                handleCloseUpdate();
+                            },
                         },
-                    },
-                }}
-            >
-                <DialogTitle>Cập nhật Size sản phẩm</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>Nhập tên Size muốn cập nhật</DialogContentText>
-                    <TextField
-                        autoFocus
-                        required
-                        margin="dense"
-                        id="name"
-                        name="name"
-                        type="name"
-                        fullWidth
-                        variant="standard"
-                        value={formFields.name}
-                        onChange={handleChange}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button className="!normal-case" onClick={handleCloseUpdate}>
-                        Huỷ
-                    </Button>
-                    <Button className="!normal-case" type="submit">
-                        Cập nhật
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá Size sản phẩm?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá Size sản phẩm này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Huỷ</Button>
-                    {isLoadingDeleteProductsSize === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteProductSize} autoFocus>
-                            Xác nhận
+                    }}
+                >
+                    <DialogTitle>Cập nhật Size sản phẩm</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>Nhập tên Size muốn cập nhật</DialogContentText>
+                        <TextField
+                            autoFocus
+                            required
+                            margin="dense"
+                            id="name"
+                            name="name"
+                            type="name"
+                            fullWidth
+                            variant="standard"
+                            value={formFields.name}
+                            onChange={handleChange}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button className="!normal-case" onClick={handleCloseUpdate}>
+                            Huỷ
                         </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
-
-            <Dialog
-                open={openMultiple}
-                onClose={handleCloseMultiple}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Bạn có chắc chắn xoá tất cả sản phẩm này không?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseMultiple}>Huỷ</Button>
-                    {isLoadingMultiple === true ? (
-                        <CircularProgress color="inherit" />
-                    ) : (
-                        <Button className="btn-red" onClick={handleDeleteMultipleProduct} autoFocus>
-                            Xác nhận
+                        <Button className="!normal-case" type="submit">
+                            Cập nhật
                         </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+                    </DialogActions>
+                </Dialog>
+            )}
+
+            {productsSize?.length > 0 && (
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá Size sản phẩm?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá Size sản phẩm này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Huỷ</Button>
+                        {isLoadingDeleteProductsSize === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteProductSize} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
+
+            {productsSize?.length > 0 && (
+                <Dialog
+                    open={openMultiple}
+                    onClose={handleCloseMultiple}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">{'Xoá tất cả sản phẩm?'}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Bạn có chắc chắn xoá tất cả sản phẩm này không?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseMultiple}>Huỷ</Button>
+                        {isLoadingMultiple === true ? (
+                            <CircularProgress color="inherit" />
+                        ) : (
+                            <Button className="btn-red" onClick={handleDeleteMultipleProduct} autoFocus>
+                                Xác nhận
+                            </Button>
+                        )}
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };

@@ -65,7 +65,7 @@ const ProductPage = () => {
     const [thirdSubCategoryValue, setThirdSubCategoryValue] = useState('');
     const [countInStockValue, setCountInStockValue] = useState('');
     const [discountValue, setDiscountValue] = useState('');
-    const [ratingValue, setRatingValue] = useState(5);
+    const [ratingValue, setRatingValue] = useState(0);
     const [isFeaturedValue, setIsFeaturedValue] = useState('');
 
     const itemsPerPage = import.meta.env.VITE_LIMIT_DEFAULT;
@@ -78,6 +78,21 @@ const ProductPage = () => {
     const handleChangeSearchField = (event) => {
         setSearchField(event.target.value);
     };
+
+    // Reset currentPage về 1 mỗi khi searchValue hoặc searchField thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [
+        searchValue,
+        priceValue,
+        categoryValue,
+        subCategoryValue,
+        thirdSubCategoryValue,
+        countInStockValue,
+        ratingValue,
+        discountValue,
+        isFeaturedValue,
+    ]);
 
     useEffect(() => {
         setIsLoadingProducts(true);
@@ -97,8 +112,6 @@ const ProductPage = () => {
                     if (searchField === 'rating') finalValue = ratingValue;
                     if (searchField === 'discount') finalValue = discountValue;
                     if (searchField === 'isFeatured') finalValue = isFeaturedValue;
-
-                    setCurrentPage(1);
 
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;

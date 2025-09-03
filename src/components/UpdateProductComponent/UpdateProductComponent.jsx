@@ -67,7 +67,8 @@ const UpdateProductComponent = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const { data } = await axiosClient.get(`/api/product/${id}`);
+                const { data } = await axiosClient.get(`/api/product/getDetailsProductFromAdmin/${id}`);
+                console.log('fetchUpdateProduct: ', data);
                 if (data.success) {
                     setFormFields((prev) => ({
                         ...prev,
@@ -401,7 +402,18 @@ const UpdateProductComponent = () => {
                                     id="productThirdCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    value={productThirdSubCategory}
+                                    // value={productThirdSubCategory}
+                                    value={
+                                        context?.categories?.some((cat) =>
+                                            cat?.children?.some((subCat) =>
+                                                subCat?.children?.some(
+                                                    (thirdCat) => thirdCat._id === productThirdSubCategory
+                                                )
+                                            )
+                                        )
+                                            ? productThirdSubCategory
+                                            : ''
+                                    }
                                     label="Danh mục con cấp 3"
                                     onChange={handleChangeProductThirdSubCategory}
                                 >

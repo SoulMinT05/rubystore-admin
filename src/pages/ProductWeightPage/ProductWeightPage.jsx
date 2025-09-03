@@ -350,7 +350,7 @@ const ProductWeightPage = () => {
                         </tbody>
                     </table>
                 </div>
-                {(isCheckedAll || selectedProductsWeight.length > 1) && (
+                {productsWeight?.length > 1 && (isCheckedAll || selectedProductsWeight.length > 1) && (
                     <div className="flex justify-center mt-8">
                         <Button
                             onClick={() => setOpenMultiple(true)}

@@ -45,6 +45,11 @@ const CategoryPage = () => {
         setSearchField(event.target.value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue]);
+
     useEffect(() => {
         setIsLoadingCategories(true);
 
@@ -56,10 +61,6 @@ const CategoryPage = () => {
                     let finalValue = searchValue;
 
                     // if (searchField === 'rating') finalValue = ratingValue;
-
-                    // if (!currentPage) {
-                    //     setCurrentPage(1);
-                    // }
 
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;

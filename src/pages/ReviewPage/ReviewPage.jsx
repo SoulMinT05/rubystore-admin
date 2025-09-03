@@ -63,7 +63,7 @@ const ReviewPage = () => {
 
     const [searchField, setSearchField] = useState('name');
     const [searchValue, setSearchValue] = useState('');
-    const [ratingValue, setRatingValue] = useState(5);
+    const [ratingValue, setRatingValue] = useState(0);
 
     const [openReviewDetailsModal, setOpenReviewDetailsModal] = useState({
         open: false,
@@ -104,6 +104,11 @@ const ReviewPage = () => {
         setCurrentPage(value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue, ratingValue]);
+
     useEffect(() => {
         setIsLoadingReviews(true);
 
@@ -115,10 +120,6 @@ const ReviewPage = () => {
                     let finalValue = searchValue;
 
                     if (searchField === 'rating') finalValue = ratingValue;
-
-                    // if (!currentPage) {
-                    //     setCurrentPage(1);
-                    // }
 
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;

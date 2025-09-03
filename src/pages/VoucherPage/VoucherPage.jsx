@@ -95,6 +95,11 @@ const VoucherPage = () => {
         setCurrentPage(value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue, discountTypeValue, minOrderValuePrice, quantityVoucherValue]);
+
     useEffect(() => {
         setIsLoadingVouchers(true);
 
@@ -115,8 +120,6 @@ const VoucherPage = () => {
                     if (searchField === 'quantityVoucher') {
                         finalValue = quantityVoucherValue;
                     }
-
-                    setCurrentPage(1);
 
                     if (searchField && finalValue) {
                         url += `&field=${searchField}&value=${finalValue}`;

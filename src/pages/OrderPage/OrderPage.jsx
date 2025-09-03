@@ -76,6 +76,11 @@ const OrderPage = () => {
         setCurrentPage(value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue, orderStatusNavigation, searchValue, paymentMethodValue, totalPriceValue, orderStatusValue]);
+
     useEffect(() => {
         setIsLoadingOrders(true);
 
@@ -91,8 +96,6 @@ const OrderPage = () => {
                     if (searchField === 'paymentMethod') finalValue = paymentMethodValue;
                     if (searchField === 'totalPrice') finalValue = totalPriceValue;
                     if (searchField === 'orderStatus') finalValue = orderStatusValue;
-
-                    setCurrentPage(1);
 
                     if (searchField && finalValue) {
                         url += `&field=${searchField}&value=${finalValue}`;

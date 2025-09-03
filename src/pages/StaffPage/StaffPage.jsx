@@ -95,6 +95,10 @@ const StaffPage = () => {
     };
 
     useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue, isLockedValue, roleValue]);
+
+    useEffect(() => {
         setIsLoadingStaffs(true);
 
         const handleDebounced = setTimeout(() => {
@@ -105,8 +109,6 @@ const StaffPage = () => {
 
                     if (searchField === 'isLocked') finalValue = isLockedValue;
                     if (searchField === 'role') finalValue = roleValue;
-
-                    setCurrentPage(1);
 
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;

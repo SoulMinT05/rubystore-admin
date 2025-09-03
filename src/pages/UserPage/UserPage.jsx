@@ -91,6 +91,11 @@ const UserPage = () => {
         setCurrentPage(value);
     };
 
+    // Reset currentPage về 1 mỗi khi searchValue hoặc searchField thay đổi
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchValue, isLockedValue]);
+
     useEffect(() => {
         setIsLoadingUsers(true);
 
@@ -101,8 +106,6 @@ const UserPage = () => {
                     let finalValue = searchValue;
 
                     if (searchField === 'isLocked') finalValue = isLockedValue;
-
-                    setCurrentPage(1);
 
                     if (finalValue && searchField) {
                         url += `&field=${searchField}&value=${finalValue}`;

@@ -14,6 +14,7 @@ const DashboardPage = () => {
         const fetchChartData = async () => {
             try {
                 const { data } = await axiosClient.get('/api/statistic/getMonthlyStatisticsBarChart');
+                console.log('barChartData: ', data);
                 if (data.success) {
                     setBarChartData(data?.barChartData);
                 }
@@ -57,31 +58,47 @@ const DashboardPage = () => {
                     </span>
                 </div>
 
-                <LineChart
-                    width={1150}
-                    height={500}
-                    data={barChartData}
-                    margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                    }}
-                >
-                    <CartesianGrid strokeDasharray="3 3" stroke="none" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                        type="monotone"
-                        dataKey="Tổng người dùng"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                    />
-                    <Line type="monotone" dataKey="Tổng doanh thu" stroke="#3872fa" strokeWidth={3} />
-                </LineChart>
+                {/* Bar Chart */}
+                <ResponsiveContainer width="100%" height={500}>
+                    <LineChart
+                        data={barChartData}
+                        margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="none" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis
+                            tick={{ fontSize: 12 }}
+                            tickFormatter={(value) =>
+                                new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value)
+                            }
+                        />
+                        <Tooltip
+                            formatter={(value, name) => {
+                                if (name === 'Tổng doanh thu') {
+                                    return new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND',
+                                    }).format(value);
+                                }
+                                return value;
+                            }}
+                        />
+                        <Legend />
+                        <Line
+                            type="monotone"
+                            dataKey="Tổng người dùng"
+                            stroke="#10b981"
+                            strokeWidth={3}
+                            activeDot={{ r: 8 }}
+                        />
+                        <Line type="monotone" dataKey="Tổng doanh thu" stroke="#3872fa" strokeWidth={3} />
+                    </LineChart>
+                </ResponsiveContainer>
             </div>
         </>
     );

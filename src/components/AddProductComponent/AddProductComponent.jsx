@@ -30,6 +30,8 @@ const MenuProps = {
 };
 
 const AddProductComponent = () => {
+    const context = useContext(MyContext);
+
     const [formFields, setFormFields] = useState({
         name: '',
         description: '',
@@ -64,7 +66,13 @@ const AddProductComponent = () => {
     const [productSize, setProductSize] = useState([]);
     const [productSizeData, setProductSizeData] = useState([]);
 
-    const context = useContext(MyContext);
+    // Tìm category cấp 1 đang chọn
+    const selectedCategory = context?.categories?.find((cat) => cat._id === productCategory);
+    const subCategories = selectedCategory?.children || [];
+
+    // Tìm category cấp 2 đang chọn
+    const selectedSubCategory = subCategories?.find((sub) => sub._id === productSubCategory);
+    const thirdSubCategories = selectedSubCategory?.children || [];
 
     useEffect(() => {
         const getProductsWeight = async () => {
@@ -99,22 +107,30 @@ const AddProductComponent = () => {
             };
         });
     };
+    // Category
     const handleChangeProductCategory = (event) => {
         setProductCategory(event.target.value);
         formFields.categoryId = event.target.value;
+
+        setProductSubCategory(''); // reset khi đổi cấp 1
+        setProductThirdSubCategory('');
     };
     const selectCategoryByName = (name) => {
         formFields.categoryName = name;
     };
 
+    // Sub category
     const handleChangeProductSubCategory = (event) => {
         setProductSubCategory(event.target.value);
         formFields.subCategoryId = event.target.value;
+
+        setProductThirdSubCategory('');
     };
     const selectSubCategoryByName = (name) => {
         formFields.subCategoryName = name;
     };
 
+    // Third sub category
     const handleChangeProductThirdSubCategory = (event) => {
         setProductThirdSubCategory(event.target.value);
         formFields.thirdSubCategoryId = event.target.value;
@@ -122,6 +138,7 @@ const AddProductComponent = () => {
     const selectThirdSubCategoryByName = (name) => {
         formFields.thirdSubCategoryName = name;
     };
+
     const handleChangeProductIsFeatured = (event) => {
         setProductIsFeatured(event.target.value);
         formFields.isFeatured = event.target.value;
@@ -142,6 +159,12 @@ const AddProductComponent = () => {
         formFields.productSize = value;
     };
 
+    const handleChangeDescription = (e) => {
+        setHtml(e.target.value);
+        formFields.description = e.target.value;
+    };
+
+    // Handle image
     const handleUploadImages = (files) => {
         const imagesArray = files.map((file) => ({
             file,
@@ -161,10 +184,6 @@ const AddProductComponent = () => {
             ...prev,
             images: newImages,
         }));
-    };
-    const handleChangeDescription = (e) => {
-        setHtml(e.target.value);
-        formFields.description = e.target.value;
     };
 
     const handleSubmit = async (e) => {
@@ -253,6 +272,7 @@ const AddProductComponent = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-4 mb-3 gap-4 ">
+                        {/* Category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục sản phẩm</h3>
                             {context?.categories?.length !== 0 && (
@@ -262,8 +282,8 @@ const AddProductComponent = () => {
                                     id="productCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    value={productCategory}
                                     label="Danh mục"
+                                    value={productCategory}
                                     onChange={handleChangeProductCategory}
                                 >
                                     {context?.categories?.map((cat) => {
@@ -276,6 +296,7 @@ const AddProductComponent = () => {
                                 </Select>
                             )}
                         </div>
+                        {/* Sub Category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 2</h3>
                             {context?.categories?.length !== 0 && (
@@ -285,28 +306,29 @@ const AddProductComponent = () => {
                                     id="productSubCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    value={productSubCategory}
                                     label="Danh mục con cấp 2"
+                                    disabled={!productCategory} // disable nếu chưa chọn cấp 1
+                                    value={productSubCategory}
                                     onChange={handleChangeProductSubCategory}
                                 >
-                                    {context?.categories?.map((cat) => {
-                                        return (
-                                            cat?.children?.length !== 0 &&
-                                            cat?.children.map((subCat) => {
-                                                return (
-                                                    <MenuItem
-                                                        value={subCat?._id}
-                                                        onClick={() => selectSubCategoryByName(subCat?.name)}
-                                                    >
-                                                        {subCat?.name}
-                                                    </MenuItem>
-                                                );
-                                            })
-                                        );
-                                    })}
+                                    {subCategories?.length > 0 ? (
+                                        subCategories.map((subCat) => (
+                                            <MenuItem
+                                                key={subCat._id}
+                                                value={subCat._id}
+                                                onClick={() => selectSubCategoryByName(subCat.name)}
+                                            >
+                                                {subCat.name}
+                                            </MenuItem>
+                                        ))
+                                    ) : (
+                                        <MenuItem disabled>Chưa có danh mục con cấp 2</MenuItem>
+                                    )}
                                 </Select>
                             )}
                         </div>
+
+                        {/*Third Sub Category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 3</h3>
                             {context?.categories?.length !== 0 && (
@@ -316,32 +338,24 @@ const AddProductComponent = () => {
                                     id="productThirdCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    value={productThirdSubCategory}
                                     label="Danh mục con cấp 3"
+                                    disabled={!productSubCategory} // disable nếu chưa chọn cấp 2
+                                    value={productThirdSubCategory}
                                     onChange={handleChangeProductThirdSubCategory}
                                 >
-                                    {context?.categories?.map((cat) => {
-                                        return (
-                                            cat?.children?.length !== 0 &&
-                                            cat?.children.map((subCat) => {
-                                                return (
-                                                    subCat?.children?.length !== 0 &&
-                                                    subCat?.children?.map((thirdCat) => {
-                                                        return (
-                                                            <MenuItem
-                                                                value={thirdCat?._id}
-                                                                onClick={() =>
-                                                                    selectThirdSubCategoryByName(thirdCat?.name)
-                                                                }
-                                                            >
-                                                                {thirdCat?.name}
-                                                            </MenuItem>
-                                                        );
-                                                    })
-                                                );
-                                            })
-                                        );
-                                    })}
+                                    {thirdSubCategories?.length > 0 ? (
+                                        thirdSubCategories.map((thirdCat) => (
+                                            <MenuItem
+                                                key={thirdCat._id}
+                                                value={thirdCat._id}
+                                                onClick={() => selectThirdSubCategoryByName(thirdCat.name)}
+                                            >
+                                                {thirdCat.name}
+                                            </MenuItem>
+                                        ))
+                                    ) : (
+                                        <MenuItem disabled>Chưa có danh mục con cấp 3</MenuItem>
+                                    )}
                                 </Select>
                             )}
                         </div>

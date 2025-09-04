@@ -27,6 +27,9 @@ const MenuProps = {
 };
 
 const UpdateProductComponent = () => {
+    const context = useContext(MyContext);
+    const { id } = context.isOpenFullScreenPanel || {};
+
     const [html, setHtml] = useState('');
     const [formFields, setFormFields] = useState({
         name: '',
@@ -62,8 +65,14 @@ const UpdateProductComponent = () => {
     const [productSize, setProductSize] = useState([]);
     const [productSizeData, setProductSizeData] = useState([]);
 
-    const context = useContext(MyContext);
-    const { id } = context.isOpenFullScreenPanel || {};
+    // Tìm category cấp 1 đang chọn
+    const selectedCategory = context?.categories?.find((cat) => cat._id === productCategory);
+    const subCategories = selectedCategory?.children || [];
+
+    // Tìm category cấp 2 đang chọn
+    const selectedSubCategory = subCategories?.find((sub) => sub._id === productSubCategory);
+    const thirdSubCategories = selectedSubCategory?.children || [];
+
     useEffect(() => {
         const fetchProduct = async () => {
             try {
@@ -132,6 +141,7 @@ const UpdateProductComponent = () => {
         getProductsSize();
     }, []);
 
+    // Category
     const handleChangeProductCategory = (event) => {
         const id = event.target.value;
         setProductCategory(id);
@@ -139,6 +149,9 @@ const UpdateProductComponent = () => {
             ...prev,
             categoryId: id,
         }));
+
+        setProductSubCategory(''); // reset khi đổi cấp 1
+        setProductThirdSubCategory('');
     };
     const selectCategoryByName = (name) => {
         setFormFields((prev) => ({
@@ -147,6 +160,7 @@ const UpdateProductComponent = () => {
         }));
     };
 
+    // Sub category
     const handleChangeProductSubCategory = (event) => {
         const id = event.target.value;
         setProductSubCategory(id);
@@ -154,6 +168,8 @@ const UpdateProductComponent = () => {
             ...prev,
             subCategoryId: id,
         }));
+
+        setProductThirdSubCategory('');
     };
     const selectSubCategoryByName = (name) => {
         setFormFields((prev) => ({
@@ -162,6 +178,7 @@ const UpdateProductComponent = () => {
         }));
     };
 
+    // Third sub category
     const handleChangeProductThirdSubCategory = (event) => {
         const id = event.target.value;
         setProductThirdSubCategory(id);
@@ -211,6 +228,7 @@ const UpdateProductComponent = () => {
         formFields.description = e.target.value;
     };
 
+    // Handle Image
     const handleUploadImages = (files) => {
         const imagesArray = files.map((file) => ({
             file,
@@ -334,6 +352,7 @@ const UpdateProductComponent = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-4 mb-3 gap-4 ">
+                        {/* Category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục sản phẩm</h3>
                             {context?.categories?.length !== 0 && (
@@ -361,6 +380,7 @@ const UpdateProductComponent = () => {
                                 </Select>
                             )}
                         </div>
+                        {/* Sub category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 2</h3>
                             {context?.categories?.length !== 0 && (
@@ -370,29 +390,33 @@ const UpdateProductComponent = () => {
                                     id="productSubCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    value={productSubCategory}
                                     label="Danh mục con cấp 2"
+                                    disabled={!productCategory}
+                                    value={productSubCategory}
+                                    // value={
+                                    //     subCategories.some((sub) => sub._id === productSubCategory)
+                                    //         ? productSubCategory
+                                    //         : ''
+                                    // }
                                     onChange={handleChangeProductSubCategory}
                                 >
-                                    {context?.categories?.map((cat) => {
-                                        return (
-                                            cat?.children?.length !== 0 &&
-                                            cat?.children.map((subCat) => {
-                                                return (
-                                                    <MenuItem
-                                                        key={subCat?._id}
-                                                        value={subCat?._id}
-                                                        onClick={() => selectSubCategoryByName(subCat?.name)}
-                                                    >
-                                                        {subCat?.name}
-                                                    </MenuItem>
-                                                );
-                                            })
-                                        );
-                                    })}
+                                    {subCategories?.length > 0 ? (
+                                        subCategories.map((subCat) => (
+                                            <MenuItem
+                                                key={subCat._id}
+                                                value={subCat._id}
+                                                onClick={() => selectSubCategoryByName(subCat.name)}
+                                            >
+                                                {subCat.name}
+                                            </MenuItem>
+                                        ))
+                                    ) : (
+                                        <MenuItem disabled>Chưa có danh mục con cấp 2</MenuItem>
+                                    )}
                                 </Select>
                             )}
                         </div>
+                        {/* Third sub category */}
                         <div className="col">
                             <h3 className="text-[14px] font-[500] mb-1 text-black">Danh mục con cấp 3</h3>
                             {context?.categories?.length !== 0 && (
@@ -402,44 +426,35 @@ const UpdateProductComponent = () => {
                                     id="productThirdCategoryDrop"
                                     size="small"
                                     className="w-full"
-                                    // value={productThirdSubCategory}
-                                    value={
-                                        context?.categories?.some((cat) =>
-                                            cat?.children?.some((subCat) =>
-                                                subCat?.children?.some(
-                                                    (thirdCat) => thirdCat._id === productThirdSubCategory
-                                                )
-                                            )
-                                        )
-                                            ? productThirdSubCategory
-                                            : ''
-                                    }
                                     label="Danh mục con cấp 3"
+                                    disabled={!productSubCategory}
+                                    value={productThirdSubCategory}
+                                    // value={
+                                    //     context?.categories?.some((cat) =>
+                                    //         cat?.children?.some((subCat) =>
+                                    //             subCat?.children?.some(
+                                    //                 (thirdCat) => thirdCat._id === productThirdSubCategory
+                                    //             )
+                                    //         )
+                                    //     )
+                                    //         ? productThirdSubCategory
+                                    //         : ''
+                                    // }
                                     onChange={handleChangeProductThirdSubCategory}
                                 >
-                                    {context?.categories?.map((cat) => {
-                                        return (
-                                            cat?.children?.length !== 0 &&
-                                            cat?.children.map((subCat) => {
-                                                return (
-                                                    subCat?.children?.length !== 0 &&
-                                                    subCat?.children?.map((thirdCat) => {
-                                                        return (
-                                                            <MenuItem
-                                                                key={thirdCat?._id}
-                                                                value={thirdCat?._id}
-                                                                onClick={() =>
-                                                                    selectThirdSubCategoryByName(thirdCat?.name)
-                                                                }
-                                                            >
-                                                                {thirdCat?.name}
-                                                            </MenuItem>
-                                                        );
-                                                    })
-                                                );
-                                            })
-                                        );
-                                    })}
+                                    {thirdSubCategories?.length > 0 ? (
+                                        thirdSubCategories.map((thirdCat) => (
+                                            <MenuItem
+                                                key={thirdCat._id}
+                                                value={thirdCat._id}
+                                                onClick={() => selectThirdSubCategoryByName(thirdCat.name)}
+                                            >
+                                                {thirdCat.name}
+                                            </MenuItem>
+                                        ))
+                                    ) : (
+                                        <MenuItem disabled>Chưa có danh mục con cấp 3</MenuItem>
+                                    )}
                                 </Select>
                             )}
                         </div>

@@ -62,7 +62,7 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
         });
     };
 
-    const handleSubmit = async (e) => {
+    const handleUpdate = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
@@ -79,6 +79,7 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
             }
         } catch (error) {
             console.log(error);
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setIsLoading(false);
         }
@@ -95,7 +96,7 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setIsLoadingDelete(false);
         }
@@ -103,14 +104,13 @@ const EditSubCategoryComponent = ({ name, id, categories, selectedCategory, sele
 
     return (
         <>
-            <form className="w-100 flex items-center gap-3 p-0 px-4" onSubmit={handleSubmit}>
+            <form className="w-100 flex items-center gap-3 p-0 px-4" onSubmit={handleUpdate}>
                 {editMode === true && (
                     <>
                         <div className="flex items-center justify-between py-2 gap-4">
                             <div className="w-[150px]">
                                 <Select
                                     MenuProps={{ disableScrollLock: true }}
-                                    style={{ zoom: '75%' }}
                                     className="w-full"
                                     size="small"
                                     value={selectVal}

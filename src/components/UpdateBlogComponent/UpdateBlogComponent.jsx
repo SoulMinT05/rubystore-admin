@@ -103,7 +103,7 @@ const UpdateBlogComponent = () => {
         context.openAlertBox('success', 'Xoá ảnh thành công');
     };
 
-    const handleUpdateDescription = async (e) => {
+    const handleUpdateBlog = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
@@ -139,8 +139,8 @@ const UpdateBlogComponent = () => {
                 });
             }
         } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
+            console.error('Lỗi khi cập nhật:', error.response.data.message);
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setIsLoading(false);
         }
@@ -205,7 +205,7 @@ const UpdateBlogComponent = () => {
                     </div>
 
                     <br />
-                    <Button onClick={handleUpdateDescription} className="btn-blue w-full !normal-case flex gap-2">
+                    <Button onClick={handleUpdateBlog} className="btn-blue w-full !normal-case flex gap-2">
                         {isLoading === true ? (
                             <CircularProgress color="inherit" />
                         ) : (

@@ -22,6 +22,7 @@ import { LuMessageCircleMore } from 'react-icons/lu';
 
 import { Collapse } from 'react-collapse';
 import { MyContext } from '../../App';
+import logoRubyStore from '../../assets/rubystore_1.png';
 
 const SidebarComponent = () => {
     const context = useContext(MyContext);
@@ -38,12 +39,13 @@ const SidebarComponent = () => {
         <div
             className={`sidebar fixed top-0 left-0 bg-[#fff] ${
                 context.isOpenSidebar === true ? 'w-[18%]' : 'w-[0px]'
-            } h-full overflow-y-auto border-r border-[rgba(0,0,0,0.1)] px-4 py-2`}
+            } h-full overflow-y-auto border-r border-[rgba(0,0,0,0.1)] pl-[10px] pr-0 2xl:px-4 py-2`}
         >
             <div className="py-2 w-full">
                 <Link to="/">
                     <img
-                        src="https://serviceapi.spicezgold.com/download/1744255975457_logo.jpg"
+                        // src="https://serviceapi.spicezgold.com/download/1744255975457_logo.jpg"
+                        src={logoRubyStore}
                         alt=""
                         className="w-[200px]"
                     />

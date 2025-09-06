@@ -101,11 +101,10 @@ const AddSubCategoryComponent = () => {
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });
-            } else {
-                context.openAlertBox('error', data.message);
             }
         } catch (error) {
             console.log(error);
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setIsLoading(false);
         }
@@ -133,11 +132,10 @@ const AddSubCategoryComponent = () => {
                 context.setIsOpenFullScreenPanel({
                     open: false,
                 });
-            } else {
-                context.openAlertBox('error', data.message);
             }
         } catch (error) {
             console.log(error);
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setThirdIsLoading(false);
         }

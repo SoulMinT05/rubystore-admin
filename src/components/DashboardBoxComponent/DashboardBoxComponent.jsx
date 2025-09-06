@@ -123,14 +123,14 @@ const DashboardBoxComponent = () => {
                     </div>
                     <IoStatsChartSharp className="text-[50px] text-[#e11d48]" />
                 </div>
-                <div className="box bg-white p-5 cursor-pointer hover:bg-[#f1faff] rounded-md border border-[rgba(0,0,0,0.1)] flex items-center gap-4">
+                {/* <div className="box bg-white p-5 cursor-pointer hover:bg-[#f1faff] rounded-md border border-[rgba(0,0,0,0.1)] flex items-center gap-4">
                     <LuMessageCircleMore className="text-[40px] text-[#6366f1]" />
                     <div className="info w-[70%]">
                         <h3>Tin nhắn</h3>
                         <b>{statistics?.totalMessages || 0}</b>
                     </div>
                     <IoStatsChartSharp className="text-[50px] text-[#6366f1]" />
-                </div>
+                </div> */}
             </div>
             {/* <Swiper
                 slidesPerView={4}

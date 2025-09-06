@@ -127,7 +127,7 @@ const UpdateCategoryComponent = () => {
             }
         } catch (error) {
             console.error('Lỗi khi cập nhật:', error);
-            context.openAlertBox('error', 'Cập nhật thất bại');
+            context.openAlertBox('error', error.response.data.message);
         } finally {
             setIsLoading(false);
         }

@@ -318,7 +318,7 @@ const ProductSizePage = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-2">
-                                            <p className="w-[80px]">{product?.name}</p>
+                                            <p className="w-[350px]">{product?.name}</p>
                                         </td>
                                         <td className="px-6 py-2">
                                             <div className="flex items-center gap-1">
